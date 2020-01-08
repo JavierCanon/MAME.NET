@@ -1,0 +1,387 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>9.0.30729</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{8AFD3E98-81CF-4F1A-9C90-16A926AE40DB}</ProjectGuid>
+    <OutputType>WinExe</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>mame</RootNamespace>
+    <AssemblyName>mame</AssemblyName>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="Microsoft.DirectX.DirectInput, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="System" />
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data.DataSetExtensions">
+      <RequiredTargetFramework>3.5</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Data" />
+    <Reference Include="System.Deployment" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="cpu\m6800\M6800.cs" />
+    <Compile Include="cpu\m6800\M6800op.cs" />
+    <Compile Include="cpu\m6809\Disassembler.cs" />
+    <Compile Include="cpu\m6809\M6809.cs" />
+    <Compile Include="cpu\m6809\M6809op.cs" />
+    <Compile Include="cpu\nec\Nec.cs" />
+    <Compile Include="cpu\nec\NecEa.cs" />
+    <Compile Include="cpu\nec\NecInstr.cs" />
+    <Compile Include="cpu\nec\NecModrm.cs" />
+    <Compile Include="emu\Pd4900a.cs" />
+    <Compile Include="emu\Machine.cs" />
+    <Compile Include="emu\State.cs" />
+    <Compile Include="emu\Watchdog.cs" />
+    <Compile Include="mame\cps\Input.cs" />
+    <Compile Include="mame\cps\Memory2.cs" />
+    <Compile Include="mame\cps\State.cs" />
+    <Compile Include="mame\cps\Tilemap.cs" />
+    <Compile Include="mame\igs011\GDI.cs" />
+    <Compile Include="mame\igs011\IGS011.cs" />
+    <Compile Include="mame\igs011\Input.cs" />
+    <Compile Include="mame\igs011\Machine.cs" />
+    <Compile Include="mame\igs011\Memory.cs" />
+    <Compile Include="mame\igs011\Memory2.cs" />
+    <Compile Include="mame\igs011\State.cs" />
+    <Compile Include="mame\igs011\Video.cs" />
+    <Compile Include="mame\m72\Audio.cs" />
+    <Compile Include="mame\m72\Gdi.cs" />
+    <Compile Include="mame\m72\Input.cs" />
+    <Compile Include="mame\m72\M72.cs" />
+    <Compile Include="mame\m72\Memory.cs" />
+    <Compile Include="mame\m72\Memory2.cs" />
+    <Compile Include="mame\m72\State.cs" />
+    <Compile Include="mame\m72\Tilemap.cs" />
+    <Compile Include="mame\m72\Video.cs" />
+    <Compile Include="mame\m92\Gdi.cs" />
+    <Compile Include="mame\m92\Input.cs" />
+    <Compile Include="mame\m92\M92.cs" />
+    <Compile Include="mame\m92\Memory.cs" />
+    <Compile Include="mame\m92\Memory2.cs" />
+    <Compile Include="mame\m92\State.cs" />
+    <Compile Include="mame\m92\Tilemap.cs" />
+    <Compile Include="mame\m92\Video.cs" />
+    <Compile Include="mame\namcos1\Gdi.cs" />
+    <Compile Include="mame\namcos1\Input.cs" />
+    <Compile Include="mame\namcos1\Machine.cs" />
+    <Compile Include="mame\namcos1\Memory.cs" />
+    <Compile Include="mame\namcos1\Memory2.cs" />
+    <Compile Include="mame\namcos1\Namcos1.cs" />
+    <Compile Include="mame\namcos1\State.cs" />
+    <Compile Include="mame\namcos1\Tilemap.cs" />
+    <Compile Include="mame\namcos1\Video.cs" />
+    <Compile Include="mame\neogeo\Gdi.cs" />
+    <Compile Include="mame\neogeo\Input.cs" />
+    <Compile Include="mame\cps\Memory.cs" />
+    <Compile Include="mame\neogeo\Memory.cs" />
+    <Compile Include="mame\neogeo\Neogeo.cs" />
+    <Compile Include="mame\neogeo\Neoprot.cs" />
+    <Compile Include="mame\neogeo\State.cs" />
+    <Compile Include="mame\neogeo\Video.cs" />
+    <Compile Include="mame\pgm\Gdi.cs" />
+    <Compile Include="mame\pgm\Input.cs" />
+    <Compile Include="mame\pgm\Machine.cs" />
+    <Compile Include="mame\pgm\Memory.cs" />
+    <Compile Include="mame\pgm\Memory2.cs" />
+    <Compile Include="mame\pgm\PGM.cs" />
+    <Compile Include="mame\pgm\Pgmprot.cs" />
+    <Compile Include="mame\pgm\State.cs" />
+    <Compile Include="mame\pgm\Tilemap.cs" />
+    <Compile Include="mame\pgm\Video.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="sound\AY8910.cs" />
+    <Compile Include="sound\DAC.cs" />
+    <Compile Include="sound\FM.cs" />
+    <Compile Include="sound\FMOpl.cs" />
+    <Compile Include="sound\ICS2115.cs" />
+    <Compile Include="sound\Iremga20.cs" />
+    <Compile Include="sound\Namco.cs" />
+    <Compile Include="sound\YM2413.cs" />
+    <Compile Include="sound\YM2610.cs" />
+    <Compile Include="sound\YM3812.cs" />
+    <Compile Include="sound\YMDeltat.cs" />
+    <Compile Include="ui\aboutForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\aboutForm.Designer.cs">
+      <DependentUpon>aboutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\cheatForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\cheatForm.designer.cs">
+      <DependentUpon>cheatForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\cheatsearchForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\cheatsearchForm.Designer.cs">
+      <DependentUpon>cheatsearchForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="mame\cps\CPS.cs" />
+    <Compile Include="ui\cpsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\cpsForm.Designer.cs">
+      <DependentUpon>cpsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="emu\Eeprom.cs" />
+    <Compile Include="emu\Gdi.cs" />
+    <Compile Include="mame\cps\Gdi.cs" />
+    <Compile Include="emu\Generic.cs" />
+    <Compile Include="ui\m72Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\m72Form.Designer.cs">
+      <DependentUpon>m72Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\m92Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\m92Form.Designer.cs">
+      <DependentUpon>m92Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\pgmForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\pgmForm.Designer.cs">
+      <DependentUpon>pgmForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\ipsForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\ipsForm.Designer.cs">
+      <DependentUpon>ipsForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\ListViewControl.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="ui\ListViewControl.designer.cs">
+      <DependentUpon>ListViewControl.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\loadForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\loadForm.designer.cs">
+      <DependentUpon>loadForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\m68000Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\m68000Form.Designer.cs">
+      <DependentUpon>m68000Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\m6809Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\m6809Form.Designer.cs">
+      <DependentUpon>m6809Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\mainForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\mainForm.designer.cs">
+      <DependentUpon>mainForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\MyCheckBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="ui\MyListView.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="emu\RomInfo.cs" />
+    <Compile Include="ui\namcos1Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\namcos1Form.Designer.cs">
+      <DependentUpon>namcos1Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\neogeoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\neogeoForm.Designer.cs">
+      <DependentUpon>neogeoForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\Version.cs" />
+    <Compile Include="mame\cps\Video.cs" />
+    <Compile Include="ui\z80Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\z80Form.Designer.cs">
+      <DependentUpon>z80Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="emu\Attotime.cs" />
+    <Compile Include="emu\Cpuexec.cs" />
+    <Compile Include="emu\Cpuint.cs" />
+    <Compile Include="emu\Drawgfx.cs" />
+    <Compile Include="emu\Inptport.cs" />
+    <Compile Include="emu\Keyboard.cs" />
+    <Compile Include="emu\KeyStruct.cs" />
+    <Compile Include="emu\Mame.cs" />
+    <Compile Include="emu\Memory.cs" />
+    <Compile Include="emu\Palette.cs" />
+    <Compile Include="emu\Tilemap.cs" />
+    <Compile Include="emu\Timer.cs" />
+    <Compile Include="emu\UI.cs" />
+    <Compile Include="emu\Video.cs" />
+    <Compile Include="emu\Wintime.cs" />
+    <Compile Include="cpu\m68000\Disassembler.cs" />
+    <Compile Include="cpu\m68000\Instructions\BitArithemetic.cs" />
+    <Compile Include="cpu\m68000\Instructions\DataMovement.cs" />
+    <Compile Include="cpu\m68000\Instructions\IntegerMath.cs" />
+    <Compile Include="cpu\m68000\Instructions\ProgramFlow.cs" />
+    <Compile Include="cpu\m68000\Instructions\Supervisor.cs" />
+    <Compile Include="cpu\m68000\MC68000.cs" />
+    <Compile Include="cpu\m68000\Memory.cs" />
+    <Compile Include="cpu\m68000\OpcodeTable.cs" />
+    <Compile Include="cpu\m68000\Tables.cs" />
+    <Compile Include="Program.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <EmbeddedResource Include="ui\aboutForm.resx">
+      <DependentUpon>aboutForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\cheatForm.resx">
+      <DependentUpon>cheatForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\cheatsearchForm.resx">
+      <DependentUpon>cheatsearchForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\cpsForm.resx">
+      <DependentUpon>cpsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\ipsForm.resx">
+      <DependentUpon>ipsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\ListViewControl.resx">
+      <DependentUpon>ListViewControl.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\loadForm.resx">
+      <DependentUpon>loadForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\m68000Form.resx">
+      <DependentUpon>m68000Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\m6809Form.resx">
+      <DependentUpon>m6809Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\m72Form.resx">
+      <DependentUpon>m72Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\m92Form.resx">
+      <DependentUpon>m92Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\mainForm.resx">
+      <DependentUpon>mainForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\namcos1Form.resx">
+      <DependentUpon>namcos1Form.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\neogeoForm.resx">
+      <DependentUpon>neogeoForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\pgmForm.resx">
+      <DependentUpon>pgmForm.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\z80Form.resx">
+      <DependentUpon>z80Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <SubType>Designer</SubType>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DependentUpon>Settings.settings</DependentUpon>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+    </Compile>
+    <Compile Include="sound\OKI6295.cs" />
+    <Compile Include="sound\QSound.cs" />
+    <Compile Include="sound\Sound.cs" />
+    <Compile Include="sound\Streams.cs" />
+    <Compile Include="sound\WavWrite.cs" />
+    <Compile Include="sound\YM2151.cs" />
+    <Compile Include="cpu\z80\Disassembler.cs" />
+    <Compile Include="cpu\z80\Execute.cs" />
+    <Compile Include="cpu\z80\Interrupts.cs" />
+    <Compile Include="cpu\z80\Registers.cs" />
+    <Compile Include="cpu\z80\Tables.cs" />
+    <Compile Include="cpu\z80\Z80A.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="mame\namcos1\cus64-64a1.mcu" />
+    <None Include="mame\neogeo\000-lo.lo" />
+    <None Include="mame\neogeo\mainbios.rom" />
+    <None Include="mame\neogeo\sfix.sfix" />
+    <None Include="mame\neogeo\sm1.sm1" />
+    <None Include="mame\pgm\mainbios.rom" />
+    <None Include="mame\pgm\pgm_m01s.rom" />
+    <None Include="mame\pgm\pgm_t01s.rom" />
+    <None Include="ui\1.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="ui\mame.xml" />
+    <Content Include="ui\readme.txt" />
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
