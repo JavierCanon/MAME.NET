@@ -68,7 +68,7 @@ The stated aim of the project is to document hardware, and so MAME takes a somew
 
 We want to document the hardware. Now a lot of people will say; "Where's your document? You just write a bunch of source code." And yes, that's true. One thing I've learned is that keeping documentation synced with source code is nearly impossible. The best proof that your documentation is right is "does this code work".
 
-— Aaron Giles, California Extreme 2008[26]
+— Aaron Giles, California Extreme 2008[26]
 MAME emulates well over a thousand different arcade system boards, a majority of which are completely undocumented and custom designed to run either a single game or a very small number of them. The approach MAME takes with regards to accuracy is an incremental one; systems are emulated as accurately as they reasonably can be. Bootleg copies of games are often the first to be emulated, with proper (and copy protected) versions emulated later. Besides encryption, arcade games were usually protected with custom microcontroller units (MCUs) that implemented a part of the game logic or some other important functions. Emulation of these chips is preferred even when they have little or no immediately visible effect on the game itself. For example, the monster behavior in Bubble Bobble was not perfected until the code and data contained with the custom MCU was dumped through the decapping of the chip.[27] This results in the ROM set requirements changing as the games are emulated to a more and more accurate degree, causing older versions of the ROM set becoming unusable in newer versions of MAME.
 
 Portability and genericity are also important to MAME. Combined with the uncompromising stance on accuracy, this often results in high system requirements. Although a 2 GHz processor is enough to run almost all 2D games, more recent systems and particularly systems with 3D graphics can be unplayably slow, even on the fastest computers. MAME does not currently take advantage of hardware acceleration to speed up the rendering of 3D graphics, in part because of the lack of a stable cross-platform 3D API, and in part because software rendering can in theory be an exact reproduction of the various custom 3D rendering approaches that were used in the arcade games.
@@ -86,43 +86,43 @@ MAME was formerly distributed under a custom own-written copyleft license, calle
 Since March 2016 with version 0.172, MAME itself switched to common free and open source software licenses, the BSD and GPL licenses.[37]
 
 ## References
- "Releases - mamedev/mame". Retrieved December 25, 2019 – via GitHub.
- Herz, J.C. (March 5, 1998). "With Software Sleight of Hand, Video Ghosts Walk". The New York Times. Archived from the original on April 14, 2019. Retrieved July 3, 2013.
- "MAME | About MAME". Mamedev.org. Retrieved April 11, 2011.
- Quilty-Harper, Conrad (December 16, 2005). "PC and Mac Applications that Every Gamer Should Have". Joystiq. Archived from the original on January 6, 2006. Retrieved July 3, 2013.
- Maragos, Nich (July 25, 2015). "Afterlife: The World of Console Game Emulation". 1UP.com. Archived from the original on July 25, 2015. Retrieved August 21, 2018.
- "MAME Project History". Retrieved April 23, 2011.
- Giles, Aaron (April 5, 2011). "Regime Change". Mamedev.org. Retrieved July 3, 2013.
- Milanovic, Miodrag (April 26, 2012). "Passing the torch". Mamedev.org. Retrieved April 26, 2012.
- "The SDLMAME Homepage". Rbelmont.mameworld.info. October 13, 2006. Retrieved April 11, 2011.
- IGN Staff (November 3, 1999). "But Wait, That's a Camera..." IGN. Archived from the original on February 22, 2014. Retrieved July 3, 2013.
- Wawro, Alex (January 3, 2012). "MAME Runs In Google Chrome, Plays All Your Favorite Arcade Games". PC World. Archived from the original on September 7, 2013. Retrieved July 3, 2013.
- "MAME Latest MAME Release". Retrieved April 23, 2011.
- "MAME Source Updates". Archived from the original on April 20, 2011. Retrieved April 23, 2011.
- "GitHub - mamedev/mame: MAME - Multiple Arcade Machine Emulator". Retrieved May 19, 2016.
- "MAME Previous Releases".
- St. Clair, John (2004). Project Arcade: Build Your Own Arcade Machine. Indianapolis, IN: Wiley. ISBN 0764556169.
- Roush, George (April 16, 2008). "Build Your Own MAME Machine". IGN. Archived from the original on December 16, 2012. Retrieved July 3, 2013.
- Harris, Craig (November 30, 2005). "Dream Arcade Cocktail Kit". IGN. Archived from the original on February 22, 2014. Retrieved July 3, 2013.
- "Taito Legends manual" (PDF). Sega. Retrieved April 23, 2011.[permanent dead link]
- "MAME 0.162". MAMEDEV.org.
- Wawro, Alex (March 4, 2016). "10 months later, MAME finishes its transition to open source". Gamasutra. Archived from the original on April 22, 2016. Retrieved March 5, 2016.
- Wawro, Alex (May 15, 2015). "MAME is going open source to be a 'learning tool for developers'". Gamasutra. Archived from the original on May 16, 2015. Retrieved May 27, 2015.
- "MAME is now Free and Open Source Software". MAMEdev.org. Retrieved March 5, 2016.
- http://mamedev.org/releases/whatsnew_0171.txt
- "MAME | src/lib/util/chd.h". Mamedev.org. Archived from the original on July 4, 2013. Retrieved December 20, 2012.
- Giles, Aaron (July 17, 2009). "Aaron Giles at California Extreme 2008 – Part 2". YouTube. Retrieved December 20, 2012.
- Salmoria, Nicola. "Nicola's MAME Ramblings". Retrieved July 3, 2013.
- Glasner, Joanna (February 10, 2000). "Court Upholds PlayStation Rival". Wired. Archived from the original on June 18, 2001. Retrieved September 26, 2006.
- "17 U.S. Code § 117 (a)". U.S. Copyright Office. Retrieved February 8, 2014.
- "MAME ROMs for Free Download". Retrieved July 3, 2013.
- "Gaelco Games at Home!". Archived from the original on May 18, 2013. Retrieved July 3, 2013.
- "FAQ: Roms". MAME development site. Retrieved December 28, 2013.
- "Make The Most of It". PC Magazine. Vol. 26 no. 17. September 4, 2007. p. 61. Retrieved December 28, 2013.
- "Game On". Popular Science. Vol. 270 no. 4. April 2007. p. 78. Retrieved December 28, 2013.
- "David Haywood's Homepage » The 'Already Dead' Theory." October 31, 2013. Archived from the original on October 31, 2013.
- "So why did this annoy me so much?". mameworld.info. October 22, 2013. Retrieved October 29, 2017.
- "MAME is now Free and Open Source Software". MAMEDEV.org.
+- [1] "Releases - mamedev/mame". Retrieved December 25, 2019 – via GitHub.
+- [2] Herz, J.C. (March 5, 1998). "With Software Sleight of Hand, Video Ghosts Walk". The New York Times. Archived from the original on April 14, 2019. Retrieved July 3, 2013.
+- [3] "MAME | About MAME". Mamedev.org. Retrieved April 11, 2011.
+- [4] Quilty-Harper, Conrad (December 16, 2005). "PC and Mac Applications that Every Gamer Should Have". Joystiq. Archived from the original on January 6, 2006. Retrieved July 3, 2013.
+- [5] Maragos, Nich (July 25, 2015). "Afterlife: The World of Console Game Emulation". 1UP.com. Archived from the original on July 25, 2015. Retrieved August 21, 2018.
+- [6] "MAME Project History". Retrieved April 23, 2011.
+- [7] Giles, Aaron (April 5, 2011). "Regime Change". Mamedev.org. Retrieved July 3, 2013.
+- [8] Milanovic, Miodrag (April 26, 2012). "Passing the torch". Mamedev.org. Retrieved April 26, 2012.
+- [9] "The SDLMAME Homepage". Rbelmont.mameworld.info. October 13, 2006. Retrieved April 11, 2011.
+- [10] IGN Staff (November 3, 1999). "But Wait, That's a Camera..." IGN. Archived from the original on February 22, 2014. Retrieved July 3, 2013.
+- [11]  Wawro, Alex (January 3, 2012). "MAME Runs In Google Chrome, Plays All Your Favorite Arcade Games". PC World. Archived from the original on September 7, 2013. Retrieved July 3, 2013.
+- [12]  "MAME Latest MAME Release". Retrieved April 23, 2011.
+- [13]  "MAME Source Updates". Archived from the original on April 20, 2011. Retrieved April 23, 2011.
+- [14] "GitHub - mamedev/mame: MAME - Multiple Arcade Machine Emulator". Retrieved May 19, 2016.
+- [15]  "MAME Previous Releases".
+- [16]  St. Clair, John (2004). Project Arcade: Build Your Own Arcade Machine. Indianapolis, IN: Wiley. ISBN 0764556169.
+- [17]  Roush, George (April 16, 2008). "Build Your Own MAME Machine". IGN. Archived from the original on December 16, 2012. Retrieved July 3, 2013.
+- [18] Harris, Craig (November 30, 2005). "Dream Arcade Cocktail Kit". IGN. Archived from the original on February 22, 2014. Retrieved July 3, 2013.
+- [19] "Taito Legends manual" (PDF). Sega. Retrieved April 23, 2011.[permanent dead link]
+- [20] "MAME 0.162". MAMEDEV.org.
+- [21]  Wawro, Alex (March 4, 2016). "10 months later, MAME finishes its transition to open source". Gamasutra. Archived from the original on April 22, 2016. Retrieved March 5, 2016.
+- [22]  Wawro, Alex (May 15, 2015). "MAME is going open source to be a 'learning tool for developers'". Gamasutra. Archived from the original on May 16, 2015. Retrieved May 27, 2015.
+- [23]  "MAME is now Free and Open Source Software". MAMEdev.org. Retrieved March 5, 2016.
+- [24]  http://mamedev.org/releases/whatsnew_0171.txt
+- [25]  "MAME | src/lib/util/chd.h". Mamedev.org. Archived from the original on July 4, 2013. Retrieved December 20, 2012.
+- [26] Giles, Aaron (July 17, 2009). "Aaron Giles at California Extreme 2008 – Part 2". YouTube. Retrieved December 20, 2012.
+- [27] Salmoria, Nicola. "Nicola's MAME Ramblings". Retrieved July 3, 2013.
+- [28] Glasner, Joanna (February 10, 2000). "Court Upholds PlayStation Rival". Wired. Archived from the original on June 18, 2001. Retrieved September 26, 2006.
+- [29]  "17 U.S. Code § 117 (a)". U.S. Copyright Office. Retrieved February 8, 2014.
+- [30] "MAME ROMs for Free Download". Retrieved July 3, 2013.
+- [31] "Gaelco Games at Home!". Archived from the original on May 18, 2013. Retrieved July 3, 2013.
+- [32]  "FAQ: Roms". MAME development site. Retrieved December 28, 2013.
+- [33] "Make The Most of It". PC Magazine. Vol. 26 no. 17. September 4, 2007. p. 61. Retrieved December 28, 2013.
+- [34]  "Game On". Popular Science. Vol. 270 no. 4. April 2007. p. 78. Retrieved December 28, 2013.
+- [35]  "David Haywood's Homepage » The 'Already Dead' Theory." October 31, 2013. Archived from the original on October 31, 2013.
+- [36]  "So why did this annoy me so much?". mameworld.info. October 22, 2013. Retrieved October 29, 2017.
+- [37] "MAME is now Free and Open Source Software". MAMEDEV.org.
 
 ## External links
 - https://github.com/mamedev/mame based simulator.
@@ -136,7 +136,7 @@ You should install Microsoft .NET Framework 3.5 or higher before running the pro
 
 ### Screenshots
 
-![sh01](screenshots/sh01.png) ![sh02](screenshots/sh02.png) ![sh04](screenshots/sh04.png)
+![sh01](docs/img/sh01.png) ![sh02](docs/img/sh02.png) ![sh04](docs/img/sh04.png)
 
 ### Hotkey: 
 
@@ -181,7 +181,7 @@ You should install Microsoft .NET Framework 3.5 or higher before running the pro
 
 When the ROMs of a game are loaded, the emulator is auto paused. Press P to continue.
 
-Occasionally GDI+ error occurs and a red cross is shown. You can click "File-Reset picturebox" to handle the error.
+*Occasionally GDI+ error occurs and a red cross is shown. You can click "File-Reset picturebox" to handle the error.
 
 MAME.NET ROM files: https://pan.baidu.com/s/14bR2wEzU2Qqx5hM7hJXMZA
 
