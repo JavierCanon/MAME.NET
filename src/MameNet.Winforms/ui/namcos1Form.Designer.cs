@@ -31,6 +31,7 @@
             this.btnDraw = new System.Windows.Forms.Button();
             this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.tbLayer = new System.Windows.Forms.TextBox();
+            this.btnDraw2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -59,6 +60,16 @@
             this.tbLayer.Size = new System.Drawing.Size(70, 21);
             this.tbLayer.TabIndex = 2;
             // 
+            // btnDraw2
+            // 
+            this.btnDraw2.Location = new System.Drawing.Point(12, 204);
+            this.btnDraw2.Name = "btnDraw2";
+            this.btnDraw2.Size = new System.Drawing.Size(70, 21);
+            this.btnDraw2.TabIndex = 0;
+            this.btnDraw2.Text = "draw2";
+            this.btnDraw2.UseVisualStyleBackColor = true;
+            this.btnDraw2.Click += new System.EventHandler(this.btnDraw2_Click);
+            // 
             // namcos1Form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -66,6 +77,7 @@
             this.ClientSize = new System.Drawing.Size(614, 562);
             this.Controls.Add(this.tbLayer);
             this.Controls.Add(this.pictureBox1);
+            this.Controls.Add(this.btnDraw2);
             this.Controls.Add(this.btnDraw);
             this.Name = "namcos1Form";
             this.Text = "namcos1Form";
@@ -82,5 +94,6 @@
         private System.Windows.Forms.Button btnDraw;
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.TextBox tbLayer;
+        private System.Windows.Forms.Button btnDraw2;
     }
 }

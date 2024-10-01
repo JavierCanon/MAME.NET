@@ -155,14 +155,6 @@ namespace mame
                         iCode = m72_videoram1[iOffset3 * 2] + m72_videoram1[iOffset3 * 2 + 1] * 0x100;
                         iColor = m72_videoram1[(iOffset3 + 1) * 2];
                         iAttr = m72_videoram1[(iOffset3 + 1) * 2 + 1];
-                        /*if (iCode >= 0)
-                        {
-                            Machine.FORM.m72form.tbResult.AppendText(i3.ToString() + "\t" + i4.ToString() + "\t" + iCode.ToString() + "\t" + iColor.ToString() + "\t" + iAttr.ToString() + "\r\n");
-                        }*/
-                        /*if (iCode <11000)
-                        {
-                            continue;
-                        }*/
                         if ((iAttr & 0x01) != 0)
                         {
                             pri = 2;
@@ -183,10 +175,6 @@ namespace mame
                         {
                             y0offset = 0;
                         }
-                        /*if (pri == 1||pri==2)
-                        {
-                            continue;
-                        }*/
                         iCode1 = iCode % bg_tilemap.total_elements;
                         pen_data_offset = iCode1 * 0x40;
                         palette_base = 0x100 + 0x10 * (iColor & 0x0f);
@@ -333,12 +321,6 @@ namespace mame
                                     }
                                 }
                             }
-                            /*drawgfx(bitmap, machine->gfx[0],
-                                    c,
-                                    color,
-                                    flipx, flipy,
-                                    sx + 16 * x, sy + 16 * y,
-                                    cliprect, TRANSPARENCY_PEN, 0);*/
                         }
                     }
                 }
@@ -346,7 +328,7 @@ namespace mame
             }
             return bm1;
         }
-        public static Bitmap GetAllGDI(int n1,int n2)
+        public static Bitmap GetAllGDI(int n1, int n2)
         {
             Bitmap bm1 = new Bitmap(0x200, 0x200), bm2;
             Graphics g = Graphics.FromImage(bm1);
@@ -356,14 +338,14 @@ namespace mame
                 bm2 = GetBG();
                 g.DrawImage(bm2, 0, 0);
             }
-            if(bFg)
+            if (bFg)
             {
-                bm2=GetFg();
+                bm2 = GetFg();
                 g.DrawImage(bm2, 0, 0);
             }
-            if(bSprite)
+            if (bSprite)
             {
-                bm2=GetSprite(n1,n2);
+                bm2 = GetSprite(n1, n2);
                 g.DrawImage(bm2, -0x40, 0);
             }
             return bm1;

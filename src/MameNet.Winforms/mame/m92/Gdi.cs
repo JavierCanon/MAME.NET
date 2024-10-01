@@ -46,8 +46,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[0].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -107,7 +107,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xf400 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xf400 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - m92_vram_data[0xf400 / 2 + (y0 + dy0 * i2)] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -124,8 +124,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[0].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -185,7 +185,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200-pf_layer[0].control[2] + x0 + dx0 * i1)%0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - pf_layer[0].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -209,8 +209,9 @@ namespace mame
             rows = 0x40;
             cols = 0x80;
             width = tilewidth * cols;
-            height = width;
+            height = tileheight * rows;
             int iByte;
+            int xoffs;
             int iCode, iCode1, iAttr;
             int iTile, iFlag, iGroup;
             int pen_data_offset, palette_base;
@@ -231,8 +232,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[0].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -292,7 +293,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xf400 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xf400 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000-m92_vram_data[0xf400 / 2 + (y0 + dy0 * i2)] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -309,8 +310,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[0].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -323,6 +324,10 @@ namespace mame
                             else
                             {
                                 iGroup = 0;
+                            }
+                            if (iCode == 0x1041)
+                            {
+                                int i11 = 1;
                             }
                             iCode1 = iCode % pf_layer[0].wide_tmap.total_elements;
                             pen_data_offset = iCode1 * 0x40;
@@ -370,7 +375,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200-pf_layer[0].control[2] + x0 + dx0 * i1)%0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) % height * width + (0x10000- pf_layer[0].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -396,8 +401,8 @@ namespace mame
             width = tilewidth * cols;
             height = width;
             int iByte;
-            int iCode, iCode1, iAttr;
-            int iTile, iFlag, iGroup;
+            int iCode, iCode1, iAttr,iGroup;
+            int iTile, iFlag;
             int pen_data_offset, palette_base;
             int x0 = 0, y0 = 0, dx0 = 0, dy0 = 0;
             Color c1 = new Color();
@@ -416,8 +421,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[1].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -477,7 +482,8 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xf800 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xf800 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - m92_vram_data[0xf800 / 2 + (y0 + dy0 * i2)] + x0 + dx0 * i1) % width) * 4;
+                                    //ptr2 = ptr + ((y0 + dy0 * i2) * width + (x0 + dx0 * i1)) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -494,8 +500,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[1].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -555,7 +561,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200-pf_layer[1].control[2] + x0 + dx0 * i1)%0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - pf_layer[1].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -579,7 +585,7 @@ namespace mame
             rows = 0x40;
             cols = 0x80;
             width = tilewidth * cols;
-            height = width;
+            height = tileheight * rows;
             int iByte;
             int iCode, iCode1, iAttr;
             int iTile, iFlag, iGroup;
@@ -601,8 +607,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[1].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -662,7 +668,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xf800 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xf800 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000-m92_vram_data[0xf800/2 + (y0 + dy0 * i2)] + x0 + dx0 * i1)%width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -679,8 +685,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[1].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -740,7 +746,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200 - pf_layer[1].control[2] + x0 + dx0 * i1) % 0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - pf_layer[1].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -786,8 +792,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[2].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -847,7 +853,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xfc00 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xfc00 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000-m92_vram_data[0xfc00/2 + (y0 + dy0 * i2)] + x0 + dx0 * i1)%width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -864,8 +870,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[2].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -925,7 +931,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200-pf_layer[2].control[2] + x0 + dx0 * i1)%0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - pf_layer[2].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -949,7 +955,7 @@ namespace mame
             rows = 0x40;
             cols = 0x80;
             width = tilewidth * cols;
-            height = width;
+            height = tileheight * rows;
             int iByte;
             int iCode, iCode1, iAttr;
             int iTile, iFlag, iGroup;
@@ -971,8 +977,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[2].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] + ((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -1032,7 +1038,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (-(m92_vram_data[0xfc00 + (y0 + dy0 * i2) * 2] + m92_vram_data[0xfc00 + (y0 + dy0 * i2) * 2 + 1] * 0x100) + x0 + dx0 * i1)) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000-m92_vram_data[0xfc00 + (y0 + dy0 * i2)] + x0 + dx0 * i1)%width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -1049,8 +1055,8 @@ namespace mame
                         for (i4 = 0; i4 < rows; i4++)
                         {
                             iOffset3 = 2 * (i4 * cols + i3) + M92.pf_layer[2].vram_base;
-                            iAttr = m92_vram_data[(iOffset3 + 1) * 2] + m92_vram_data[(iOffset3 + 1) * 2 + 1] * 0x100;
-                            iTile = m92_vram_data[iOffset3 * 2] + M92.m92_vram_data[iOffset3 * 2 + 1] * 0x100 + ((iAttr & 0x8000) << 1);
+                            iAttr = m92_vram_data[iOffset3 + 1];
+                            iTile = m92_vram_data[iOffset3] +((iAttr & 0x8000) << 1);
                             iCode = iTile;
                             if ((iAttr & 0x100) != 0)
                             {
@@ -1110,7 +1116,7 @@ namespace mame
                                     {
                                         c1 = Color.FromArgb((int)Palette.entry_color[palette_base + iByte]);
                                     }
-                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x200-pf_layer[2].control[2] + x0 + dx0 * i1)%0x200) * 4;
+                                    ptr2 = ptr + ((y0 + dy0 * i2) * width + (0x10000 - pf_layer[2].control[2] + x0 + dx0 * i1) % width) * 4;
                                     *ptr2 = c1.B;
                                     *(ptr2 + 1) = c1.G;
                                     *(ptr2 + 2) = c1.R;
@@ -1133,7 +1139,8 @@ namespace mame
             Color c1 = new Color();
             for (k = 0; k < 8; k++)
             {
-                for (offs = 0; offs < m92_sprite_list; )
+                //for (offs = 0; offs < m92_sprite_list; )
+                for(offs=m92_sprite_list-4;offs>=0;)
                 {
                     int x, y, sprite, colour, fx, fy, x_multi, y_multi, i, j, s_ptr, pri_back, pri_sprite;
                     y = Generic.buffered_spriteram16[offs + 0] & 0x1ff;
@@ -1155,7 +1162,13 @@ namespace mame
                     x_multi = (Generic.buffered_spriteram16[offs + 0] >> 11) & 3;
                     y_multi = 1 << y_multi;
                     x_multi = 1 << x_multi;
-                    offs += 4 * x_multi;
+                    //offs += 4 * x_multi;
+                    if (offs < n1 || offs > n2)
+                    {
+                        offs -= 4 * x_multi;
+                        continue;
+                    }
+                    offs -= 4 * x_multi;
                     if (pri_sprite != k)
                     {
                         continue;
@@ -1194,10 +1207,13 @@ namespace mame
                                 for (i6 = 0; i6 < 0x10; i6++)
                                 {
                                     iByte = gfx21rom[(sprite + s_ptr) * 0x100 + i5 + i6 * 0x10];
-                                    c1 = Color.FromArgb((int)Palette.entry_color[0x10 * colour + iByte]);
-                                    if (x + xdir * i5 >= 0 && x + xdir * i5 <= 0x1ff && y - i * 16 + ydir * i6 >= 0 && y - i * 16 + ydir * i6 <= 0x1ff)
+                                    if (iByte != 0)
                                     {
-                                        bm1.SetPixel(x + xdir * i5, y - i * 16 + ydir * i6, c1);
+                                        c1 = Color.FromArgb((int)Palette.entry_color[0x10 * colour + iByte]);
+                                        if (x + xdir * i5 >= 0 && x + xdir * i5 <= 0x1ff && y - i * 16 + ydir * i6 >= 0 && y - i * 16 + ydir * i6 <= 0x1ff)
+                                        {
+                                            bm1.SetPixel(x + xdir * i5, y - i * 16 + ydir * i6, c1);
+                                        }
                                     }
                                 }
                             }
@@ -1230,46 +1246,52 @@ namespace mame
             Bitmap bm1 = new Bitmap(0x200, 0x200), bm2;
             Graphics g = Graphics.FromImage(bm1);
             g.Clear(Color.Transparent);
-            if (bG20)
-            {
-                bm2 = GetG20();
-                g.DrawImage(bm2, 0, -128 - pf_layer[2].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[2].control[0]);
-            }
-            if (bG21)
+            if (bG21 && pf_layer[2].wide_tmap.enable && (((~pf_master_control[2] >> 4) & 1) != 0))
             {
                 bm2 = GetG21();
-                g.DrawImage(bm2, 0, -128 - pf_layer[2].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[2].control[0]);
+                int y = pf_layer[2].wide_tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
             }
-            if (bG10)
+            if (bG20 && pf_layer[2].tmap.enable && (((~pf_master_control[2] >> 4) & 1) != 0))
             {
-                bm2 = GetG10();
-                g.DrawImage(bm2, 0, -128 - pf_layer[1].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[1].control[0]);
+                bm2 = GetG20();
+                int y = pf_layer[2].tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
             }
-            if (bG11)
+            if (bG11 && pf_layer[1].wide_tmap.enable)
             {
                 bm2 = GetG11();
-                g.DrawImage(bm2, 0, -128 - pf_layer[1].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[1].control[0]);
+                int y = pf_layer[1].wide_tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
             }
-            if (bG00)
+            if (bG10 && pf_layer[1].tmap.enable)
             {
-                bm2 = GetG00();
-                g.DrawImage(bm2, 0, -128 - pf_layer[0].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[0].control[0]);
+                bm2 = GetG10();
+                int y = pf_layer[1].tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
             }
-            if (bG01)
+            if (bG01 && pf_layer[0].wide_tmap.enable)
             {
                 bm2 = GetG01();
-                g.DrawImage(bm2, 0, -128 - pf_layer[0].control[0]);
-                g.DrawImage(bm2, 0, 384 - pf_layer[0].control[0]);
-            }            
+                int y = pf_layer[0].wide_tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
+            }
+            if (bG00 && pf_layer[0].tmap.enable)
+            {
+                bm2 = GetG00();
+                int y = pf_layer[0].tmap.effective_colscroll(0);
+                g.DrawImage(bm2, 0, -0x200 + y);
+                g.DrawImage(bm2, 0, y);
+            }
             if (bSprite)
             {
                 bm2 = GetSprite(n1, n2);
-                g.DrawImage(bm2, 0, -128);
+                g.DrawImage(bm2, 0, -0x80);
             }
             return bm1;
         }

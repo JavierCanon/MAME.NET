@@ -7,7 +7,7 @@ namespace mame
 {
     public partial class M72
     {
-        public static Tmap bg_tilemap, fg_tilemap;
+        public static Tmap bg_tilemap, fg_tilemap, bg_tilemap_large;
         public static void tilemap_init()
         {
             int i;
@@ -91,7 +91,7 @@ namespace mame
             {
                 case "airduel":
                 case "airduelm72":
-                    bg_tilemap.tile_update3 = bg_tilemap.tile_updateM72_bg_m72;                    
+                    bg_tilemap.tile_update3 = bg_tilemap.tile_updateM72_bg_m72;
                     fg_tilemap.tile_update3 = fg_tilemap.tile_updateM72_fg_m72;                    
                     break;
                 case "ltswords":
@@ -101,6 +101,126 @@ namespace mame
                     fg_tilemap.tile_update3 = fg_tilemap.tile_updateM72_fg_rtype2;
                     break;
             }
+        }
+        public static void tilemap_init_m82()
+        {
+            int i;
+            bg_tilemap = new Tmap();
+            bg_tilemap.rows = 64;
+            bg_tilemap.cols = 64;
+            bg_tilemap.tilewidth = 8;
+            bg_tilemap.tileheight = 8;
+            bg_tilemap.width = 0x200;
+            bg_tilemap.height = 0x200;
+            bg_tilemap.enable = true;
+            bg_tilemap.all_tiles_dirty = true;
+            bg_tilemap.pixmap = new ushort[0x200 * 0x200];
+            bg_tilemap.flagsmap = new byte[0x200, 0x200];
+            bg_tilemap.tileflags = new byte[0x40, 0x40];
+            bg_tilemap.total_elements = M72.gfx21rom.Length / 0x40;
+            bg_tilemap.pen_data = new byte[0x40];
+            bg_tilemap.pen_to_flags = new byte[3, 16];
+            for (i = 0; i < 16; i++)
+            {
+                bg_tilemap.pen_to_flags[0, i] = 0x20;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                bg_tilemap.pen_to_flags[1, i] = 0x20;
+            }
+            for (i = 8; i < 16; i++)
+            {
+                bg_tilemap.pen_to_flags[1, i] = 0x10;
+            }
+            bg_tilemap.pen_to_flags[2, 0] = 0x20;
+            for (i = 1; i < 16; i++)
+            {
+                bg_tilemap.pen_to_flags[2, i] = 0x10;
+            }
+            bg_tilemap.scrollrows = 1;
+            bg_tilemap.scrollcols = 1;
+            bg_tilemap.rowscroll = new int[bg_tilemap.scrollrows];
+            bg_tilemap.colscroll = new int[bg_tilemap.scrollcols];
+            bg_tilemap.tilemap_draw_instance3 = bg_tilemap.tilemap_draw_instanceM72;
+            fg_tilemap = new Tmap();
+            fg_tilemap.cols = 64;
+            fg_tilemap.rows = 64;
+            fg_tilemap.tilewidth = 8;
+            fg_tilemap.tileheight = 8;
+            fg_tilemap.width = 0x200;
+            fg_tilemap.height = 0x200;
+            fg_tilemap.enable = true;
+            fg_tilemap.all_tiles_dirty = true;
+            fg_tilemap.pixmap = new ushort[0x200 * 0x200];
+            fg_tilemap.flagsmap = new byte[0x200, 0x200];
+            fg_tilemap.tileflags = new byte[0x40, 0x40];
+            fg_tilemap.total_elements = M72.gfx21rom.Length / 0x40;
+            fg_tilemap.pen_data = new byte[0x400];
+            fg_tilemap.pen_to_flags = new byte[3, 32];
+            fg_tilemap.pen_to_flags[0, 0] = 0;
+            for (i = 1; i < 16; i++)
+            {
+                fg_tilemap.pen_to_flags[0, i] = 0x20;
+            }
+            fg_tilemap.pen_to_flags[1, 0] = 0;
+            for (i = 1; i < 8; i++)
+            {
+                fg_tilemap.pen_to_flags[1, i] = 0x20;
+            }
+            for (i = 8; i < 16; i++)
+            {
+                fg_tilemap.pen_to_flags[1, i] = 0x10;
+            }
+            fg_tilemap.pen_to_flags[2, 0] = 0;
+            for (i = 1; i < 16; i++)
+            {
+                fg_tilemap.pen_to_flags[2, i] = 0x10;
+            }
+            fg_tilemap.scrollrows = 1;
+            fg_tilemap.scrollcols = 1;
+            fg_tilemap.rowscroll = new int[fg_tilemap.scrollrows];
+            fg_tilemap.colscroll = new int[fg_tilemap.scrollcols];
+            fg_tilemap.tilemap_draw_instance3 = fg_tilemap.tilemap_draw_instanceM72;
+            bg_tilemap_large = new Tmap();
+            bg_tilemap_large.rows = 0x40;
+            bg_tilemap_large.cols = 0x80;
+            bg_tilemap_large.tilewidth = 8;
+            bg_tilemap_large.tileheight = 8;
+            bg_tilemap_large.width = 0x400;
+            bg_tilemap_large.height = 0x200;
+            bg_tilemap_large.enable = true;
+            bg_tilemap_large.all_tiles_dirty = true;
+            bg_tilemap_large.pixmap = new ushort[0x400 * 0x200];
+            bg_tilemap_large.flagsmap = new byte[0x200, 0x400];
+            bg_tilemap_large.tileflags = new byte[0x40, 0x80];
+            bg_tilemap_large.total_elements = M72.gfx21rom.Length / 0x40;
+            bg_tilemap_large.pen_data = new byte[0x40];
+            bg_tilemap_large.pen_to_flags = new byte[3, 16];
+            for (i = 0; i < 16; i++)
+            {
+                bg_tilemap_large.pen_to_flags[0, i] = 0x20;
+            }
+            for (i = 0; i < 8; i++)
+            {
+                bg_tilemap_large.pen_to_flags[1, i] = 0x20;
+            }
+            for (i = 8; i < 16; i++)
+            {
+                bg_tilemap_large.pen_to_flags[1, i] = 0x10;
+            }
+            bg_tilemap_large.pen_to_flags[2, 0] = 0x20;
+            for (i = 1; i < 16; i++)
+            {
+                bg_tilemap_large.pen_to_flags[2, i] = 0x10;
+            }
+            bg_tilemap_large.scrollrows = 1;
+            bg_tilemap_large.scrollcols = 1;
+            bg_tilemap_large.rowscroll = new int[bg_tilemap.scrollrows];
+            bg_tilemap_large.colscroll = new int[bg_tilemap.scrollcols];
+            bg_tilemap_large.tilemap_draw_instance3 = bg_tilemap_large.tilemap_draw_instanceM72;
+            bg_tilemap.tile_update3 = bg_tilemap.tile_updateM72_bg_m72;
+            fg_tilemap.tile_update3 = fg_tilemap.tile_updateM72_fg_m72;
+            bg_tilemap_large.tile_update3 = bg_tilemap.tile_updateM72_bg_m72;
         }
     }
     public partial class Tmap
@@ -172,7 +292,7 @@ namespace mame
                             {
                                 for (i = xpos + x_start; i < xpos + x_end; i++)
                                 {
-                                    Video.bitmapbase[Video.curbitmap][(offsety2 + ypos) * 0x200 + i] = (ushort)(pixmap[offsety2 * 0x200 + i - xpos] + palette_offset);
+                                    Video.bitmapbase[Video.curbitmap][(offsety2 + ypos) * 0x200 + i] = (ushort)(pixmap[offsety2 * width + i - xpos] + palette_offset);
                                 }
                                 offsety2++;
                             }
@@ -185,7 +305,7 @@ namespace mame
                                 {
                                     if ((flagsmap[offsety2, i - xpos] & mask) == value)
                                     {
-                                        Video.bitmapbase[Video.curbitmap][(offsety2 + ypos) * 0x200 + i] = (ushort)(pixmap[offsety2 * 0x200 + i - xpos] + palette_offset);
+                                        Video.bitmapbase[Video.curbitmap][(offsety2 + ypos) * 0x200 + i] = (ushort)(pixmap[offsety2 * width + i - xpos] + palette_offset);
                                     }
                                 }
                                 offsety2++;

@@ -352,7 +352,6 @@ namespace cpu.m6809
         public string m6809_dasm(int ppc)
         {
             string buffer = "";
-            //offs_t m6809_dasm(char *buffer, offs_t pc, const UINT8 *oprom, const UINT8 *opram)
 
             byte opcode, pb, pbm, reg;
             m6809_addressing_modes mode;
@@ -380,7 +379,7 @@ namespace cpu.m6809
                 else
                 {
                     buffer += " Illegal Opcode";
-                    return buffer;// p | DASMFLAG_SUPPORTED;
+                    return buffer;
                 }
                 if (m6809_pgpointers[page][i].mode >= m6809_addressing_modes.PG1)
                 {

@@ -8,7 +8,7 @@ using cpu.nec;
 namespace mame
 {
     public partial class M92
-    {
+    {       
         public static void SaveStateBinary(BinaryWriter writer)
         {
             int i, j;
@@ -26,8 +26,14 @@ namespace mame
                 writer.Write(pf_master_control[i]);
             }
             writer.Write(m92_sprite_list);
-            writer.Write(m92_vram_data, 0, 0x10000);
-            writer.Write(m92_spritecontrol, 0, 0x10);
+            for (i = 0; i < 0x8000; i++)
+            {
+                writer.Write(m92_vram_data[i]);
+            }
+            for (i = 0; i < 8; i++)
+            {
+                writer.Write(m92_spritecontrol[i]);
+            }
             writer.Write(m92_game_kludge);
             writer.Write(m92_palette_bank);
             for (i = 0; i < 3; i++)
@@ -62,19 +68,12 @@ namespace mame
             writer.Write(Memory.audioram, 0, 0x4000);
             Nec.nn1[1].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
+            Cpuint.SaveStateBinary_v(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
             Video.SaveStateBinary(writer);
             writer.Write(Sound.last_update_second);
-            for (i = 0; i < 2; i++)
-            {
-                writer.Write(Cpuexec.cpu[i].suspend);
-                writer.Write(Cpuexec.cpu[i].nextsuspend);
-                writer.Write(Cpuexec.cpu[i].eatcycles);
-                writer.Write(Cpuexec.cpu[i].nexteatcycles);
-                writer.Write(Cpuexec.cpu[i].localtime.seconds);
-                writer.Write(Cpuexec.cpu[i].localtime.attoseconds);
-            }
+            Cpuexec.SaveStateBinary(writer);
             Timer.SaveStateBinary(writer);
             YM2151.SaveStateBinary(writer);
             Iremga20.SaveStateBinary(writer);
@@ -104,8 +103,14 @@ namespace mame
                 pf_master_control[i] = reader.ReadUInt16();
             }
             m92_sprite_list = reader.ReadInt32();
-            m92_vram_data = reader.ReadBytes(0x10000);
-            m92_spritecontrol = reader.ReadBytes(0x10);
+            for (i = 0; i < 0x8000; i++)
+            {
+                m92_vram_data[i] = reader.ReadUInt16();
+            }
+            for (i = 0; i < 8; i++)
+            {
+                m92_spritecontrol[i] = reader.ReadUInt16();
+            }
             m92_game_kludge = reader.ReadInt32();
             m92_palette_bank = reader.ReadInt32();
             for (i = 0; i < 3; i++)
@@ -140,19 +145,12 @@ namespace mame
             Memory.audioram = reader.ReadBytes(0x4000);
             Nec.nn1[1].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
+            Cpuint.LoadStateBinary_v(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
-            Video.LoadStateBinary(reader);
+            Video.LoadStateBinary(reader);            
             Sound.last_update_second = reader.ReadInt32();
-            for (i = 0; i < 2; i++)
-            {
-                Cpuexec.cpu[i].suspend = reader.ReadByte();
-                Cpuexec.cpu[i].nextsuspend = reader.ReadByte();
-                Cpuexec.cpu[i].eatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].nexteatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].localtime.seconds = reader.ReadInt32();
-                Cpuexec.cpu[i].localtime.attoseconds = reader.ReadInt64();
-            }
+            Cpuexec.LoadStateBinary(reader);
             Timer.LoadStateBinary(reader);
             YM2151.LoadStateBinary(reader);
             Iremga20.LoadStateBinary(reader);

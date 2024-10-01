@@ -51,6 +51,43 @@ namespace mame
                 }
             }
         }
+        public static void ui_updateTehkan()
+        {
+            int i;
+            int red, green, blue;
+            if (single_step || Mame.paused)
+            {
+                byte bright = 0xa7;
+                for (i = 0; i < Video.fullwidth * Video.fullheight; i++)
+                {
+                    if (Video.bitmapbase[Video.curbitmap][i] < 0x100)
+                    {
+                        red = (int)(((Palette.entry_color[Video.bitmapbase[Video.curbitmap][i]] & 0xff0000) >> 16) * bright / 0xff);
+                        green = (int)(((Palette.entry_color[Video.bitmapbase[Video.curbitmap][i]] & 0xff00) >> 8) * bright / 0xff);
+                        blue = (int)((Palette.entry_color[Video.bitmapbase[Video.curbitmap][i]] & 0xff) * bright / 0xff);
+                        Video.bitmapcolor[i] = (int)Palette.make_argb(0xff, red, green, blue);
+                    }
+                    else
+                    {
+                        int i1 = 1;
+                    }
+                }
+            }
+            else
+            {
+                for (i = 0; i < Video.fullwidth * Video.fullheight; i++)
+                {
+                    if (Video.bitmapbase[Video.curbitmap][i] < 0x100)
+                    {
+                        Video.bitmapcolor[i] = (int)Palette.entry_color[Video.bitmapbase[Video.curbitmap][i]];
+                    }
+                    else
+                    {
+                        Video.bitmapcolor[i] = (int)Palette.entry_color[0];
+                    }
+                }
+            }
+        }
         public static void ui_updateN()
         {
             int i;
@@ -145,8 +182,8 @@ namespace mame
         }
         public static void handler_ingame()
         {
-            Mame.sHandle2 = GetForegroundWindow().ToString();
-            if (Mame.sHandle1 == Mame.sHandle2)
+            Mame.handle2 = GetForegroundWindow();
+            if (Mame.handle1 == Mame.handle2)
             {
                 Mame.is_foreground = true;
             }
@@ -208,10 +245,8 @@ namespace mame
                         Mame.mame_pause(false);                        
                     }
                     else
-                    {                        
+                    {
                         Mame.mame_pause(!Mame.mame_is_paused());
-                        Thread t1 = new Thread(mainform.HandleMouse);
-                        t1.Start();
                     }                    
                 }
                 if (Keyboard.IsTriggered(Key.F10))

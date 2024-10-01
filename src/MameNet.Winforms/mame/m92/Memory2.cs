@@ -17,8 +17,15 @@ namespace mame
             }
             else if (address >= 0x80000 && address <= 0x8ffff)
             {
-                int offset = address - 0x80000;
-                result = m92_vram_data[offset];
+                int offset = (address - 0x80000) / 2;
+                if (address % 2 == 0)
+                {
+                    result = (byte)(m92_vram_data[offset] >> 8);
+                }
+                else if (address % 2 == 1)
+                {
+                    result = (byte)m92_vram_data[offset];
+                }
             }
             else if (address >= 0xe0000 && address <= 0xeffff)
             {
@@ -51,8 +58,8 @@ namespace mame
             }
             else if (address >= 0x80000 && address + 1 <= 0x8ffff)
             {
-                int offset = address - 0x80000;
-                result = (ushort)(m92_vram_data[offset] + m92_vram_data[offset + 1] * 0x100);
+                int offset = (address - 0x80000)/2;
+                result = m92_vram_data[offset];
             }
             else if (address >= 0xe0000 && address + 1 <= 0xeffff)
             {
@@ -80,9 +87,16 @@ namespace mame
             address &= 0xfffff;
             if (address >= 0x80000 && address <= 0x8ffff)
             {
-                int offset = address - 0x80000;
-                m92_vram_data[offset] = value;
-                m92_vram_w(offset / 2);
+                int offset = (address - 0x80000)/2;
+                if (address % 2 == 0)
+                {
+                    m92_vram_data[offset] = (ushort)((value << 8) | (m92_vram_data[offset] & 0xff));
+                }
+                else if (address % 2 == 1)
+                {
+                    m92_vram_data[offset] = (ushort)((m92_vram_data[offset] & 0xff00) | value);
+                }
+                m92_vram_w(offset);
             }
             else if (address >= 0xe0000 && address <= 0xeffff)
             {
@@ -101,12 +115,22 @@ namespace mame
             }
             else if (address >= 0xf9000 && address <= 0xf900f)
             {
-                int offset = address - 0xf9000;
-                m92_spritecontrol_w(offset, value);
+                int offset = (address - 0xf9000)/2;
+                if (address % 2 == 0)
+                {
+                    m92_spritecontrol_w1(offset, value);
+                }
+                else if(address%2==1)
+                {
+                    m92_spritecontrol_w2(offset, value);
+                }
             }
             else if (address >= 0xf9800 && address <= 0xf9801)
             {
-                m92_videocontrol_w(value);
+                if (address % 2 == 1)
+                {
+                    m92_videocontrol_w(value);
+                }
             }
         }
         public static void N0WriteWord_lethalth(int address, ushort value)
@@ -115,8 +139,7 @@ namespace mame
             if (address >= 0x80000 && address + 1 <= 0x8ffff)
             {
                 int offset = (address - 0x80000) / 2;
-                m92_vram_data[offset * 2] = (byte)value;
-                m92_vram_data[offset * 2 + 1] = (byte)(value >> 8);
+                m92_vram_data[offset] = value;
                 m92_vram_w(offset);
             }
             else if (address >= 0xe0000 && address + 1 <= 0xeffff)
@@ -162,22 +185,50 @@ namespace mame
             else if (address >= 0x80 && address <= 0x87)
             {
                 int offset = (address - 0x80) / 2;
-                m92_pf1_control_w(offset, value);
+                if (address % 2 == 0)
+                {
+                    m92_pf1_control_w2(offset, value);
+                }
+                else if (address % 2 == 1)
+                {
+                    m92_pf1_control_w1(offset, value);
+                }
             }
             else if (address >= 0x88 && address <= 0x8f)
             {
                 int offset = (address - 0x88) / 2;
-                m92_pf2_control_w(offset, value);
+                if (address % 2 == 0)
+                {
+                    m92_pf2_control_w2(offset, value);
+                }
+                else if (address % 2 == 1)
+                {
+                    m92_pf2_control_w1(offset, value);
+                }
             }
             else if (address >= 0x90 && address <= 0x97)
             {
                 int offset = (address - 0x90) / 2;
-                m92_pf3_control_w(offset, value);
+                if (address % 2 == 0)
+                {
+                    m92_pf3_control_w2(offset, value);
+                }
+                else if (address % 2 == 1)
+                {
+                    m92_pf3_control_w1(offset, value);
+                }
             }
             else if (address >= 0x98 && address <= 0x9f)
             {
                 int offset = (address - 0x98) / 2;
-                m92_master_control_w(offset, value);
+                if (address % 2 == 0)
+                {
+                    m92_master_control_w2(offset, value);
+                }
+                else if (address % 2 == 1)
+                {
+                    m92_master_control_w1(offset, value);
+                }
             }
         }
         public static void N0WriteIOWord_lethalth(int address, ushort value)

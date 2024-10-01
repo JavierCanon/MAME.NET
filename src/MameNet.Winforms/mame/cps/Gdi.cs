@@ -517,7 +517,6 @@ namespace mame
             int rows, cols, width, height;
             int scanheight = 0x100, scanrows;
             int tilewidth, tileheight;
-            //int[] iiCutCode = new int[8] { 0x0a40, 0x0a41, 0x0a54, 0x0a6e, 0x0a6f, 0x0a8e, 0x0a90, 0x0a91 };
             int x0 = 0, y0 = 0, dx0 = 0, dy0 = 0, match;
             tilewidth = 0x20;
             tileheight = tilewidth;
@@ -626,11 +625,11 @@ namespace mame
         }
         private static Bitmap GetSpriteGDI()
         {
-            int i1, iX, iY,iXin,iYin, iCode, iAttr, iColor, iFlag, iOffset, iByte, cols, rows;
+            int i1, iX, iY, iXin, iYin, iCode, iAttr, iColor, iFlag, iOffset, iByte, cols, rows;
             Bitmap bm1 = null;
             ushort[] VRAMS;
             List<int> lsColor = new List<int>();
-            int iSprite, i3, i4, i5, i6,match;
+            int iSprite, i3, i4, i5, i6, match;
             int tilewidth = 16, tileheight = 16;
             Color c1 = new Color();
             bm1 = new Bitmap(512, 512);
@@ -660,7 +659,7 @@ namespace mame
                 baseSprite = nSpriteG - 1;
                 addSprite = -1;
             }
-            for (i1 =0;i1<nSpriteG;i1++)
+            for (i1 = 0; i1 < nSpriteG; i1++)
             {
                 iSprite = baseSprite + addSprite * i1;
                 iX = VRAMS[iSprite * 4];

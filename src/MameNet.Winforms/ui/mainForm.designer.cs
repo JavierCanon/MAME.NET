@@ -40,18 +40,27 @@
             this.ipsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.boardToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.cpsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.tehkanToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.neogeoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.suna8ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.namcos1ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.igs011ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.pgmToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.m72ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.m92ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taitoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.taitobToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.konami68000ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.capcomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.m68000ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.z80ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.m6809ToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.spriteToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.helpToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsslStatus = new System.Windows.Forms.ToolStripStatusLabel();
+            this.dataeastToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.menuStrip1.SuspendLayout();
             this.statusStrip1.SuspendLayout();
@@ -118,7 +127,8 @@
             this.boardToolStripMenuItem,
             this.m68000ToolStripMenuItem,
             this.z80ToolStripMenuItem,
-            this.m6809ToolStripMenuItem});
+            this.m6809ToolStripMenuItem,
+            this.spriteToolStripMenuItem});
             this.gameStripMenuItem.Name = "gameStripMenuItem";
             this.gameStripMenuItem.Size = new System.Drawing.Size(54, 21);
             this.gameStripMenuItem.Text = "&Game";
@@ -148,11 +158,19 @@
             // 
             this.boardToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.cpsToolStripMenuItem,
+            this.dataeastToolStripMenuItem,
+            this.tehkanToolStripMenuItem,
             this.neogeoToolStripMenuItem,
+            this.suna8ToolStripMenuItem,
             this.namcos1ToolStripMenuItem,
+            this.igs011ToolStripMenuItem,
             this.pgmToolStripMenuItem,
             this.m72ToolStripMenuItem,
-            this.m92ToolStripMenuItem});
+            this.m92ToolStripMenuItem,
+            this.taitoToolStripMenuItem,
+            this.taitobToolStripMenuItem,
+            this.konami68000ToolStripMenuItem,
+            this.capcomToolStripMenuItem});
             this.boardToolStripMenuItem.Name = "boardToolStripMenuItem";
             this.boardToolStripMenuItem.Size = new System.Drawing.Size(185, 22);
             this.boardToolStripMenuItem.Text = "&Board debugger";
@@ -160,44 +178,93 @@
             // cpsToolStripMenuItem
             // 
             this.cpsToolStripMenuItem.Name = "cpsToolStripMenuItem";
-            this.cpsToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.cpsToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.cpsToolStripMenuItem.Text = "CPS debugger";
             this.cpsToolStripMenuItem.Click += new System.EventHandler(this.cpsToolStripMenuItem_Click);
+            // 
+            // tehkanToolStripMenuItem
+            // 
+            this.tehkanToolStripMenuItem.Name = "tehkanToolStripMenuItem";
+            this.tehkanToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.tehkanToolStripMenuItem.Text = "Tehkan debugger";
+            this.tehkanToolStripMenuItem.Click += new System.EventHandler(this.tehkanToolStripMenuItem_Click);
             // 
             // neogeoToolStripMenuItem
             // 
             this.neogeoToolStripMenuItem.Name = "neogeoToolStripMenuItem";
-            this.neogeoToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.neogeoToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.neogeoToolStripMenuItem.Text = "Neogeo debugger";
             this.neogeoToolStripMenuItem.Click += new System.EventHandler(this.neogeoToolStripMenuItem_Click);
+            // 
+            // suna8ToolStripMenuItem
+            // 
+            this.suna8ToolStripMenuItem.Name = "suna8ToolStripMenuItem";
+            this.suna8ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.suna8ToolStripMenuItem.Text = "SunA8 debugger";
+            this.suna8ToolStripMenuItem.Click += new System.EventHandler(this.suna8ToolStripMenuItem_Click);
             // 
             // namcos1ToolStripMenuItem
             // 
             this.namcos1ToolStripMenuItem.Name = "namcos1ToolStripMenuItem";
-            this.namcos1ToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.namcos1ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.namcos1ToolStripMenuItem.Text = "Namcos1 debugger";
             this.namcos1ToolStripMenuItem.Click += new System.EventHandler(this.namcos1ToolStripMenuItem_Click);
+            // 
+            // igs011ToolStripMenuItem
+            // 
+            this.igs011ToolStripMenuItem.Name = "igs011ToolStripMenuItem";
+            this.igs011ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.igs011ToolStripMenuItem.Text = "IGS011 debugger";
+            this.igs011ToolStripMenuItem.Click += new System.EventHandler(this.igs011ToolStripMenuItem_Click);
             // 
             // pgmToolStripMenuItem
             // 
             this.pgmToolStripMenuItem.Name = "pgmToolStripMenuItem";
-            this.pgmToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.pgmToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.pgmToolStripMenuItem.Text = "Pgm debugger";
             this.pgmToolStripMenuItem.Click += new System.EventHandler(this.pgmToolStripMenuItem_Click);
             // 
             // m72ToolStripMenuItem
             // 
             this.m72ToolStripMenuItem.Name = "m72ToolStripMenuItem";
-            this.m72ToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.m72ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.m72ToolStripMenuItem.Text = "M72 debugger";
             this.m72ToolStripMenuItem.Click += new System.EventHandler(this.m72ToolStripMenuItem_Click);
             // 
             // m92ToolStripMenuItem
             // 
             this.m92ToolStripMenuItem.Name = "m92ToolStripMenuItem";
-            this.m92ToolStripMenuItem.Size = new System.Drawing.Size(193, 22);
+            this.m92ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
             this.m92ToolStripMenuItem.Text = "M92 debugger";
             this.m92ToolStripMenuItem.Click += new System.EventHandler(this.m92ToolStripMenuItem_Click);
+            // 
+            // taitoToolStripMenuItem
+            // 
+            this.taitoToolStripMenuItem.Name = "taitoToolStripMenuItem";
+            this.taitoToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.taitoToolStripMenuItem.Text = "Taito debugger";
+            this.taitoToolStripMenuItem.Click += new System.EventHandler(this.taitoToolStripMenuItem_Click);
+            // 
+            // taitobToolStripMenuItem
+            // 
+            this.taitobToolStripMenuItem.Name = "taitobToolStripMenuItem";
+            this.taitobToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.taitobToolStripMenuItem.Text = "TaitoB debugger";
+            this.taitobToolStripMenuItem.Click += new System.EventHandler(this.taitobToolStripMenuItem_Click);
+            // 
+            // konami68000ToolStripMenuItem
+            // 
+            this.konami68000ToolStripMenuItem.Name = "konami68000ToolStripMenuItem";
+            this.konami68000ToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.konami68000ToolStripMenuItem.Text = "Konami68000 debugger";
+            this.konami68000ToolStripMenuItem.Click += new System.EventHandler(this.konami68000ToolStripMenuItem_Click);
+            // 
+            // capcomToolStripMenuItem
+            // 
+            this.capcomToolStripMenuItem.Name = "capcomToolStripMenuItem";
+            this.capcomToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.capcomToolStripMenuItem.Text = "Capcom debugger";
+            this.capcomToolStripMenuItem.Click += new System.EventHandler(this.capcomToolStripMenuItem_Click);
             // 
             // m68000ToolStripMenuItem
             // 
@@ -251,6 +318,13 @@
             this.tsslStatus.Size = new System.Drawing.Size(17, 17);
             this.tsslStatus.Text = "...";
             // 
+            // dataeastToolStripMenuItem
+            // 
+            this.dataeastToolStripMenuItem.Name = "dataeastToolStripMenuItem";
+            this.dataeastToolStripMenuItem.Size = new System.Drawing.Size(217, 22);
+            this.dataeastToolStripMenuItem.Text = "Dataeast debugger";
+            this.dataeastToolStripMenuItem.Click += new System.EventHandler(this.dataeastToolStripMenuItem_Click);
+            // 
             // mainForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
@@ -290,6 +364,7 @@
         private System.Windows.Forms.ToolStripMenuItem cheatsearchToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem m68000ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem z80ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem spriteToolStripMenuItem;
         public System.Windows.Forms.ToolStripMenuItem resetToolStripMenuItem;
         private System.Windows.Forms.StatusStrip statusStrip1;
         public System.Windows.Forms.ToolStripStatusLabel tsslStatus;
@@ -301,5 +376,13 @@
         private System.Windows.Forms.ToolStripMenuItem pgmToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem m72ToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem m92ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taitobToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem konami68000ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem capcomToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem taitoToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem suna8ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem igs011ToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tehkanToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem dataeastToolStripMenuItem;
     }
 }

@@ -53,6 +53,27 @@ namespace ui
                     ttb[1].Text = Convert.ToString(CPS.dswb, 16);
                     ttb[2].Text = Convert.ToString(CPS.dswc, 16);
                     break;
+                case "Tehkan":
+                    n = 2;
+                    llb = new Label[n];
+                    ttb = new TextBox[n];
+                    for (i = 0; i < n; i++)
+                    {
+                        llb[i] = new Label();
+                        llb[i].Location = new Point(12, 347 + 27 * i);
+                        llb[i].Size = new Size(41, 12);
+                        Controls.Add(llb[i]);
+                        ttb[i] = new TextBox();
+                        ttb[i].Location = new Point(59, 344 + 27 * i);
+                        ttb[i].Size = new Size(70, 21);
+                        ttb[i].TabIndex = 13 + i;
+                        Controls.Add(ttb[i]);
+                    }
+                    llb[0].Text = "DSW1:";
+                    llb[1].Text = "DSW2:";
+                    ttb[0].Text = Convert.ToString(Tehkan.dsw1, 16);
+                    ttb[1].Text = Convert.ToString(Tehkan.dsw2, 16);
+                    break;
                 case "Neo Geo":
                     n = 1;
                     llb = new Label[n];
@@ -95,6 +116,10 @@ namespace ui
                 case "PGM":
                 case "M72":
                 case "M92":
+                    break;
+                case "Taito B":
+                case "Konami 68000":
+                case "Capcom":
                     break;
             }
         }
@@ -147,6 +172,10 @@ namespace ui
                     CPS.dswb = byte.Parse(ttb[1].Text, NumberStyles.HexNumber);
                     CPS.dswc = byte.Parse(ttb[2].Text, NumberStyles.HexNumber);
                     break;
+                case "Tehkan":
+                    Tehkan.dsw1 = byte.Parse(ttb[0].Text, NumberStyles.HexNumber);
+                    Tehkan.dsw2 = byte.Parse(ttb[1].Text, NumberStyles.HexNumber);
+                    break;
                 case "Neo Geo":
                     Neogeo.dsw = byte.Parse(ttb[0].Text, NumberStyles.HexNumber);
                     break;
@@ -157,6 +186,10 @@ namespace ui
                 case "PGM":
                 case "M72":
                 case "M92":
+                    break;
+                case "Taito B":
+                case "Konami 68000":
+                case "Capcom":
                     break;
             }
         }

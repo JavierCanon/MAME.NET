@@ -1,6 +1,8 @@
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "mame", "mame\mame.csproj", "{8AFD3E98-81CF-4F1A-9C90-16A926AE40DB}"
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.11.35312.102
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "MameNet.Winforms", "MameNet.Winforms\MameNet.Winforms.csproj", "{8AFD3E98-81CF-4F1A-9C90-16A926AE40DB}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -15,5 +17,8 @@ Global
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6A013966-E514-446C-8AEF-28C8B2D6D802}
 	EndGlobalSection
 EndGlobal

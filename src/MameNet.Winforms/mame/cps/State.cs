@@ -31,9 +31,9 @@ namespace mame
             }
             writer.Write(Memory.mainram, 0, 0x10000);
             writer.Write(gfxram, 0, 0x30000);
-            MC68000.m1.SaveStateBinary(writer);            
+            MC68000.m1.SaveStateBinary(writer);
             writer.Write(Memory.audioram, 0, 0x800);
-            Z80A.z1.SaveStateBinary(writer);
+            Z80A.zz1[0].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
@@ -103,7 +103,7 @@ namespace mame
             writer.Write(gfxram, 0, 0x30000);
             MC68000.m1.SaveStateBinary(writer);
             writer.Write(Memory.audioram, 0, 0x800);
-            Z80A.z1.SaveStateBinary(writer);
+            Z80A.zz1[0].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
@@ -126,15 +126,7 @@ namespace mame
             writer.Write(Sound.qsoundstream.output_base_sampindex);
             writer.Write(Sound.mixerstream.output_sampindex);
             writer.Write(Sound.mixerstream.output_base_sampindex);
-            writer.Write(Eeprom.eeprom_data);
-            writer.Write(Eeprom.serial_buffer);
-            writer.Write((int)Eeprom.clock_line);
-            writer.Write((int)Eeprom.reset_line);
-            writer.Write(Eeprom.locked);
-            writer.Write(Eeprom.serial_count);
-            writer.Write(Eeprom.latch);
-            writer.Write(Eeprom.sending);
-            writer.Write(Eeprom.eeprom_data_bits);
+            Eeprom.SaveStateBinary(writer);
         }
         public static void SaveStateBinaryC2(BinaryWriter writer)
         {
@@ -174,7 +166,7 @@ namespace mame
             writer.Write(gfxram, 0, 0x30000);
             MC68000.m1.SaveStateBinary(writer);
             writer.Write(Memory.audioram, 0, 0x800);
-            Z80A.z1.SaveStateBinary(writer);
+            Z80A.zz1[0].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
@@ -197,15 +189,7 @@ namespace mame
             writer.Write(Sound.qsoundstream.output_base_sampindex);
             writer.Write(Sound.mixerstream.output_sampindex);
             writer.Write(Sound.mixerstream.output_base_sampindex);
-            writer.Write(Eeprom.eeprom_data);
-            writer.Write(Eeprom.serial_buffer);
-            writer.Write((int)Eeprom.clock_line);
-            writer.Write((int)Eeprom.reset_line);
-            writer.Write(Eeprom.locked);
-            writer.Write(Eeprom.serial_count);
-            writer.Write(Eeprom.latch);
-            writer.Write(Eeprom.sending);
-            writer.Write(Eeprom.eeprom_data_bits);            
+            Eeprom.SaveStateBinary(writer);
         }
         public static void LoadStateBinaryC(BinaryReader reader)
         {
@@ -230,7 +214,7 @@ namespace mame
             gfxram = reader.ReadBytes(0x30000);
             MC68000.m1.LoadStateBinary(reader);
             Memory.audioram = reader.ReadBytes(0x800);
-            Z80A.z1.LoadStateBinary(reader);
+            Z80A.zz1[0].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
@@ -300,7 +284,7 @@ namespace mame
             gfxram = reader.ReadBytes(0x30000);
             MC68000.m1.LoadStateBinary(reader);
             Memory.audioram = reader.ReadBytes(0x800);
-            Z80A.z1.LoadStateBinary(reader);
+            Z80A.zz1[0].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
@@ -323,15 +307,7 @@ namespace mame
             Sound.qsoundstream.output_base_sampindex = reader.ReadInt32();
             Sound.mixerstream.output_sampindex = reader.ReadInt32();
             Sound.mixerstream.output_base_sampindex = reader.ReadInt32();
-            Eeprom.eeprom_data = reader.ReadBytes(0x80);
-            Eeprom.serial_buffer = reader.ReadBytes(40);
-            Eeprom.clock_line = (LineState)reader.ReadInt32();
-            Eeprom.reset_line = (LineState)reader.ReadInt32();
-            Eeprom.locked = reader.ReadInt32();
-            Eeprom.serial_count = reader.ReadInt32();
-            Eeprom.latch = reader.ReadInt32();
-            Eeprom.sending = reader.ReadInt32();
-            Eeprom.eeprom_data_bits = reader.ReadInt32();
+            Eeprom.LoadStateBinary(reader);
         }
         public static void LoadStateBinaryC2(BinaryReader reader)
         {
@@ -371,7 +347,7 @@ namespace mame
             gfxram = reader.ReadBytes(0x30000);
             MC68000.m1.LoadStateBinary(reader);
             Memory.audioram = reader.ReadBytes(0x800);
-            Z80A.z1.LoadStateBinary(reader);
+            Z80A.zz1[0].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
@@ -394,15 +370,7 @@ namespace mame
             Sound.qsoundstream.output_base_sampindex = reader.ReadInt32();
             Sound.mixerstream.output_sampindex = reader.ReadInt32();
             Sound.mixerstream.output_base_sampindex = reader.ReadInt32();
-            Eeprom.eeprom_data = reader.ReadBytes(0x80);
-            Eeprom.serial_buffer = reader.ReadBytes(40);
-            Eeprom.clock_line = (LineState)reader.ReadInt32();
-            Eeprom.reset_line = (LineState)reader.ReadInt32();
-            Eeprom.locked = reader.ReadInt32();
-            Eeprom.serial_count = reader.ReadInt32();
-            Eeprom.latch = reader.ReadInt32();
-            Eeprom.sending = reader.ReadInt32();
-            Eeprom.eeprom_data_bits = reader.ReadInt32();
+            Eeprom.LoadStateBinary(reader);
         }
     }
 }

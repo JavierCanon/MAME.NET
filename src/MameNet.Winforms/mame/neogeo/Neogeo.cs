@@ -181,6 +181,10 @@ namespace mame
             update_interrupts();
             Timer.timer_adjust_periodic(vblank_interrupt_timer, Video.video_screen_get_time_until_pos(NEOGEO_VBSTART, 0), Attotime.ATTOTIME_NEVER);
         }
+        public static void audio_cpu_irq(int assert)
+        {
+            Cpuint.cpunum_set_input_line(1, 0, assert != 0 ? LineState.ASSERT_LINE : LineState.CLEAR_LINE);
+        }
         private static void select_controller(byte data)
         {
             controller_select = data;
@@ -238,9 +242,6 @@ namespace mame
         }
         public static void audio_command_w(byte data)
         {
-            /*StreamWriter sw1 = new StreamWriter("1.txt", true);
-            sw1.WriteLine(Video.screenstate.frame_number.ToString() + "\t0\t" + data.ToString("X2"));
-            sw1.Close();*/
             Sound.soundlatch_w(data);
             audio_cpu_nmi_pending = true;
             audio_cpu_check_nmi();
@@ -255,9 +256,6 @@ namespace mame
         }
         public static void audio_result_w(byte data)
         {
-            /*StreamWriter sw1 = new StreamWriter("1.txt", true);
-            sw1.WriteLine(Video.screenstate.frame_number.ToString() + "\t1\t" + data.ToString("X2"));
-            sw1.Close();*/
             Sound.soundlatch2_w(data);
         }
         public static byte get_audio_result()
@@ -363,7 +361,9 @@ namespace mame
             audio_cpu_check_nmi();
             Timer.timer_adjust_periodic(vblank_interrupt_timer, Video.video_screen_get_time_until_pos(NEOGEO_VBSTART, 0), Attotime.ATTOTIME_NEVER);
             Timer.timer_adjust_periodic(display_position_vblank_timer, Video.video_screen_get_time_until_pos(NEOGEO_VBSTART, NEOGEO_VBLANK_RELOAD_HPOS), Attotime.ATTOTIME_NEVER);
-            Timer.timer_adjust_periodic(auto_animation_timer, Video.video_screen_get_time_until_pos(0, 0), Attotime.ATTOTIME_NEVER);
+            update_interrupts();
+            start_sprite_line_timer();
+            start_auto_animation_timer();
         }
     }
 }

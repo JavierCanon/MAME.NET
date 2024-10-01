@@ -46,10 +46,6 @@ namespace ui
             Bitmap bm1 = M92.GetAllGDI(n1, n2);
             pictureBox1.Image = bm1;
         }
-        private void btnDraw2_Click(object sender, EventArgs e)
-        {
-
-        }
         private void pictureBox1_MouseMove(object sender, MouseEventArgs e)
         {
             locationX = e.Location.X;

@@ -53,8 +53,6 @@
             this.tbL2 = new System.Windows.Forms.TextBox();
             this.tbL3 = new System.Windows.Forms.TextBox();
             this.btnSave = new System.Windows.Forms.Button();
-            this.tbInput = new System.Windows.Forms.TextBox();
-            this.tbResult = new System.Windows.Forms.TextBox();
             this.btnSet1X = new System.Windows.Forms.Button();
             this.btnSet1Y = new System.Windows.Forms.Button();
             this.btnSet2X = new System.Windows.Forms.Button();
@@ -80,6 +78,8 @@
             this.btnDrawtile = new System.Windows.Forms.Button();
             this.btnDumpRam = new System.Windows.Forms.Button();
             this.btnWriteRam = new System.Windows.Forms.Button();
+            this.tbInput = new System.Windows.Forms.TextBox();
+            this.tbResult = new System.Windows.Forms.TextBox();
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
@@ -293,22 +293,6 @@
             this.btnSave.Text = "save";
             this.btnSave.UseVisualStyleBackColor = true;
             this.btnSave.Click += new System.EventHandler(this.btnSave_Click);
-            // 
-            // tbInput
-            // 
-            this.tbInput.Location = new System.Drawing.Point(140, 49);
-            this.tbInput.Name = "tbInput";
-            this.tbInput.Size = new System.Drawing.Size(120, 21);
-            this.tbInput.TabIndex = 10;
-            // 
-            // tbResult
-            // 
-            this.tbResult.Location = new System.Drawing.Point(140, 76);
-            this.tbResult.Multiline = true;
-            this.tbResult.Name = "tbResult";
-            this.tbResult.ScrollBars = System.Windows.Forms.ScrollBars.Both;
-            this.tbResult.Size = new System.Drawing.Size(120, 112);
-            this.tbResult.TabIndex = 11;
             // 
             // btnSet1X
             // 
@@ -542,11 +526,29 @@
             this.btnWriteRam.UseVisualStyleBackColor = true;
             this.btnWriteRam.Click += new System.EventHandler(this.btnWriteRam_Click);
             // 
+            // tbInput
+            // 
+            this.tbInput.Location = new System.Drawing.Point(138, 49);
+            this.tbInput.Name = "tbInput";
+            this.tbInput.Size = new System.Drawing.Size(115, 21);
+            this.tbInput.TabIndex = 24;
+            // 
+            // tbResult
+            // 
+            this.tbResult.Location = new System.Drawing.Point(138, 78);
+            this.tbResult.Multiline = true;
+            this.tbResult.Name = "tbResult";
+            this.tbResult.ScrollBars = System.Windows.Forms.ScrollBars.Both;
+            this.tbResult.Size = new System.Drawing.Size(115, 124);
+            this.tbResult.TabIndex = 24;
+            // 
             // cpsForm
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(796, 777);
+            this.Controls.Add(this.tbResult);
+            this.Controls.Add(this.tbInput);
             this.Controls.Add(this.btnWriteRam);
             this.Controls.Add(this.btnDumpRam);
             this.Controls.Add(this.cbLayer);
@@ -564,8 +566,6 @@
             this.Controls.Add(this.btnSet1Y);
             this.Controls.Add(this.btnSet2Y);
             this.Controls.Add(this.btnSet1X);
-            this.Controls.Add(this.tbResult);
-            this.Controls.Add(this.tbInput);
             this.Controls.Add(this.tbL3);
             this.Controls.Add(this.tbL2);
             this.Controls.Add(this.tbL1);
@@ -637,8 +637,6 @@
         private System.Windows.Forms.TextBox tbL2;
         private System.Windows.Forms.TextBox tbL3;
         private System.Windows.Forms.Button btnSave;
-        public System.Windows.Forms.TextBox tbInput;
-        public System.Windows.Forms.TextBox tbResult;
         private System.Windows.Forms.Button btnSet1X;
         private System.Windows.Forms.Button btnSet1Y;
         private System.Windows.Forms.Button btnSet2X;
@@ -664,5 +662,7 @@
         private System.Windows.Forms.Button btnDrawtile;
         private System.Windows.Forms.Button btnDumpRam;
         private System.Windows.Forms.Button btnWriteRam;
+        public System.Windows.Forms.TextBox tbInput;
+        public System.Windows.Forms.TextBox tbResult;
     }
 }

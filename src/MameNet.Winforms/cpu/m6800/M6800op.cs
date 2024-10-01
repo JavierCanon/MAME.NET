@@ -8,20 +8,20 @@ using mame;
 namespace cpu.m6800
 {
     public partial class M6800
-    {        
-        void illegal()
+    {
+        protected void illegal()
         {
             
         }
-        void trap()
+        protected void trap()
         {
             //logerror("M6808: illegal opcode: address %04X, op %02X\n",PC,(int) M_RDOP_ARG(PC)&0xFF);
             TAKE_TRAP();
         }
-        void nop()
+        protected void nop()
         {
         }
-        void lsrd()
+        protected void lsrd()
         {
             ushort t;
             CLR_NZC();
@@ -31,7 +31,7 @@ namespace cpu.m6800
             SET_Z16(t);
             D.LowWord = t;
         }
-        void asld()
+        protected void asld()
         {
             int r;
             ushort t;
@@ -41,57 +41,57 @@ namespace cpu.m6800
             SET_FLAGS16((uint)t, (uint)t, (uint)r);
             D.LowWord = (ushort)r;
         }
-        void tap()
+        protected void tap()
         {
             cc = D.HighByte;
             ONE_MORE_INSN();
             CHECK_IRQ_LINES();
         }
-        void tpa()
+        protected void tpa()
         {
             D.HighByte = cc;
         }
-        void inx()
+        protected void inx()
         {
             ++X.LowWord;
             CLR_Z();
             SET_Z16(X.LowWord);
         }
-        void dex()
+        protected void dex()
         {
             --X.LowWord;
             CLR_Z();
             SET_Z16(X.LowWord);
         }
-        void clv()
+        protected void clv()
         {
             CLV();
         }
-        void sev()
+        protected void sev()
         {
             SEV();
         }
-        void clc()
+        protected void clc()
         {
             CLC();
         }
-        void sec()
+        protected void sec()
         {
             SEC();
         }
-        void cli()
+        protected void cli()
         {
             CLI();
             ONE_MORE_INSN();
             CHECK_IRQ_LINES();
         }
-        void sei()
+        protected void sei()
         {
             SEI();
             ONE_MORE_INSN();
             CHECK_IRQ_LINES();
         }
-        void sba()
+        protected void sba()
         {
             ushort t;
             t = (ushort)(D.HighByte - D.LowByte);
@@ -99,40 +99,40 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, D.LowByte, t);
             D.HighByte = (byte)t;
         }
-        void cba()
+        protected void cba()
         {
             ushort t;
             t = (ushort)(D.HighByte - D.LowByte);
             CLR_NZVC();
             SET_FLAGS8(D.HighByte, D.LowByte, t);
         }
-        void undoc1()
+        protected void undoc1()
         {
             X.LowWord += ReadMemory((ushort)(S.LowWord + 1));
         }
-        void undoc2()
+        protected void undoc2()
         {
             X.LowWord += ReadMemory((ushort)(S.LowWord + 1));
         }
-        void tab()
+        protected void tab()
         {
             D.LowByte = D.HighByte;
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void tba()
+        protected void tba()
         {
             D.HighByte = D.LowByte;
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void xgdx()
+        protected void xgdx()
         {
             ushort t = X.LowWord;
             X.LowWord = D.LowWord;
             D.LowWord = t;
         }
-        void daa()
+        protected void daa()
         {
             byte msn, lsn;
             ushort t, cf = 0;
@@ -150,12 +150,12 @@ namespace cpu.m6800
             SET_C8(t);
             D.HighByte = (byte)t;
         }
-        void slp()
+        protected void slp()
         {
             wai_state |= M6800_SLP;
             EAT_CYCLES();
         }
-        void aba()
+        protected void aba()
         {
             ushort t;
             t = (ushort)(D.HighByte + D.LowByte);
@@ -164,7 +164,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, D.LowByte, t);
             D.HighByte = (byte)t;
         }
-        void bra()
+        protected void bra()
         {
             byte t;
             t = IMMBYTE();
@@ -172,113 +172,113 @@ namespace cpu.m6800
             if (t == 0xfe)
                 EAT_CYCLES();
         }
-        void brn()
+        protected void brn()
         {
             byte t;
             t = IMMBYTE();
         }
-        void bhi()
+        protected void bhi()
         {
             BRANCH((cc & 0x05) == 0);
         }
-        void bls()
+        protected void bls()
         {
             BRANCH((cc & 0x05) != 0);
         }
-        void bcc()
+        protected void bcc()
         {
             BRANCH((cc & 0x01) == 0);
         }
-        void bcs()
+        protected void bcs()
         {
             BRANCH((cc & 0x01) != 0);
         }
-        void bne()
+        protected void bne()
         {
             BRANCH((cc & 0x04) == 0);
         }
-        void beq()
+        protected void beq()
         {
             BRANCH((cc & 0x04) != 0);
         }
-        void bvc()
+        protected void bvc()
         {
             BRANCH((cc & 0x02) == 0);
         }
-        void bvs()
+        protected void bvs()
         {
             BRANCH((cc & 0x02) != 0);
         }
-        void bpl()
+        protected void bpl()
         {
             BRANCH((cc & 0x08) == 0);
         }
-        void bmi()
+        protected void bmi()
         {
             BRANCH((cc & 0x08) != 0);
         }
-        void bge()
+        protected void bge()
         {
             BRANCH(NXORV() == 0);
         }
-        void blt()
+        protected void blt()
         {
             BRANCH(NXORV() != 0);
         }
-        void bgt()
+        protected void bgt()
         {
             BRANCH(!(NXORV() != 0 || (cc & 0x04) != 0));
         }
-        void ble()
+        protected void ble()
         {
             BRANCH(NXORV() != 0 || (cc & 0x04) != 0);
         }
-        void tsx()
+        protected void tsx()
         {
             X.LowWord = (ushort)(S.LowWord + 1);
         }
-        void ins()
+        protected void ins()
         {
             ++S.LowWord;
         }
-        void pula()
+        protected void pula()
         {
             D.HighByte=PULLBYTE();
         }
-        void pulb()
+        protected void pulb()
         {
             D.LowByte=PULLBYTE();
         }
-        void des()
+        protected void des()
         {
             --S.LowWord;
         }
-        void txs()
+        protected void txs()
         {
             S.LowWord = (ushort)(X.LowWord - 1);
         }
-        void psha()
+        protected void psha()
         {
             PUSHBYTE(D.HighByte);
         }
-        void pshb()
+        protected void pshb()
         {
             PUSHBYTE(D.LowByte);
         }
-        void pulx()
+        protected void pulx()
         {
             X=PULLWORD();
         }
-        void rts()
+        protected void rts()
         {
             PC=PULLWORD();
             //CHANGE_PC();
         }
-        void abx()
+        protected void abx()
         {
             X.LowWord += D.LowByte;
         }
-        void rti()
+        protected void rti()
         {
             cc=PULLBYTE();
             D.LowByte=PULLBYTE();
@@ -288,11 +288,11 @@ namespace cpu.m6800
             //CHANGE_PC();
             CHECK_IRQ_LINES();
         }
-        void pshx()
+        protected void pshx()
         {
             PUSHWORD(X);
         }
-        void mul()
+        protected void mul()
         {
             ushort t;
             t = (ushort)(D.HighByte * D.LowByte);
@@ -301,7 +301,7 @@ namespace cpu.m6800
                 SEC();
             D.LowWord = t;
         }
-        void wai()
+        protected void wai()
         {
             wai_state |= M6800_WAI;
             PUSHWORD(PC);
@@ -313,7 +313,7 @@ namespace cpu.m6800
             if ((wai_state & M6800_WAI) != 0)
                 EAT_CYCLES();
         }
-        void swi()
+        protected void swi()
         {
             PUSHWORD(PC);
             PUSHWORD(X);
@@ -324,7 +324,7 @@ namespace cpu.m6800
             PC.d = RM16(0xfffa);
             //CHANGE_PC();
         }
-        void nega()
+        protected void nega()
         {
             ushort r;
             r = (ushort)(-D.HighByte);
@@ -332,21 +332,21 @@ namespace cpu.m6800
             SET_FLAGS8(0, D.HighByte, r);
             D.HighByte = (byte)r;
         }
-        void coma()
+        protected void coma()
         {
             D.HighByte = (byte)(~D.HighByte);
             CLR_NZV();
             SET_NZ8(D.HighByte);
             SEC();
         }
-        void lsra()
+        protected void lsra()
         {
             CLR_NZC();
             cc |= (byte)(D.HighByte & 0x01);
             D.HighByte >>= 1;
             SET_Z8(D.HighByte);
         }
-        void rora()
+        protected void rora()
         {
             byte r;
             r = (byte)((cc & 0x01) << 7);
@@ -356,7 +356,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             D.HighByte = r;
         }
-        void asra()
+        protected void asra()
         {
             CLR_NZC();
             cc |= (byte)(D.HighByte & 0x01);
@@ -364,7 +364,7 @@ namespace cpu.m6800
             D.HighByte |= (byte)((D.HighByte & 0x40) << 1);
             SET_NZ8(D.HighByte);
         }
-        void asla()
+        protected void asla()
         {
             ushort r;
             r = (ushort)(D.HighByte << 1);
@@ -372,7 +372,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, D.HighByte, r);
             D.HighByte = (byte)r;
         }
-        void rola()
+        protected void rola()
         {
             ushort t, r;
             t = D.HighByte;
@@ -382,30 +382,30 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             D.HighByte = (byte)r;
         }
-        void deca()
+        protected void deca()
         {
             --D.HighByte;
             CLR_NZV();
             SET_FLAGS8D(D.HighByte);
         }
-        void inca()
+        protected void inca()
         {
             ++D.HighByte;
             CLR_NZV();
             SET_FLAGS8I(D.HighByte);
         }
-        void tsta()
+        protected void tsta()
         {
             CLR_NZVC();
             SET_NZ8(D.HighByte);
         }
-        void clra()
+        protected void clra()
         {
             D.HighByte = 0;
             CLR_NZVC();
             SEZ();
         }
-        void negb()
+        protected void negb()
         {
             ushort r;
             r = (ushort)(-D.LowByte);
@@ -413,21 +413,21 @@ namespace cpu.m6800
             SET_FLAGS8(0, D.LowByte, r);
             D.LowByte = (byte)r;
         }
-        void comb()
+        protected void comb()
         {
             D.LowByte = (byte)(~D.LowByte);
             CLR_NZV();
             SET_NZ8(D.LowByte);
             SEC();
         }
-        void lsrb()
+        protected void lsrb()
         {
             CLR_NZC();
             cc |= (byte)(D.LowByte & 0x01);
             D.LowByte >>= 1;
             SET_Z8(D.LowByte);
         }
-        void rorb()
+        protected void rorb()
         {
             byte r;
             r = (byte)((cc & 0x01) << 7);
@@ -437,7 +437,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             D.LowByte = r;
         }
-        void asrb()
+        protected void asrb()
         {
             CLR_NZC();
             cc |= (byte)(D.LowByte & 0x01);
@@ -445,7 +445,7 @@ namespace cpu.m6800
             D.LowByte |= (byte)((D.LowByte & 0x40) << 1);
             SET_NZ8(D.LowByte);
         }
-        void aslb()
+        protected void aslb()
         {
             ushort r;
             r = (ushort)(D.LowByte << 1);
@@ -453,7 +453,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, D.LowByte, r);
             D.LowByte = (byte)r;
         }
-        void rolb()
+        protected void rolb()
         {
             ushort t, r;
             t = D.LowByte;
@@ -463,30 +463,30 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             D.LowByte = (byte)r;
         }
-        void decb()
+        protected void decb()
         {
             --D.LowByte;
             CLR_NZV();
             SET_FLAGS8D(D.LowByte);
         }
-        void incb()
+        protected void incb()
         {
             ++D.LowByte;
             CLR_NZV();
             SET_FLAGS8I(D.LowByte);
         }
-        void tstb()
+        protected void tstb()
         {
             CLR_NZVC();
             SET_NZ8(D.LowByte);
         }
-        void clrb()
+        protected void clrb()
         {
             D.LowByte = 0;
             CLR_NZVC();
             SEZ();
         }
-        void neg_ix()
+        protected void neg_ix()
         {
             ushort r, t;
             t = (ushort)IDXBYTE();
@@ -495,7 +495,7 @@ namespace cpu.m6800
             SET_FLAGS8(0, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void aim_ix()
+        protected void aim_ix()
         {
             byte t, r;
             t = IMMBYTE();
@@ -505,7 +505,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void oim_ix()
+        protected void oim_ix()
         {
             byte t, r;
             t = IMMBYTE();
@@ -515,7 +515,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void com_ix()
+        protected void com_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -525,7 +525,7 @@ namespace cpu.m6800
             SEC();
             WriteMemory(EA.LowWord, t);
         }
-        void lsr_ix()
+        protected void lsr_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -535,7 +535,7 @@ namespace cpu.m6800
             SET_Z8(t);
             WriteMemory(EA.LowWord, t);
         }
-        void eim_ix()
+        protected void eim_ix()
         {
             byte t, r;
             t = IMMBYTE();
@@ -545,7 +545,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void ror_ix()
+        protected void ror_ix()
         {
             byte t, r;
             t = IDXBYTE();
@@ -556,7 +556,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void asr_ix()
+        protected void asr_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -567,7 +567,7 @@ namespace cpu.m6800
             SET_NZ8(t);
             WriteMemory(EA.LowWord, t);
         }
-        void asl_ix()
+        protected void asl_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -576,7 +576,7 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void rol_ix()
+        protected void rol_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -586,7 +586,7 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void dec_ix()
+        protected void dec_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -595,7 +595,7 @@ namespace cpu.m6800
             SET_FLAGS8D(t);
             WriteMemory(EA.LowWord, t);
         }
-        void tim_ix()
+        protected void tim_ix()
         {
             byte t, r;
             t = IMMBYTE();
@@ -604,7 +604,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void inc_ix()
+        protected void inc_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -613,27 +613,27 @@ namespace cpu.m6800
             SET_FLAGS8I(t);
             WriteMemory(EA.LowWord, t);
         }
-        void tst_ix()
+        protected void tst_ix()
         {
             byte t;
             t = IDXBYTE();
             CLR_NZVC();
             SET_NZ8(t);
         }
-        void jmp_ix()
+        protected void jmp_ix()
         {
             INDEXED();
             PC.LowWord = EA.LowWord;
             //CHANGE_PC();
         }
-        void clr_ix()
+        protected void clr_ix()
         {
             INDEXED();
             WriteMemory(EA.LowWord, 0);
             CLR_NZVC();
             SEZ();
         }
-        void neg_ex()
+        protected void neg_ex()
         {
             ushort r, t;
             t = EXTBYTE();
@@ -642,7 +642,7 @@ namespace cpu.m6800
             SET_FLAGS8(0, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void aim_di()
+        protected void aim_di()
         {
             byte t, r;
             t = IMMBYTE();
@@ -652,7 +652,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void oim_di()
+        protected void oim_di()
         {
             byte t, r;
             t = IMMBYTE();
@@ -662,7 +662,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void com_ex()
+        protected void com_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -672,7 +672,7 @@ namespace cpu.m6800
             SEC();
             WriteMemory(EA.LowWord, t);
         }
-        void lsr_ex()
+        protected void lsr_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -682,7 +682,7 @@ namespace cpu.m6800
             SET_Z8(t);
             WriteMemory(EA.LowWord, t);
         }
-        void eim_di()
+        protected void eim_di()
         {
             byte t, r;
             t = IMMBYTE();
@@ -692,7 +692,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void ror_ex()
+        protected void ror_ex()
         {
             byte t, r;
             t = EXTBYTE();
@@ -703,7 +703,7 @@ namespace cpu.m6800
             SET_NZ8(r);
             WriteMemory(EA.LowWord, r);
         }
-        void asr_ex()
+        protected void asr_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -714,7 +714,7 @@ namespace cpu.m6800
             SET_NZ8(t);
             WriteMemory(EA.LowWord, t);
         }
-        void asl_ex()
+        protected void asl_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -723,7 +723,7 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void rol_ex()
+        protected void rol_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -733,7 +733,7 @@ namespace cpu.m6800
             SET_FLAGS8(t, t, r);
             WriteMemory(EA.LowWord, (byte)r);
         }
-        void dec_ex()
+        protected void dec_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -742,7 +742,7 @@ namespace cpu.m6800
             SET_FLAGS8D(t);
             WriteMemory(EA.LowWord, (byte)t);
         }
-        void tim_di()
+        protected void tim_di()
         {
             byte t, r;
             t = IMMBYTE();
@@ -751,7 +751,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void inc_ex()
+        protected void inc_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -760,27 +760,27 @@ namespace cpu.m6800
             SET_FLAGS8I(t);
             WriteMemory(EA.LowWord, t);
         }
-        void tst_ex()
+        protected void tst_ex()
         {
             byte t;
             t = EXTBYTE();
             CLR_NZVC();
             SET_NZ8(t);
         }
-        void jmp_ex()
+        protected void jmp_ex()
         {
             EXTENDED();
             PC.LowWord = EA.LowWord;
             //CHANGE_PC();
         }
-        void clr_ex()
+        protected void clr_ex()
         {
             EXTENDED();
             WriteMemory(EA.LowWord, 0);
             CLR_NZVC();
             SEZ();
         }
-        void suba_im()
+        protected void suba_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -789,7 +789,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpa_im()
+        protected void cmpa_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -797,7 +797,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.HighByte, t, r);
         }
-        void sbca_im()
+        protected void sbca_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -806,7 +806,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void subd_im()
+        protected void subd_im()
         {
             uint r, d;
             Register b;
@@ -817,7 +817,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void anda_im()
+        protected void anda_im()
         {
             byte t;
             t = IMMBYTE();
@@ -825,7 +825,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void bita_im()
+        protected void bita_im()
         {
             byte t, r;
             t = IMMBYTE();
@@ -833,20 +833,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void lda_im()
+        protected void lda_im()
         {
             D.HighByte = IMMBYTE();
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void sta_im()
+        protected void sta_im()
         {
             CLR_NZV();
             SET_NZ8(D.HighByte);
             IMM8();
             WriteMemory(EA.LowWord, D.HighByte);
         }
-        void eora_im()
+        protected void eora_im()
         {
             byte t;
             t = IMMBYTE();
@@ -854,7 +854,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adca_im()
+        protected void adca_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -864,7 +864,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void ora_im()
+        protected void ora_im()
         {
             byte t;
             t = IMMBYTE();
@@ -872,7 +872,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adda_im()
+        protected void adda_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -882,7 +882,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpx_im()
+        protected void cmpx_im()
         {
             uint r, d;
             Register b;
@@ -893,7 +893,7 @@ namespace cpu.m6800
             SET_NZ16((ushort)r);
             SET_V16(d, b.d, r);
         }
-        void cpx_im()
+        protected void cpx_im()
         {
             uint r, d;
             Register b;
@@ -903,7 +903,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS16(d, b.d, r);
         }
-        void bsr()
+        protected void bsr()
         {
             byte t;
             t = IMMBYTE();
@@ -911,20 +911,20 @@ namespace cpu.m6800
             PC.LowWord += (ushort)SIGNED(t);
             //CHANGE_PC();
         }
-        void lds_im()
+        protected void lds_im()
         {
             S = IMMWORD();
             CLR_NZV();
             SET_NZ16(S.LowWord);
         }
-        void sts_im()
+        protected void sts_im()
         {
             CLR_NZV();
             SET_NZ16(S.LowWord);
             IMM16();
             WM16(EA.LowWord, S);
         }
-        void suba_di()
+        protected void suba_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -933,7 +933,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpa_di()
+        protected void cmpa_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -941,7 +941,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.HighByte, t, r);
         }
-        void sbca_di()
+        protected void sbca_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -950,7 +950,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void subd_di()
+        protected void subd_di()
         {
             uint r, d;
             Register b;
@@ -961,7 +961,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void anda_di()
+        protected void anda_di()
         {
             byte t;
             t = DIRBYTE();
@@ -969,7 +969,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void bita_di()
+        protected void bita_di()
         {
             byte t, r;
             t = DIRBYTE();
@@ -977,20 +977,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void lda_di()
+        protected void lda_di()
         {
             D.HighByte = DIRBYTE();
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void sta_di()
+        protected void sta_di()
         {
             CLR_NZV();
             SET_NZ8(D.HighByte);
             DIRECT();
             WriteMemory(EA.LowWord, D.HighByte);
         }
-        void eora_di()
+        protected void eora_di()
         {
             byte t;
             t = DIRBYTE();
@@ -998,7 +998,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adca_di()
+        protected void adca_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1008,7 +1008,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void ora_di()
+        protected void ora_di()
         {
             byte t;
             t = DIRBYTE();
@@ -1016,7 +1016,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adda_di()
+        protected void adda_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1026,7 +1026,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpx_di()
+        protected void cmpx_di()
         {
             uint r, d;
             Register b;
@@ -1037,7 +1037,7 @@ namespace cpu.m6800
             SET_NZ16((ushort)r);
             SET_V16(d, b.d, r);
         }
-        void cpx_di()
+        protected void cpx_di()
         {
             uint r, d;
             Register b;
@@ -1047,27 +1047,27 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS16(d, b.d, r);
         }
-        void jsr_di()
+        protected void jsr_di()
         {
             DIRECT();
             PUSHWORD(PC);
             PC.LowWord = EA.LowWord;
             //CHANGE_PC();
         }
-        void lds_di()
+        protected void lds_di()
         {
             S = DIRWORD();
             CLR_NZV();
             SET_NZ16(S.LowWord);
         }
-        void sts_di()
+        protected void sts_di()
         {
             CLR_NZV();
             SET_NZ16(S.LowWord);
             DIRECT();
             WM16(EA.LowWord, S);
         }
-        void suba_ix()
+        protected void suba_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1076,7 +1076,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpa_ix()
+        protected void cmpa_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1084,7 +1084,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.HighByte, t, r);
         }
-        void sbca_ix()
+        protected void sbca_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1093,7 +1093,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void subd_ix()
+        protected void subd_ix()
         {
             uint r, d;
             Register b;
@@ -1104,7 +1104,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void anda_ix()
+        protected void anda_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1112,7 +1112,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void bita_ix()
+        protected void bita_ix()
         {
             byte t, r;
             t = IDXBYTE();
@@ -1120,20 +1120,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void lda_ix()
+        protected void lda_ix()
         {
             D.HighByte = IDXBYTE();
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void sta_ix()
+        protected void sta_ix()
         {
             CLR_NZV();
             SET_NZ8(D.HighByte);
             INDEXED();
             WriteMemory(EA.LowWord, D.HighByte);
         }
-        void eora_ix()
+        protected void eora_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1141,7 +1141,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adca_ix()
+        protected void adca_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1151,7 +1151,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void ora_ix()
+        protected void ora_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1159,7 +1159,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adda_ix()
+        protected void adda_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1169,7 +1169,7 @@ namespace cpu.m6800
             SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpx_ix()
+        protected void cmpx_ix()
         {
             uint r, d;
             Register b;
@@ -1180,7 +1180,7 @@ namespace cpu.m6800
             SET_NZ16((ushort)r);
             SET_V16(d, b.d, r);
         }
-        void cpx_ix()
+        protected void cpx_ix()
         {
             uint r, d;
             Register b;
@@ -1190,27 +1190,27 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS16(d, b.d, r);
         }
-        void jsr_ix()
+        protected void jsr_ix()
         {
             INDEXED();
             PUSHWORD(PC);
             PC.LowWord = EA.LowWord;
             //CHANGE_PC();
         }
-        void lds_ix()
+        protected void lds_ix()
         {
             S = IDXWORD();
             CLR_NZV();
             SET_NZ16(S.LowWord);
         }
-        void sts_ix()
+        protected void sts_ix()
         {
             CLR_NZV();
             SET_NZ16(S.LowWord);
             INDEXED();
             WM16(EA.LowWord, S);
         }
-        void suba_ex()
+        protected void suba_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1219,7 +1219,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpa_ex()
+        protected void cmpa_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1227,7 +1227,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.HighByte, t, r);
         }
-        void sbca_ex()
+        protected void sbca_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1236,7 +1236,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void subd_ex()
+        protected void subd_ex()
         {
             uint r, d;
             Register b;
@@ -1247,7 +1247,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void anda_ex()
+        protected void anda_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1255,7 +1255,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void bita_ex()
+        protected void bita_ex()
         {
             byte t, r;
             t = EXTBYTE();
@@ -1263,20 +1263,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void lda_ex()
+        protected void lda_ex()
         {
             D.HighByte = EXTBYTE();
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void sta_ex()
+        protected void sta_ex()
         {
             CLR_NZV();
             SET_NZ8(D.HighByte);
             EXTENDED();
             WriteMemory(EA.LowWord, D.HighByte);
         }
-        void eora_ex()
+        protected void eora_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1284,7 +1284,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adca_ex()
+        protected void adca_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1293,7 +1293,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r); SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void ora_ex()
+        protected void ora_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1301,7 +1301,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.HighByte);
         }
-        void adda_ex()
+        protected void adda_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1310,7 +1310,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.HighByte, t, r); SET_H(D.HighByte, t, r);
             D.HighByte = (byte)r;
         }
-        void cmpx_ex()
+        protected void cmpx_ex()
         {
             uint r, d;
             Register b;
@@ -1321,7 +1321,7 @@ namespace cpu.m6800
             SET_NZ16((ushort)r);
             SET_V16(d, b.d, r);
         }
-        void cpx_ex()
+        protected void cpx_ex()
         {
             uint r, d;
             Register b;
@@ -1331,27 +1331,27 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS16(d, b.d, r);
         }
-        void jsr_ex()
+        protected void jsr_ex()
         {
             EXTENDED();
             PUSHWORD(PC);
             PC.LowWord = EA.LowWord;
             //CHANGE_PC();
         }
-        void lds_ex()
+        protected void lds_ex()
         {
             S = EXTWORD();
             CLR_NZV();
             SET_NZ16(S.LowWord);
         }
-        void sts_ex()
+        protected void sts_ex()
         {
             CLR_NZV();
             SET_NZ16(S.LowWord);
             EXTENDED();
             WM16(EA.LowWord, S);
         }
-        void subb_im()
+        protected void subb_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1360,7 +1360,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void cmpb_im()
+        protected void cmpb_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1368,7 +1368,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.LowByte, t, r);
         }
-        void sbcb_im()
+        protected void sbcb_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1377,7 +1377,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void addd_im()
+        protected void addd_im()
         {
             uint r, d;
             Register b;
@@ -1388,7 +1388,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void andb_im()
+        protected void andb_im()
         {
             byte t;
             t = IMMBYTE();
@@ -1396,7 +1396,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void bitb_im()
+        protected void bitb_im()
         {
             byte t, r;
             t = IMMBYTE();
@@ -1404,20 +1404,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void ldb_im()
+        protected void ldb_im()
         {
             D.LowByte = IMMBYTE();
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void stb_im()
+        protected void stb_im()
         {
             CLR_NZV();
             SET_NZ8(D.LowByte);
             IMM8();
             WriteMemory(EA.LowWord, D.LowByte);
         }
-        void eorb_im()
+        protected void eorb_im()
         {
             byte t;
             t = IMMBYTE();
@@ -1425,7 +1425,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void adcb_im()
+        protected void adcb_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1435,7 +1435,7 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void orb_im()
+        protected void orb_im()
         {
             byte t;
             t = IMMBYTE();
@@ -1443,7 +1443,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void addb_im()
+        protected void addb_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1453,33 +1453,33 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void ldd_im()
+        protected void ldd_im()
         {
             D = IMMWORD();
             CLR_NZV();
             SET_NZ16(D.LowWord);
         }
-        void std_im()
+        protected void std_im()
         {
             IMM16();
             CLR_NZV();
             SET_NZ16(D.LowWord);
             WM16(EA.LowWord, D);
         }
-        void ldx_im()
+        protected void ldx_im()
         {
             X = IMMWORD();
             CLR_NZV();
             SET_NZ16(X.LowWord);
         }
-        void stx_im()
+        protected void stx_im()
         {
             CLR_NZV();
             SET_NZ16(X.LowWord);
             IMM16();
             WM16(EA.LowWord, X);
         }
-        void subb_di()
+        protected void subb_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1488,7 +1488,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void cmpb_di()
+        protected void cmpb_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1496,7 +1496,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.LowByte, t, r);
         }
-        void sbcb_di()
+        protected void sbcb_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1505,7 +1505,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void addd_di()
+        protected void addd_di()
         {
             uint r, d;
             Register b;
@@ -1516,7 +1516,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void andb_di()
+        protected void andb_di()
         {
             byte t;
             t = DIRBYTE();
@@ -1524,7 +1524,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void bitb_di()
+        protected void bitb_di()
         {
             byte t, r;
             t = DIRBYTE();
@@ -1532,20 +1532,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void ldb_di()
+        protected void ldb_di()
         {
             D.LowByte = DIRBYTE();
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void stb_di()
+        protected void stb_di()
         {
             CLR_NZV();
             SET_NZ8(D.LowByte);
             DIRECT();
             WriteMemory(EA.LowWord, D.LowByte);
         }
-        void eorb_di()
+        protected void eorb_di()
         {
             byte t;
             t = DIRBYTE();
@@ -1553,7 +1553,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void adcb_di()
+        protected void adcb_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1563,7 +1563,7 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void orb_di()
+        protected void orb_di()
         {
             byte t;
             t = DIRBYTE();
@@ -1571,7 +1571,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void addb_di()
+        protected void addb_di()
         {
             ushort t, r;
             t = DIRBYTE();
@@ -1581,33 +1581,33 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void ldd_di()
+        protected void ldd_di()
         {
             D = DIRWORD();
             CLR_NZV();
             SET_NZ16(D.LowWord);
         }
-        void std_di()
+        protected void std_di()
         {
             DIRECT();
             CLR_NZV();
             SET_NZ16(D.LowWord);
             WM16(EA.LowWord, D);
         }
-        void ldx_di()
+        protected void ldx_di()
         {
             X = DIRWORD();
             CLR_NZV();
             SET_NZ16(X.LowWord);
         }
-        void stx_di()
+        protected void stx_di()
         {
             CLR_NZV();
             SET_NZ16(X.LowWord);
             DIRECT();
             WM16(EA.LowWord, X);
         }
-        void subb_ix()
+        protected void subb_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1616,7 +1616,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void cmpb_ix()
+        protected void cmpb_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1624,7 +1624,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.LowByte, t, r);
         }
-        void sbcb_ix()
+        protected void sbcb_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1633,7 +1633,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void addd_ix()
+        protected void addd_ix()
         {
             uint r, d;
             Register b;
@@ -1644,7 +1644,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void andb_ix()
+        protected void andb_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1652,7 +1652,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void bitb_ix()
+        protected void bitb_ix()
         {
             byte t, r;
             t = IDXBYTE();
@@ -1660,20 +1660,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void ldb_ix()
+        protected void ldb_ix()
         {
             D.LowByte = IDXBYTE();
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void stb_ix()
+        protected void stb_ix()
         {
             CLR_NZV();
             SET_NZ8(D.LowByte);
             INDEXED();
             WriteMemory(EA.LowWord, D.LowByte);
         }
-        void eorb_ix()
+        protected void eorb_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1681,7 +1681,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void adcb_ix()
+        protected void adcb_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1691,7 +1691,7 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void orb_ix()
+        protected void orb_ix()
         {
             byte t;
             t = IDXBYTE();
@@ -1699,7 +1699,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void addb_ix()
+        protected void addb_ix()
         {
             ushort t, r;
             t = IDXBYTE();
@@ -1709,13 +1709,13 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void ldd_ix()
+        protected void ldd_ix()
         {
             D = IDXWORD();
             CLR_NZV();
             SET_NZ16(D.LowWord);
         }
-        void adcx_im()
+        protected void adcx_im()
         {
             ushort t, r;
             t = IMMBYTE();
@@ -1724,27 +1724,27 @@ namespace cpu.m6800
             SET_FLAGS8(X.LowWord, t, r); SET_H(X.LowWord, t, r);
             X.LowWord = r;
         }
-        void std_ix()
+        protected void std_ix()
         {
             INDEXED();
             CLR_NZV();
             SET_NZ16(D.LowWord);
             WM16(EA.LowWord, D);
         }
-        void ldx_ix()
+        protected void ldx_ix()
         {
             X = IDXWORD();
             CLR_NZV();
             SET_NZ16(X.LowWord);
         }
-        void stx_ix()
+        protected void stx_ix()
         {
             CLR_NZV();
             SET_NZ16(X.LowWord);
             INDEXED();
             WM16(EA.LowWord, X);
         }
-        void subb_ex()
+        protected void subb_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1753,7 +1753,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void cmpb_ex()
+        protected void cmpb_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1761,7 +1761,7 @@ namespace cpu.m6800
             CLR_NZVC();
             SET_FLAGS8(D.LowByte, t, r);
         }
-        void sbcb_ex()
+        protected void sbcb_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1770,7 +1770,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void addd_ex()
+        protected void addd_ex()
         {
             uint r, d;
             Register b;
@@ -1781,7 +1781,7 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             D.LowWord = (ushort)r;
         }
-        void andb_ex()
+        protected void andb_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1789,7 +1789,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void bitb_ex()
+        protected void bitb_ex()
         {
             byte t, r;
             t = EXTBYTE();
@@ -1797,20 +1797,20 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(r);
         }
-        void ldb_ex()
+        protected void ldb_ex()
         {
             D.LowByte = EXTBYTE();
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void stb_ex()
+        protected void stb_ex()
         {
             CLR_NZV();
             SET_NZ8(D.LowByte);
             EXTENDED();
             WriteMemory(EA.LowWord, D.LowByte);
         }
-        void eorb_ex()
+        protected void eorb_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1818,7 +1818,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void adcb_ex()
+        protected void adcb_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1827,7 +1827,7 @@ namespace cpu.m6800
             SET_FLAGS8(D.LowByte, t, r); SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void orb_ex()
+        protected void orb_ex()
         {
             byte t;
             t = EXTBYTE();
@@ -1835,7 +1835,7 @@ namespace cpu.m6800
             CLR_NZV();
             SET_NZ8(D.LowByte);
         }
-        void addb_ex()
+        protected void addb_ex()
         {
             ushort t, r;
             t = EXTBYTE();
@@ -1845,13 +1845,13 @@ namespace cpu.m6800
             SET_H(D.LowByte, t, r);
             D.LowByte = (byte)r;
         }
-        void ldd_ex()
+        protected void ldd_ex()
         {
             D = EXTWORD();
             CLR_NZV();
             SET_NZ16(D.LowWord);
         }
-        void addx_ex()
+        protected void addx_ex()
         {
             uint r, d;
             Register b;
@@ -1862,25 +1862,33 @@ namespace cpu.m6800
             SET_FLAGS16(d, b.d, r);
             X.LowWord = (ushort)r;
         }
-        void std_ex()
+        protected void std_ex()
         {
             EXTENDED();
             CLR_NZV();
             SET_NZ16(D.LowWord);
             WM16(EA.LowWord, D);
         }
-        void ldx_ex()
+        protected void ldx_ex()
         {
             X = EXTWORD();
             CLR_NZV();
             SET_NZ16(X.LowWord);
         }
-        void stx_ex()
+        protected void stx_ex()
         {
             CLR_NZV();
             SET_NZ16(X.LowWord);
             EXTENDED();
             WM16(EA.LowWord, X);
         }
+        /*protected void CLV()
+        {
+            cc &= 0xfd;
+        }
+        protected void SEV()
+        {
+
+        }*/
     }
 }

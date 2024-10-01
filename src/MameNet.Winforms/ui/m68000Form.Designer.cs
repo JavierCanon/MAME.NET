@@ -64,8 +64,6 @@
             this.label10 = new System.Windows.Forms.Label();
             this.tbCycles = new System.Windows.Forms.TextBox();
             this.label11 = new System.Windows.Forms.Label();
-            this.tbCode1 = new System.Windows.Forms.TextBox();
-            this.tbCode2 = new System.Windows.Forms.TextBox();
             this.cbLog = new System.Windows.Forms.CheckBox();
             this.cbM = new System.Windows.Forms.CheckBox();
             this.tbPC = new System.Windows.Forms.TextBox();
@@ -392,20 +390,6 @@
             this.label11.TabIndex = 6;
             this.label11.Text = "TotalExecutedCycles";
             // 
-            // tbCode1
-            // 
-            this.tbCode1.Location = new System.Drawing.Point(224, 81);
-            this.tbCode1.Name = "tbCode1";
-            this.tbCode1.Size = new System.Drawing.Size(70, 21);
-            this.tbCode1.TabIndex = 22;
-            // 
-            // tbCode2
-            // 
-            this.tbCode2.Location = new System.Drawing.Point(224, 108);
-            this.tbCode2.Name = "tbCode2";
-            this.tbCode2.Size = new System.Drawing.Size(70, 21);
-            this.tbCode2.TabIndex = 22;
-            // 
             // cbLog
             // 
             this.cbLog.AutoSize = true;
@@ -469,8 +453,6 @@
             this.ClientSize = new System.Drawing.Size(784, 512);
             this.Controls.Add(this.btnStep4);
             this.Controls.Add(this.cbLog);
-            this.Controls.Add(this.tbCode2);
-            this.Controls.Add(this.tbCode1);
             this.Controls.Add(this.tbResult);
             this.Controls.Add(this.btnClear);
             this.Controls.Add(this.btnGN2);
@@ -558,8 +540,6 @@
         private System.Windows.Forms.Label label10;
         private System.Windows.Forms.TextBox tbCycles;
         private System.Windows.Forms.Label label11;
-        private System.Windows.Forms.TextBox tbCode1;
-        private System.Windows.Forms.TextBox tbCode2;
         public System.Windows.Forms.CheckBox cbLog;
         private System.Windows.Forms.CheckBox cbM;
         private System.Windows.Forms.TextBox tbPC;

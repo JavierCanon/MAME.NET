@@ -1132,7 +1132,12 @@ namespace mame
             }
             return 0xff;
         }
-        private static void ym2413_init(int clock, int rate, int index)
+        public static void ym2413_start(int clock)
+        {
+            int rate = clock / 72;
+            ym2413_init(clock, rate, 0);
+        }
+        public static void ym2413_init(int clock, int rate, int index)
         {
             OPLLCreate(clock, rate, index);
         }
@@ -1140,11 +1145,11 @@ namespace mame
         {
             OPLLDestroy();
         }
-        private static void ym2413_reset_chip()
+        public static void ym2413_reset_chip()
         {
             OPLLResetChip();
         }
-        private static void ym2413_write(int a, int v)
+        public static void ym2413_write(int a, int v)
         {
             OPLLWrite(a, v);
         }
@@ -1156,7 +1161,7 @@ namespace mame
         {
             OPLLSetUpdateHandler(UpdateHandler, param);
         }*/
-        private static void ym2413_update_one(int offset, int length)
+        public static void ym2413_update_one(int offset, int length)
         {
             byte rhythm = (byte)(OPLL.rhythm & 0x20);
             int i;

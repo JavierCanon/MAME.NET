@@ -9,6 +9,7 @@ using System.Windows.Forms;
 using System.Globalization;
 using System.IO;
 using mame;
+using cpu.z80;
 
 namespace ui
 {
@@ -59,10 +60,24 @@ namespace ui
                 case "CPS-1(QSound)":
                 case "CPS2":
                 case "Neo Geo":
+                case "Taito B":
+                case "Konami 68000":
                     nRam = 0x10000;
                     tbRamRange.Text = "0000-10000";
                     CheatReadByte = (int i1) => { return Memory.mainram[i1]; };
                     CheatWriteByte = (int i1, byte b1) => { Memory.mainram[i1]= b1; };
+                    break;
+                case "Data East":
+                    nRam = 0x800;
+                    tbRamRange.Text = "0000-0800";
+                    CheatReadByte = (int i1) => { return Memory.mainram[i1]; };
+                    CheatWriteByte = (int i1, byte b1) => { Memory.mainram[i1] = b1; };
+                    break;
+                case "Tehkan":
+                    nRam = 0xd000;
+                    tbRamRange.Text = "0000-d000";
+                    CheatReadByte = (int i1) => { return Z80A.zz1[0].ReadMemory((ushort)i1); };
+                    CheatWriteByte = (int i1, byte b1) => { Z80A.zz1[0].WriteMemory((ushort)i1, b1); };
                     break;
                 case "Namco System 1":
                     nRam = 0x10000;
@@ -72,6 +87,12 @@ namespace ui
                     break;
                 case "IGS011":
                 case "PGM":
+                    break;
+                case "Capcom":
+                    nRam = 0x6000;
+                    tbRamRange.Text = "0000-6000";
+                    CheatReadByte = (int i1) => { return Memory.mainram[i1]; };
+                    CheatWriteByte = (int i1, byte b1) => { Memory.mainram[i1] = b1; };
                     break;
             }
             bbSearch1 = new byte[nRam];

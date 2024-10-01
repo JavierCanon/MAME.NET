@@ -8,7 +8,7 @@ namespace mame
     public partial class CPS
     {
         public static ushort[] cps_a_regs, cps_b_regs, cps2_objram1, cps2_objram2, cps2_output;
-        public static byte[] mainromop, gfxrom,gfx1rom, audioromop, starsrom, user1rom;
+        public static byte[] mainromop, gfxrom, gfx1rom, audioromop, starsrom, user1rom;
         public static byte[] gfxram;
         public static byte[] qsound_sharedram1, qsound_sharedram2;
         public static byte[] mainram2, mainram3;
@@ -63,6 +63,7 @@ namespace mame
                 gfx1rom[i * 2] = (byte)(gfxrom[i] & 0x0f);
                 gfx1rom[i * 2 + 1] = (byte)(gfxrom[i] >> 4);
             }
+            total_elements = n / 0x80;
             Memory.audiorom = Machine.GetRom("audiocpu.rom");
             switch (Machine.sBoard)
             {
@@ -1762,6 +1763,8 @@ namespace mame
                         lsRangeS.Add(new gfx_range(0x1000, 0x3fff, 0));
                         break;
                     case "wof":
+                    case "wofu":
+                    case "wofj":
                         cpsb_addr = -1;
                         cpsb_value = -1;
                         mult_factor1 = -1;
@@ -1800,34 +1803,6 @@ namespace mame
                         priority = new int[4] { 0x28, 0x2a, 0x2c, 0x2e };
                         palette_control = 0x30;
                         layer_enable_mask = new int[5] { 0x02, 0x04, 0x08, 0x30, 0x30 };
-                        in2_addr = 0x00;
-                        in3_addr = 0x00;
-                        out2_addr = 0x00;
-                        bootleg_kludge = 0;
-                        dswa = 0xff;
-                        dswb = 0xff;
-                        dswc = 0xff;
-                        lsRange0 = new List<gfx_range>();
-                        lsRange0.Add(new gfx_range(0x0000, 0xffff, 0));
-                        lsRange1 = new List<gfx_range>();
-                        lsRange1.Add(new gfx_range(0x0000, 0x7fff, 0));
-                        lsRange2 = new List<gfx_range>();
-                        lsRange2.Add(new gfx_range(0x0000, 0x1fff, 0));
-                        lsRangeS = new List<gfx_range>();
-                        lsRangeS.Add(new gfx_range(0x0000, 0xffff, 0));
-                        break;
-                    case "wofu":
-                    case "wofj":
-                        cpsb_addr = -1;
-                        cpsb_value = -1;
-                        mult_factor1 = -1;
-                        mult_factor2 = -1;
-                        mult_result_lo = -1;
-                        mult_result_hi = -1;
-                        layer_control = 0x22;
-                        priority = new int[4] { 0x24, 0x26, 0x28, 0x2a };
-                        palette_control = 0x2c;
-                        layer_enable_mask = new int[5] { 0x10, 0x08, 0x04, 0x00, 0x00 };
                         in2_addr = 0x00;
                         in3_addr = 0x00;
                         out2_addr = 0x00;

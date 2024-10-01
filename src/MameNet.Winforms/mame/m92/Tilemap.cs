@@ -9,7 +9,7 @@ namespace mame
     {
         public static void tilemap_init()
         {
-            int i, j;            
+            int i, j, k;
             for (i = 0; i < 3; i++)
             {
                 M92.pf_layer[i].tmap = new Tmap();
@@ -27,7 +27,7 @@ namespace mame
                 M92.pf_layer[i].tmap.tileflags = new byte[0x40, 0x40];
                 M92.pf_layer[i].tmap.total_elements = M92.gfx11rom.Length / 0x40;
                 M92.pf_layer[i].tmap.pen_data = new byte[0x40];
-                M92.pf_layer[i].tmap.pen_to_flags = new byte[3, 16];
+                M92.pf_layer[i].tmap.pen_to_flags = new byte[3, 0x10];
                 M92.pf_layer[i].tmap.scrollrows = 512;
                 M92.pf_layer[i].tmap.scrollcols = 1;
                 M92.pf_layer[i].tmap.rowscroll = new int[M92.pf_layer[i].tmap.scrollrows];
@@ -50,7 +50,7 @@ namespace mame
                 M92.pf_layer[i].wide_tmap.tileflags = new byte[0x40, 0x80];
                 M92.pf_layer[i].wide_tmap.total_elements = M92.gfx11rom.Length / 0x40;
                 M92.pf_layer[i].wide_tmap.pen_data = new byte[0x40];
-                M92.pf_layer[i].wide_tmap.pen_to_flags = new byte[3, 16];
+                M92.pf_layer[i].wide_tmap.pen_to_flags = new byte[3, 0x10];
                 M92.pf_layer[i].wide_tmap.scrollrows = 512;
                 M92.pf_layer[i].wide_tmap.scrollcols = 1;
                 M92.pf_layer[i].wide_tmap.rowscroll = new int[M92.pf_layer[i].tmap.scrollrows];
@@ -60,54 +60,53 @@ namespace mame
             }
             for (i = 0; i < 2; i++)
             {
-                M92.pf_layer[i].tmap.pen_to_flags[0, 0] = 0;
-                M92.pf_layer[i].wide_tmap.pen_to_flags[0, 0] = 0;
-                for (j = 1; j < 16; j++)
+                for (j = 0; j < 3; j++)
                 {
-                    M92.pf_layer[i].tmap.pen_to_flags[0, j] = 0x20;
-                    M92.pf_layer[i].wide_tmap.pen_to_flags[0, j] = 0x20;
+                    pf_layer[i].tmap.pen_to_flags[j, 0] = 0;
+                    pf_layer[i].wide_tmap.pen_to_flags[j, 0] = 0;
                 }
-                M92.pf_layer[i].tmap.pen_to_flags[1, 0] = 0;
-                M92.pf_layer[i].wide_tmap.pen_to_flags[1, 0] = 0;
-                for (j = 1; j < 8; j++)
+                for (k = 1; k < 0x10; k++)
                 {
-                    M92.pf_layer[i].tmap.pen_to_flags[1, j] = 0x20;
-                    M92.pf_layer[i].wide_tmap.pen_to_flags[1, j] = 0x20;
+                    pf_layer[i].tmap.pen_to_flags[0, k] = 0x20;
+                    pf_layer[i].wide_tmap.pen_to_flags[0, k] = 0x20;
                 }
-                for (j = 8; j < 16; j++)
+                for (k = 1; k < 8; k++)
                 {
-                    M92.pf_layer[i].tmap.pen_to_flags[1, j] = 0x10;
-                    M92.pf_layer[i].wide_tmap.pen_to_flags[1, j] = 0x10;
+                    pf_layer[i].tmap.pen_to_flags[1, k] = 0x20;
+                    pf_layer[i].wide_tmap.pen_to_flags[1, k] = 0x20;
                 }
-                M92.pf_layer[i].tmap.pen_to_flags[2, 0] = 0;
-                M92.pf_layer[i].wide_tmap.pen_to_flags[2, 0] = 0;
-                for (j = 1; j < 16; j++)
+                for (k = 8; k < 0x10; k++)
                 {
-                    M92.pf_layer[i].tmap.pen_to_flags[2, j] = 0x10;
-                    M92.pf_layer[i].wide_tmap.pen_to_flags[2, j] = 0x10;
+                    pf_layer[i].tmap.pen_to_flags[1, k] = 0x10;
+                    pf_layer[i].wide_tmap.pen_to_flags[1, k] = 0x10;
+                }
+                for (k = 1; k < 0x10; k++)
+                {
+                    pf_layer[i].tmap.pen_to_flags[2, k] = 0x10;
+                    pf_layer[i].wide_tmap.pen_to_flags[2, k] = 0x10;
                 }
             }
-            for (j = 0; j < 16; j++)
+            for (k = 0; k < 0x10; k++)
             {
-                M92.pf_layer[2].tmap.pen_to_flags[0, j] = 0x20;
-                M92.pf_layer[2].wide_tmap.pen_to_flags[0, j] = 0x20;
+                pf_layer[2].tmap.pen_to_flags[0, k] = 0x20;
+                pf_layer[2].wide_tmap.pen_to_flags[0, k] = 0x20;
             }
-            for (j = 0; j < 8; j++)
+            for (k = 0; k < 8; k++)
             {
-                M92.pf_layer[2].tmap.pen_to_flags[1, j] = 0x20;
-                M92.pf_layer[2].wide_tmap.pen_to_flags[1, j] = 0x20;
+                pf_layer[2].tmap.pen_to_flags[1, k] = 0x20;
+                pf_layer[2].wide_tmap.pen_to_flags[1, k] = 0x20;
             }
-            for (j = 8; j < 16; j++)
+            for (k = 8; k < 0x10; k++)
             {
-                M92.pf_layer[2].tmap.pen_to_flags[1, j] = 0x10;
-                M92.pf_layer[2].wide_tmap.pen_to_flags[1, j] = 0x10;
+                pf_layer[2].tmap.pen_to_flags[1, k] = 0x10;
+                pf_layer[2].wide_tmap.pen_to_flags[1, k] = 0x10;
             }
-            M92.pf_layer[2].tmap.pen_to_flags[2, 0] = 0x20;
-            M92.pf_layer[2].wide_tmap.pen_to_flags[2, 0] = 0x20;
-            for (j = 1; j < 16; j++)
+            pf_layer[2].tmap.pen_to_flags[2, 0] = 0x20;
+            pf_layer[2].wide_tmap.pen_to_flags[2, 0] = 0x20;
+            for (k = 1; k < 0x10; k++)
             {
-                M92.pf_layer[2].tmap.pen_to_flags[2, j] = 0x10;
-                M92.pf_layer[2].wide_tmap.pen_to_flags[2, j] = 0x10;
+                pf_layer[2].tmap.pen_to_flags[2, k] = 0x10;
+                pf_layer[2].wide_tmap.pen_to_flags[2, k] = 0x10;
             }
         }
     }
@@ -225,8 +224,8 @@ namespace mame
             int tile, attrib, code;
             int pen_data_offset, palette_base, group;
             tile_index = 2 * (row * cols + col) + M92.pf_layer[laynum].vram_base;
-            attrib = M92.m92_vram_data[(tile_index + 1) * 2] + M92.m92_vram_data[(tile_index + 1) * 2 + 1] * 0x100;
-            tile = M92.m92_vram_data[tile_index * 2] + M92.m92_vram_data[tile_index * 2 + 1] * 0x100 + ((attrib & 0x8000) << 1);
+            attrib = M92.m92_vram_data[tile_index + 1];
+            tile = M92.m92_vram_data[tile_index] + ((attrib & 0x8000) << 1);
             code = tile % total_elements;
             pen_data_offset = code * 0x40;
             palette_base = 0x10 * (attrib & 0x7f);

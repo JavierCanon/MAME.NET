@@ -55,103 +55,19 @@ namespace mame
             }
             for (i = 0; i < 3; i++)
             {
-                writer.Write(M6809.mm1[i].PC.LowWord);
-                writer.Write(M6809.mm1[i].PPC.LowWord);
-                writer.Write(M6809.mm1[i].D.LowWord);
-                writer.Write(M6809.mm1[i].DP.LowWord);
-                writer.Write(M6809.mm1[i].U.LowWord);
-                writer.Write(M6809.mm1[i].S.LowWord);
-                writer.Write(M6809.mm1[i].X.LowWord);
-                writer.Write(M6809.mm1[i].Y.LowWord);
-                writer.Write(M6809.mm1[i].CC);
-                writer.Write((byte)M6809.mm1[i].irq_state[0]);
-                writer.Write((byte)M6809.mm1[i].irq_state[1]);
-                writer.Write(M6809.mm1[i].int_state);
-                writer.Write((byte)M6809.mm1[i].nmi_state);
+                M6809.mm1[i].SaveStateBinary(writer);
             }
-            writer.Write(M6800.m1.PPC.LowWord);
-            writer.Write(M6800.m1.PC.LowWord);
-            writer.Write(M6800.m1.S.LowWord);
-            writer.Write(M6800.m1.X.LowWord);
-            writer.Write(M6800.m1.D.LowWord);
-            writer.Write(M6800.m1.cc);
-            writer.Write(M6800.m1.wai_state);
-            writer.Write((byte)M6800.m1.nmi_state);
-            writer.Write((byte)M6800.m1.irq_state[0]);
-            writer.Write((byte)M6800.m1.irq_state[1]);
-            writer.Write(M6800.m1.ic_eddge);
-            writer.Write(M6800.m1.port1_ddr);
-            writer.Write(M6800.m1.port2_ddr);
-            writer.Write(M6800.m1.port3_ddr);
-            writer.Write(M6800.m1.port4_ddr);
-            writer.Write(M6800.m1.port1_data);
-            writer.Write(M6800.m1.port2_data);
-            writer.Write(M6800.m1.port3_data);
-            writer.Write(M6800.m1.port4_data);
-            writer.Write(M6800.m1.tcsr);
-            writer.Write(M6800.m1.pending_tcsr);
-            writer.Write(M6800.m1.irq2);
-            writer.Write(M6800.m1.ram_ctrl);
-            writer.Write(M6800.m1.counter.d);
-            writer.Write(M6800.m1.output_compare.d);
-            writer.Write(M6800.m1.input_capture);
-            writer.Write(M6800.m1.timer_over.d);
-            writer.Write(M6800.m1.clock);
-            writer.Write(M6800.m1.trcsr);
-            writer.Write(M6800.m1.rmcr);
-            writer.Write(M6800.m1.rdr);
-            writer.Write(M6800.m1.tdr);
-            writer.Write(M6800.m1.rsr);
-            writer.Write(M6800.m1.tsr);
-            writer.Write(M6800.m1.rxbits);
-            writer.Write(M6800.m1.txbits);
-            writer.Write((int)M6800.m1.txstate);
-            writer.Write(M6800.m1.trcsr_read);
-            writer.Write(M6800.m1.tx);
+            M6800.m1.SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
-            writer.Write(Video.screenstate.vblank_start_time.seconds);
-            writer.Write(Video.screenstate.vblank_start_time.attoseconds);
-            writer.Write(Video.screenstate.frame_number);
+            Video.SaveStateBinary(writer);
             writer.Write(Sound.last_update_second);
-            for (i = 0; i < 4; i++)
-            {
-                writer.Write(Cpuexec.cpu[i].suspend);
-                writer.Write(Cpuexec.cpu[i].nextsuspend);
-                writer.Write(Cpuexec.cpu[i].eatcycles);
-                writer.Write(Cpuexec.cpu[i].nexteatcycles);
-                writer.Write(Cpuexec.cpu[i].localtime.seconds);
-                writer.Write(Cpuexec.cpu[i].localtime.attoseconds);
-                writer.Write(Cpuexec.cpu[i].TotalExecutedCycles);
-                writer.Write(Cpuexec.cpu[i].PendingCycles);
-            }
+            Cpuexec.SaveStateBinary(writer);
             Timer.SaveStateBinary(writer);
             YM2151.SaveStateBinary(writer);
-            writer.Write(Namco.nam1.num_voices);
-            writer.Write(Namco.nam1.sound_enable);
-            for (i = 0; i < 16; i++)
-            {
-                for (j = 0; j < 32 * 16; j++)
-                {
-                    writer.Write(Namco.nam1.waveform[i][j]);
-                }
-            }
-            for (i = 0; i < 8; i++)
-            {
-                writer.Write(Namco.nam1.channel_list[i].frequency);
-                writer.Write(Namco.nam1.channel_list[i].counter);
-                writer.Write(Namco.nam1.channel_list[i].volume[0]);
-                writer.Write(Namco.nam1.channel_list[i].volume[1]);
-                writer.Write(Namco.nam1.channel_list[i].noise_sw);
-                writer.Write(Namco.nam1.channel_list[i].noise_state);
-                writer.Write(Namco.nam1.channel_list[i].noise_seed);
-                writer.Write(Namco.nam1.channel_list[i].noise_hold);
-                writer.Write(Namco.nam1.channel_list[i].noise_counter);
-                writer.Write(Namco.nam1.channel_list[i].waveform_select);
-            }
-            writer.Write(Namco.namco_wavedata, 0, 0x400);
-            writer.Write(DAC.dac1.output);
+            Namco.SaveStateBinary(writer);
+            DAC.SaveStateBinary(writer);
             writer.Write(Sound.ym2151stream.output_sampindex);
             writer.Write(Sound.ym2151stream.output_base_sampindex);
             writer.Write(Sound.namcostream.output_sampindex);
@@ -206,103 +122,19 @@ namespace mame
             }
             for (i = 0; i < 3; i++)
             {
-                M6809.mm1[i].PC.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].PPC.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].D.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].DP.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].U.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].S.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].X.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].Y.LowWord = reader.ReadUInt16();
-                M6809.mm1[i].CC = reader.ReadByte();
-                M6809.mm1[i].irq_state[0] = (LineState)reader.ReadByte();
-                M6809.mm1[i].irq_state[1] = (LineState)reader.ReadByte();
-                M6809.mm1[i].int_state = reader.ReadByte();
-                M6809.mm1[i].nmi_state = (LineState)reader.ReadByte();
+                M6809.mm1[i].LoadStateBinary(reader);
             }
-            M6800.m1.PPC.LowWord = reader.ReadUInt16();
-            M6800.m1.PC.LowWord = reader.ReadUInt16();
-            M6800.m1.S.LowWord = reader.ReadUInt16();
-            M6800.m1.X.LowWord = reader.ReadUInt16();
-            M6800.m1.D.LowWord = reader.ReadUInt16();
-            M6800.m1.cc = reader.ReadByte();
-            M6800.m1.wai_state = reader.ReadByte();
-            M6800.m1.nmi_state = (LineState)reader.ReadByte();
-            M6800.m1.irq_state[0] = (LineState)reader.ReadByte();
-            M6800.m1.irq_state[1] = (LineState)reader.ReadByte();
-            M6800.m1.ic_eddge = reader.ReadByte();
-            M6800.m1.port1_ddr = reader.ReadByte();
-            M6800.m1.port2_ddr = reader.ReadByte();
-            M6800.m1.port3_ddr = reader.ReadByte();
-            M6800.m1.port4_ddr = reader.ReadByte();
-            M6800.m1.port1_data = reader.ReadByte();
-            M6800.m1.port2_data = reader.ReadByte();
-            M6800.m1.port3_data = reader.ReadByte();
-            M6800.m1.port4_data = reader.ReadByte();
-            M6800.m1.tcsr = reader.ReadByte();
-            M6800.m1.pending_tcsr = reader.ReadByte();
-            M6800.m1.irq2 = reader.ReadByte();
-            M6800.m1.ram_ctrl = reader.ReadByte();
-            M6800.m1.counter.d = reader.ReadUInt32();
-            M6800.m1.output_compare.d = reader.ReadUInt32();
-            M6800.m1.input_capture = reader.ReadUInt16();
-            M6800.m1.timer_over.d = reader.ReadUInt32();
-            M6800.m1.clock = reader.ReadInt32();
-            M6800.m1.trcsr = reader.ReadByte();
-            M6800.m1.rmcr = reader.ReadByte();
-            M6800.m1.rdr = reader.ReadByte();
-            M6800.m1.tdr = reader.ReadByte();
-            M6800.m1.rsr = reader.ReadByte();
-            M6800.m1.tsr = reader.ReadByte();
-            M6800.m1.rxbits=reader.ReadInt32();
-            M6800.m1.txbits = reader.ReadInt32();
-            M6800.m1.txstate = (M6800.M6800_TX_STATE)reader.ReadInt32();
-            M6800.m1.trcsr_read = reader.ReadInt32();
-            M6800.m1.tx = reader.ReadInt32();
+            M6800.m1.LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
-            Video.screenstate.vblank_start_time.seconds = reader.ReadInt32();
-            Video.screenstate.vblank_start_time.attoseconds = reader.ReadInt64();
-            Video.screenstate.frame_number = reader.ReadInt64();
+            Video.LoadStateBinary(reader);
             Sound.last_update_second = reader.ReadInt32();
-            for (i = 0; i < 4; i++)
-            {
-                Cpuexec.cpu[i].suspend = reader.ReadByte();
-                Cpuexec.cpu[i].nextsuspend = reader.ReadByte();
-                Cpuexec.cpu[i].eatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].nexteatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].localtime.seconds = reader.ReadInt32();
-                Cpuexec.cpu[i].localtime.attoseconds = reader.ReadInt64();
-                Cpuexec.cpu[i].TotalExecutedCycles = reader.ReadUInt64();
-                Cpuexec.cpu[i].PendingCycles = reader.ReadInt32();
-            }
+            Cpuexec.LoadStateBinary(reader);
             Timer.LoadStateBinary(reader);
             YM2151.LoadStateBinary(reader);
-            Namco.nam1.num_voices = reader.ReadInt32();
-            Namco.nam1.sound_enable = reader.ReadInt32();
-            for (i = 0; i < 16; i++)
-            {
-                for (j = 0; j < 32 * 16; j++)
-                {
-                    Namco.nam1.waveform[i][j] = reader.ReadInt16();
-                }
-            }
-            for (i = 0; i < 8; i++)
-            {
-                Namco.nam1.channel_list[i].frequency = reader.ReadInt32();
-                Namco.nam1.channel_list[i].counter = reader.ReadInt32();
-                Namco.nam1.channel_list[i].volume[0] = reader.ReadInt32();
-                Namco.nam1.channel_list[i].volume[1] = reader.ReadInt32();
-                Namco.nam1.channel_list[i].noise_sw = reader.ReadInt32();
-                Namco.nam1.channel_list[i].noise_state = reader.ReadInt32();
-                Namco.nam1.channel_list[i].noise_seed = reader.ReadInt32();
-                Namco.nam1.channel_list[i].noise_hold = reader.ReadInt32();
-                Namco.nam1.channel_list[i].noise_counter = reader.ReadInt32();
-                Namco.nam1.channel_list[i].waveform_select = reader.ReadInt32();
-            }
-            Namco.namco_wavedata = reader.ReadBytes(0x400);
-            DAC.dac1.output = reader.ReadInt16();
+            Namco.LoadStateBinary(reader);
+            DAC.LoadStateBinary(reader);
             Sound.ym2151stream.output_sampindex = reader.ReadInt32();
             Sound.ym2151stream.output_base_sampindex = reader.ReadInt32();
             Sound.namcostream.output_sampindex = reader.ReadInt32();

@@ -10,170 +10,140 @@ namespace mame
     {
         public struct YM2151Operator
         {
-            public uint phase;					/* accumulated operator phase */
-            public uint freq;					/* operator frequency count */
-            public int dt1;					/* current DT1 (detune 1 phase inc/decrement) value */
-            public uint mul;					/* frequency count multiply */
-            public uint dt1_i;					/* DT1 index * 32 */
-            public uint dt2;					/* current DT2 (detune 2) value */
+            public uint phase;
+            public uint freq;
+            public int dt1;
+            public uint mul;
+            public uint dt1_i;
+            public uint dt2;
 
-            /* only M1 (operator 0) is filled with this data: */
-            public int mem_value;				/* delayed sample (MEM) value */
+            public int mem_value;
 
-            /* channel specific data; note: each operator number 0 contains channel specific data */
-            public uint fb_shift;				/* feedback shift value for operators 0 in each channel */
-            public int fb_out_curr;			/* operator feedback value (used only by operators 0) */
-            public int fb_out_prev;			/* previous feedback value (used only by operators 0) */
-            public uint kc;						/* channel KC (copied to all operators) */
-            public uint kc_i;					/* just for speedup */
-            public uint pms;					/* channel PMS */
-            public uint ams;					/* channel AMS */
-            /* end of channel specific data */
+            public uint fb_shift;
+            public int fb_out_curr;
+            public int fb_out_prev;
+            public uint kc;
+            public uint kc_i;
+            public uint pms;
+            public uint ams;
 
-            public uint AMmask;					/* LFO Amplitude Modulation enable mask */
-            public uint state;					/* Envelope state: 4-attack(AR) 3-decay(D1R) 2-sustain(D2R) 1-release(RR) 0-off */
-            public byte eg_sh_ar;				/*  (attack state) */
-            public byte eg_sel_ar;				/*  (attack state) */
-            public uint tl;						/* Total attenuation Level */
-            public int volume;					/* current envelope attenuation level */
-            public byte eg_sh_d1r;				/*  (decay state) */
-            public byte eg_sel_d1r;				/*  (decay state) */
-            public uint d1l;					/* envelope switches to sustain state after reaching this level */
-            public byte eg_sh_d2r;				/*  (sustain state) */
-            public byte eg_sel_d2r;				/*  (sustain state) */
-            public byte eg_sh_rr;				/*  (release state) */
-            public byte eg_sel_rr;				/*  (release state) */
+            public uint AMmask;
+            public uint state;
+            public byte eg_sh_ar;
+            public byte eg_sel_ar;
+            public uint tl;
+            public int volume;
+            public byte eg_sh_d1r;
+            public byte eg_sel_d1r;
+            public uint d1l;
+            public byte eg_sh_d2r;
+            public byte eg_sel_d2r;
+            public byte eg_sh_rr;
+            public byte eg_sel_rr;
 
-            public uint key;					/* 0=last key was KEY OFF, 1=last key was KEY ON */
+            public uint key;
 
-            public uint ks;						/* key scale    */
-            public uint ar;						/* attack rate  */
-            public uint d1r;					/* decay rate   */
-            public uint d2r;					/* sustain rate */
-            public uint rr;						/* release rate */
+            public uint ks;
+            public uint ar;
+            public uint d1r;
+            public uint d2r;
+            public uint rr;
 
-            public uint reserved0;				/**/
-            public uint reserved1;				/**/
+            public uint reserved0;
+            public uint reserved1;
         };
         public struct YM2151Struct
         {
-            public YM2151Operator[] oper;	//32		/* the 32 operators */
+            public YM2151Operator[] oper;
 
-            public uint[] pan;		//16		/* channels output masks (0xffffffff = enable) */
+            public uint[] pan;
 
             public int lastreg0;
-            public uint eg_cnt;					/* global envelope generator counter */
-            public uint eg_timer;				/* global envelope generator counter works at frequency = chipclock/64/3 */
-            public uint eg_timer_add;			/* step of eg_timer */
-            public uint eg_timer_overflow;		/* envelope generator timer overlfows every 3 samples (on real chip) */
+            public uint eg_cnt;
+            public uint eg_timer;
+            public uint eg_timer_add;
+            public uint eg_timer_overflow;
 
-            public uint lfo_phase;				/* accumulated LFO phase (0 to 255) */
-            public uint lfo_timer;				/* LFO timer                        */
-            public uint lfo_timer_add;			/* step of lfo_timer                */
-            public uint lfo_overflow;			/* LFO generates new output when lfo_timer reaches this value */
-            public uint lfo_counter;			/* LFO phase increment counter      */
-            public uint lfo_counter_add;		/* step of lfo_counter              */
-            public byte lfo_wsel;				/* LFO waveform (0-saw, 1-square, 2-triangle, 3-random noise) */
-            public byte amd;					/* LFO Amplitude Modulation Depth   */
-            public sbyte pmd;					/* LFO Phase Modulation Depth       */
-            public uint lfa;					/* LFO current AM output            */
-            public int lfp;					/* LFO current PM output            */
+            public uint lfo_phase;
+            public uint lfo_timer;
+            public uint lfo_timer_add;
+            public uint lfo_overflow;
+            public uint lfo_counter;
+            public uint lfo_counter_add;
+            public byte lfo_wsel;
+            public byte amd;
+            public sbyte pmd;
+            public uint lfa;
+            public int lfp;
 
-            public byte test;					/* TEST register */
-            public byte ct;						/* output control pins (bit1-CT2, bit0-CT1) */
+            public byte test;
+            public byte ct;
 
-            public uint noise;					/* noise enable/period register (bit 7 - noise enable, bits 4-0 - noise period */
-            public uint noise_rng;				/* 17 bit noise shift register */
-            public uint noise_p;				/* current noise 'phase'*/
-            public uint noise_f;				/* current noise period */
+            public uint noise;
+            public uint noise_rng;
+            public uint noise_p;
+            public uint noise_f;
 
-            public uint csm_req;				/* CSM  KEY ON / KEY OFF sequence request */
+            public uint csm_req;
 
-            public uint irq_enable;				/* IRQ enable for timer B (bit 3) and timer A (bit 2); bit 7 - CSM mode (keyon to all slots, everytime timer A overflows) */
-            public uint status;					/* chip status (BUSY, IRQ Flags) */
-            public byte[] connect;	//8			/* channels connections */
+            public uint irq_enable;
+            public uint status;
+            public byte[] connect;
 
-            /* ASG 980324 -- added for tracking timers */
             public Timer.emu_timer timer_A;
             public Timer.emu_timer timer_B;
-            public Atime[] timer_A_time; //1024		/* timer A times for MAME */
-            public Atime[] timer_B_time; //256		/* timer B times for MAME */
+            public Atime[] timer_A_time;
+            public Atime[] timer_B_time;
             public int irqlinestate;
 
-            public uint timer_A_index;			/* timer A index */
-            public uint timer_B_index;			/* timer B index */
-            public uint timer_A_index_old;		/* timer A previous index */
-            public uint timer_B_index_old;		/* timer B previous index */
+            public uint timer_A_index;
+            public uint timer_B_index;
+            public uint timer_A_index_old;
+            public uint timer_B_index_old;
 
-            /*  Frequency-deltas to get the closest frequency possible.
-            *   There are 11 octaves because of DT2 (max 950 cents over base frequency)
-            *   and LFO phase modulation (max 800 cents below AND over base frequency)
-            *   Summary:   octave  explanation
-            *              0       note code - LFO PM
-            *              1       note code
-            *              2       note code
-            *              3       note code
-            *              4       note code
-            *              5       note code
-            *              6       note code
-            *              7       note code
-            *              8       note code
-            *              9       note code + DT2 + LFO PM
-            *              10      note code + DT2 + LFO PM
-            */
-            public uint[] freq; //11*768			/* 11 octaves, 768 'cents' per octave */
+            public uint[] freq;
 
-            /*  Frequency deltas for DT1. These deltas alter operator frequency
-            *   after it has been taken from frequency-deltas table.
-            */
-            public int[] dt1_freq; //8*32			/* 8 DT1 levels, 32 KC values */
+            public int[] dt1_freq;
 
-            public uint[] noise_tab; //32			/* 17bit Noise Generator periods */
+            public uint[] noise_tab;
 
-            public int clock;					/* chip clock in Hz (passed from 2151intf.c) */
-            public int sampfreq;				/* sampling frequency in Hz (passed from 2151intf.c) */
+            public int clock;
+            public int sampfreq;
             public irqhandler irqhandler;
-        };
-        
+            public porthandler porthandler;
+        };        
         private static int[] iconnect = new int[32], imem = new int[32];//m2=8,c1=9,c2=10,mem=11,null=12
         private static int[] tl_tab = new int[13 * 2 * 0x100];
         private static uint[] sin_tab = new uint[0x400];
         private static uint[] d1l_tab = new uint[16];
 
         private static byte[] eg_inc = new byte[19 * 8]{
-            /*cycle:0 1  2 3  4 5  6 7*/
+            0,1, 0,1, 0,1, 0,1,
+            0,1, 0,1, 1,1, 0,1,
+            0,1, 1,1, 0,1, 1,1,
+            0,1, 1,1, 1,1, 1,1,
 
-            /* 0 */ 0,1, 0,1, 0,1, 0,1, /* rates 00..11 0 (increment by 0 or 1) */
-            /* 1 */ 0,1, 0,1, 1,1, 0,1, /* rates 00..11 1 */
-            /* 2 */ 0,1, 1,1, 0,1, 1,1, /* rates 00..11 2 */
-            /* 3 */ 0,1, 1,1, 1,1, 1,1, /* rates 00..11 3 */
+            1,1, 1,1, 1,1, 1,1,
+            1,1, 1,2, 1,1, 1,2,
+            1,2, 1,2, 1,2, 1,2,
+            1,2, 2,2, 1,2, 2,2,
 
-            /* 4 */ 1,1, 1,1, 1,1, 1,1, /* rate 12 0 (increment by 1) */
-            /* 5 */ 1,1, 1,2, 1,1, 1,2, /* rate 12 1 */
-            /* 6 */ 1,2, 1,2, 1,2, 1,2, /* rate 12 2 */
-            /* 7 */ 1,2, 2,2, 1,2, 2,2, /* rate 12 3 */
+            2,2, 2,2, 2,2, 2,2,
+            2,2, 2,4, 2,2, 2,4,
+            2,4, 2,4, 2,4, 2,4,
+            2,4, 4,4, 2,4, 4,4,
 
-            /* 8 */ 2,2, 2,2, 2,2, 2,2, /* rate 13 0 (increment by 2) */
-            /* 9 */ 2,2, 2,4, 2,2, 2,4, /* rate 13 1 */
-            /*10 */ 2,4, 2,4, 2,4, 2,4, /* rate 13 2 */
-            /*11 */ 2,4, 4,4, 2,4, 4,4, /* rate 13 3 */
+            4,4, 4,4, 4,4, 4,4,
+            4,4, 4,8, 4,4, 4,8,
+            4,8, 4,8, 4,8, 4,8,
+            4,8, 8,8, 4,8, 8,8,
 
-            /*12 */ 4,4, 4,4, 4,4, 4,4, /* rate 14 0 (increment by 4) */
-            /*13 */ 4,4, 4,8, 4,4, 4,8, /* rate 14 1 */
-            /*14 */ 4,8, 4,8, 4,8, 4,8, /* rate 14 2 */
-            /*15 */ 4,8, 8,8, 4,8, 8,8, /* rate 14 3 */
-
-            /*16 */ 8,8, 8,8, 8,8, 8,8, /* rates 15 0, 15 1, 15 2, 15 3 (increment by 8) */
-            /*17 */ 16,16,16,16,16,16,16,16, /* rates 15 2, 15 3 for attack */
-            /*18 */ 0,0, 0,0, 0,0, 0,0, /* infinity rates for attack and decay(s) */
+            8,8, 8,8, 8,8, 8,8,
+            16,16,16,16,16,16,16,16,
+            0,0, 0,0, 0,0, 0,0,
         };
         
         private static uint[] dt2_tab = new uint[4] { 0, 384, 500, 608 };
-
-        /*  DT1 defines offset in Hertz from base note
-        *   This table is converted while initialization...
-        *   Detune table shown in YM2151 User's Manual is wrong (verified on the real chip)
-        */
 
         private static ushort[] phaseinc_rom = new ushort[768]{
             1299,1300,1301,1302,1303,1304,1305,1306,1308,1309,1310,1311,1313,1314,1315,1316,
@@ -248,9 +218,8 @@ namespace mame
         };
         public static YM2151Struct PSG;
         public static int[] chanout = new int[12];
-        //public static int m2, c1, c2; /* Phase Modulation input for operators 2,3,4 */
-        //public static int mem;		/* one sample delay memory */
         public delegate void irqhandler(int irq);
+        public delegate void porthandler(int offset, byte data);
         
         private static void init_tables()
         {
@@ -260,11 +229,9 @@ namespace mame
             {
                 m = (1 << 16) / Math.Pow(2, (x + 1) * (1.0 / 256));
                 m = Math.Floor(m);
-                /* we never reach (1<<16) here due to the (x+1) */
-                /* result fits within 16 bits at maximum */
-                n = (int)m;		/* 16 bits here */
-                n >>= 4;		/* 12 bits here */
-                if ((n & 1) != 0)		/* round to closest */
+                n = (int)m;
+                n >>= 4;
+                if ((n & 1) != 0)
                 {
                     n = (n >> 1) + 1;
                 }
@@ -272,8 +239,7 @@ namespace mame
                 {
                     n = n >> 1;
                 }
-                /* 11 bits here (rounded) */
-                n <<= 2;		/* 13 bits here (as in real chip) */
+                n <<= 2;
                 tl_tab[x * 2] = n;
                 tl_tab[x * 2 + 1] = -tl_tab[x * 2];
                 for (i = 1; i < 13; i++)
@@ -284,25 +250,30 @@ namespace mame
             }
             for (i = 0; i < 0x400; i++)
             {
-                /* non-standard sinus */
-                m = Math.Sin(((i * 2) + 1) * Math.PI / 0x400); /* verified on the real chip */
-                /* we never reach zero here due to ((i*2)+1) */
+                m = Math.Sin(((i * 2) + 1) * Math.PI / 0x400);
                 if (m > 0.0)
-                    o = 8 * Math.Log(1.0 / m) / Math.Log(2);	/* convert to 'decibels' */
+                {
+                    o = 8 * Math.Log(1.0 / m) / Math.Log(2);
+                }
                 else
-                    o = 8 * Math.Log(-1.0 / m) / Math.Log(2);	/* convert to 'decibels' */
+                {
+                    o = 8 * Math.Log(-1.0 / m) / Math.Log(2);
+                }
                 o = o / (1.0 / 32);
                 n = (int)(2.0 * o);
-                if ((n & 1) != 0)						/* round to closest */
+                if ((n & 1) != 0)
+                {
                     n = (n >> 1) + 1;
+                }
                 else
+                {
                     n = n >> 1;
+                }
                 sin_tab[i] = (uint)(n * 2 + (m >= 0.0 ? 0 : 1));
             }
-            /* calculate d1l_tab table */
             for (i = 0; i < 16; i++)
             {
-                m = (i != 15 ? i : i + 16) * 32;   /* every 3 'dB' except for all bits = 1 = 45+48 'dB' */
+                m = (i != 15 ? i : i + 16) * 32;
                 d1l_tab[i] = (uint)m;
             }
         }
@@ -791,6 +762,10 @@ namespace mame
                         case 0x1b:	/* CT2, CT1, LFO waveform */
                             PSG.ct = (byte)(v >> 6);
                             PSG.lfo_wsel = (byte)(v & 3);
+                            if (PSG.porthandler != null)
+                            {
+                                PSG.porthandler(0, PSG.ct);
+                            }
                             break;
                         default:
                             //logerror("YM2151 Write %02x to undocumented register #%02x\n", v, r);
@@ -955,6 +930,8 @@ namespace mame
             init_tables();
             PSG.clock = clock;//rate = clock/64
             PSG.sampfreq = clock / 64;
+            PSG.irqhandler = null;
+            PSG.porthandler = null;
             init_chip_tables();
             PSG.lfo_timer_add = (uint)(0x400 * (clock / 64.0) / PSG.sampfreq);
             PSG.eg_timer_add = (uint)(0x10000 * (clock / 64.0) / PSG.sampfreq);
@@ -976,6 +953,44 @@ namespace mame
                     break;
                 case "M92":
                     PSG.irqhandler = M92.sound_irq;
+                    break;
+                case "Taito":
+                    switch (Machine.sName)
+                    {
+                        case "opwolf":
+                        case "opwolfa":
+                        case "opwolfj":
+                        case "opwolfu":
+                        case "opwolfb":
+                        case "opwolfp":
+                            PSG.irqhandler = Taito.irq_handler;
+                            PSG.porthandler = Taito.sound_bankswitch_w;
+                            break;
+                    }
+                    break;
+                case "Konami 68000":
+                    switch (Machine.sName)
+                    {
+                        case "cuebrick":
+                            PSG.irqhandler = Konami68000.cuebrick_irq_handler;
+                            break;
+                        default:
+                            PSG.irqhandler = Konami68000.konami68000_ym2151_irq_handler;
+                            break;
+                    }
+                    break;
+                case "Capcom":
+                    switch (Machine.sName)
+                    {
+                        case "sf":
+                        case "sfua":
+                        case "sfj":
+                        case "sfjan":
+                        case "sfan":
+                        case "sfp":
+                            PSG.irqhandler = Capcom.irq_handler;
+                            break;
+                    }
                     break;
             }
         }
@@ -1413,13 +1428,6 @@ namespace mame
                 outr += (int)(chanout[6] & PSG.pan[13]);
                 outl += (int)(chanout[7] & PSG.pan[14]);
                 outr += (int)(chanout[7] & PSG.pan[15]);
-                /*if (outl != 0 || outr != 0)
-                {
-                    if (Sound.iRecord == 0)
-                    {
-                        Sound.iRecord = 1;
-                    }
-                }*/
                 if (outl > 32767)
                 {
                     outl = 32767;

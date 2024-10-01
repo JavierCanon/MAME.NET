@@ -24,17 +24,51 @@ namespace mame
             paletteram16 = new ushort[0x1000];
             igs003_reg = new ushort[2];
             vbowl_trackball = new ushort[2];
-            Memory.mainrom = Machine.GetRom("maincpu.rom");
-            gfx1rom = Machine.GetRom("gfx1.rom");
-            gfx2rom = Machine.GetRom("gfx2.rom");
-            OKI6295.okirom = Machine.GetRom("oki.rom");
-            dsw1 = 0xff;
-            dsw2 = 0xff;
-            dsw3 = 0xff;
-            if (Memory.mainrom == null || gfx1rom == null || OKI6295.okirom == null)
+            switch (Machine.sName)
             {
-                Machine.bRom = false;
-            }
+                case "drgnwrld":
+                case "drgnwrldv30":
+                case "drgnwrldv21":
+                case "drgnwrldv21j":
+                case "drgnwrldv20j":
+                case "drgnwrldv10c":
+                case "drgnwrldv11h":
+                case "drgnwrldv40k":
+                    Memory.mainrom = Machine.GetRom("maincpu.rom");
+                    gfx1rom = Machine.GetRom("gfx1.rom");
+                    OKI6295.okirom = Machine.GetRom("oki.rom");
+                    dsw1 = 0xff;
+                    dsw2 = 0xff;
+                    dsw3 = 0xff;
+                    if (Memory.mainrom == null || gfx1rom == null || OKI6295.okirom == null)
+                    {
+                        Machine.bRom = false;
+                    }
+                    break;
+                case "lhb":
+                case "lhbv33c":
+                case "dbc":
+                case "ryukobou":
+                    Memory.mainrom = Machine.GetRom("maincpu.rom");
+                    gfx1rom = Machine.GetRom("gfx1.rom");
+                    OKI6295.okirom = Machine.GetRom("oki.rom");
+                    dsw1 = 0xf7;
+                    dsw2 = 0xff;
+                    dsw3 = 0xff;
+                    dsw4 = 0xf0;
+                    dsw5 = 0xff;
+                    if (Memory.mainrom == null || gfx1rom == null || OKI6295.okirom == null)
+                    {
+                        Machine.bRom = false;
+                    }
+                    break;
+                case "lhb2":                    
+                    Memory.mainrom = Machine.GetRom("maincpu.rom");
+                    gfx1rom = Machine.GetRom("gfx1.rom");
+                    gfx2rom = Machine.GetRom("gfx2.rom");
+
+                    break;
+            }            
         }
         public static void machine_reset_igs011()
         {
@@ -42,11 +76,11 @@ namespace mame
         }
         private static void igs_dips_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 igs_dips_sel = (ushort)((data << 8) | (igs_dips_sel & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 igs_dips_sel = (ushort)((igs_dips_sel & 0xff00) | data);
             }
@@ -80,6 +114,41 @@ namespace mame
         private static byte igs_5_dips_r()
         {
             return igs_dips_r(5);
+        }
+        public static void igs011_prot1_w1(int offset, byte data)
+        {
+            switch (offset)
+            {
+                case 0: // COPY ACCESSING_BITS_8_15
+                    if ((data & 0xff) == 0x33)
+                    {
+                        prot1 = prot1_swap;
+                        return;
+                    }
+                    break;
+                case 2: // INC
+                    if ((data & 0xff) == 0xff)
+                    {
+                        prot1++;
+                        return;
+                    }
+                    break;
+                case 4: // DEC
+                    if ((data & 0xff) == 0xaa)
+                    {
+                        prot1--;
+                        return;
+                    }
+                    break;
+                case 6: // SWAP
+                    if ((data & 0xff) == 0x55)
+                    {
+                        byte x = prot1;
+                        prot1_swap = (byte)((BIT(x, 1) << 3) | ((BIT(x, 2) | BIT(x, 3)) << 2) | (BIT(x, 2) << 1) | (BIT(x, 0) & BIT(x, 3)));
+                        return;
+                    }
+                    break;
+            }
         }
         public static void igs011_prot1_w(int offset, ushort data)
         {
@@ -122,13 +191,12 @@ namespace mame
             byte x = prot1;
             return (byte)((((BIT(x, 1) & BIT(x, 2)) ^ 1) << 5) | ((BIT(x, 0) ^ BIT(x, 3)) << 2));
         }
-        /*public static void igs011_prot_addr_w(ushort data)
+        public static void igs011_prot_addr_w(ushort data)
         {
             prot1 = 0x00;
             prot1_swap = 0x00;
             prot1_addr = (uint)((data << 4) ^ 0x8340);
-            prot_mem_range_set();
-        }*/
+        }
         public static void igs011_prot2_reset_w()
         {
             prot2 = 0x00;
@@ -145,6 +213,19 @@ namespace mame
         public static void igs011_prot2_dec_w()
         {
             prot2--;
+        }
+        public static void chmplst2_interrupt()
+        {
+            switch (Cpuexec.iloops)
+            {
+                case 0:
+                    Cpuint.cpunum_set_input_line(0, 6, LineState.HOLD_LINE);
+                    break;
+                case 1:
+                default:
+                    Cpuint.cpunum_set_input_line(0, 5, LineState.HOLD_LINE);
+                    break;
+            }
         }
         public static void drgnwrld_igs011_prot2_swap_w()
         {
@@ -315,12 +396,16 @@ namespace mame
                 igs003_reg[offset / 2] = (ushort)((igs003_reg[offset / 2] & 0xff00) | data);
             }
             if ((offset / 2) == 0)
+            {
                 return;
+            }
             switch (igs003_reg[0])
             {
                 case 0x00:
                     if ((offset & 1) == 1)
+                    {
                         Generic.coin_counter_w(0, data & 2);
+                    }
                     break;
             }
         }
@@ -328,7 +413,9 @@ namespace mame
         {
             igs003_reg[offset] = data;
             if (offset == 0)
+            {
                 return;
+            }
             switch (igs003_reg[0])
             {
                 case 0x00:
@@ -342,9 +429,29 @@ namespace mame
         {
             switch (igs003_reg[0])
             {
-                case 0x00: return (byte)sbyte0;
+                case 0x00:
+                    /*if (Video.screenstate.frame_number >= 70 && Video.screenstate.frame_number <= 71)
+                    {
+                        return 0xfe;
+                    }
+                    else if (Video.screenstate.frame_number >= 80 && Video.screenstate.frame_number <= 81)
+                    {
+                        return 0xfb;
+                    }
+                    else*/
+                    {
+                        return (byte)sbyte0;
+                    }
                 case 0x01: return (byte)sbyte1;
-                case 0x02: return (byte)sbyte2;
+                case 0x02:
+                    /*if (Video.screenstate.frame_number >= 90 && Video.screenstate.frame_number <= 91)
+                    {
+                        return 0xfb;
+                    }
+                    else*/
+                    {
+                        return (byte)sbyte2;
+                    }
                 case 0x20: return 0x49;
                 case 0x21: return 0x47;
                 case 0x22: return 0x53;
@@ -395,33 +502,74 @@ namespace mame
                 case 1:
                     if ((~igs_input_sel & 0x01) != 0)
                     {
-                        //return input_port_read(machine, "KEY0");
+                        return bkey0;
                     }
                     if ((~igs_input_sel & 0x02) != 0)
                     {
-                        //return input_port_read(machine, "KEY1");
+                        return bkey1;
                     }
                     if ((~igs_input_sel & 0x04) != 0)
                     {
-                        //return input_port_read(machine, "KEY2");
+                        return bkey2;
                     }
                     if ((~igs_input_sel & 0x08) != 0)
                     {
-                        //return input_port_read(machine, "KEY3");
+                        return bkey3;
                     }
                     if ((~igs_input_sel & 0x10) != 0)
                     {
-                        //return input_port_read(machine, "KEY4");
+                        return bkey4;
                     }
                     break;
             }
             return 0;
         }
+        private static void lhb2_igs003_w1(int offset, byte data)
+        {
+            igs003_reg[offset] = (ushort)((data << 8) | (igs003_reg[offset] & 0xff));
+            if (offset == 0)
+            {
+                return;
+            }
+            switch (igs003_reg[0])
+            {
+                case 0x00:
+                    igs_input_sel = (ushort)((data << 8) | (igs_input_sel & 0xff));
+                    break;
+            }
+        }
+        private static void lhb2_igs003_w2(int offset, byte data)
+        {
+            igs003_reg[offset] = (ushort)((igs003_reg[offset] & 0xff00) | data);
+            if (offset == 0)
+            {
+                return;
+            }
+            switch (igs003_reg[0])
+            {
+                case 0x00:
+                    igs_input_sel = (ushort)((igs_input_sel & 0xff00) | data);
+                    //if (ACCESSING_BITS_0_7)
+                    {
+                        Generic.coin_counter_w(0, data & 0x20);
+                    }
+                    break;
+                case 0x02:
+                    //if (ACCESSING_BITS_0_7)
+                    {
+                        lhb2_pen_hi = (byte)(data & 0x07);
+                        OKI6295.okim6295_set_bank_base((data & 0x08) != 0 ? 0x40000 : 0);
+                    }
+                    break;
+            }
+        }
         private static void lhb2_igs003_w(int offset, ushort data)
         {
             igs003_reg[offset] = data;
             if (offset == 0)
+            {
                 return;
+            }
             switch (igs003_reg[0])
             {
                 case 0x00:
@@ -440,7 +588,7 @@ namespace mame
                     break;
             }
         }
-        private static ushort lhb2_igs003_r(int offset)
+        private static ushort lhb2_igs003_r()
         {
             switch (igs003_reg[0])
             {
@@ -492,11 +640,21 @@ namespace mame
             }
             return 0;
         }
-        private static void wlcc_igs003_w(int offset, ushort data)
+        private static void wlcc_igs003_w1(int offset, byte data)
         {
-            igs003_reg[offset] = data;
+            igs003_reg[offset] = (ushort)((data << 8) | (igs003_reg[offset] & 0xff));
             if (offset == 0)
+            {
                 return;
+            }
+        }
+        private static void wlcc_igs003_w2(int offset, byte data)
+        {
+            igs003_reg[offset] = (ushort)((igs003_reg[offset] & 0xff00) | data);
+            if (offset == 0)
+            {
+                return;
+            }
             switch (igs003_reg[0])
             {
                 case 0x02:
@@ -508,7 +666,25 @@ namespace mame
                     break;
             }
         }
-        private static byte wlcc_igs003_r(int offset)
+        private static void wlcc_igs003_w(int offset, ushort data)
+        {
+            igs003_reg[offset] = data;
+            if (offset == 0)
+            {
+                return;
+            }
+            switch (igs003_reg[0])
+            {
+                case 0x02:
+                    //if (ACCESSING_BITS_0_7)
+                    {
+                        Generic.coin_counter_w(0, data & 0x01);
+                        OKI6295.okim6295_set_bank_base((data & 0x10) != 0 ? 0x40000 : 0);
+                    }
+                    break;
+            }
+        }
+        private static byte wlcc_igs003_r()
         {
             switch (igs003_reg[0])
             {
@@ -782,6 +958,22 @@ namespace mame
             {
                 lhb2_pen_hi = (byte)(data & 0x07);
             }
+        }
+        private static void vbowl_link_0_w()
+        {
+
+        }
+        private static void vbowl_link_1_w()
+        {
+
+        }
+        private static void vbowl_link_2_w()
+        {
+
+        }
+        private static void vbowl_link_3_w()
+        {
+
         }
     }
 }

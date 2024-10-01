@@ -40,23 +40,13 @@ namespace mame
             writer.Write(Memory.mainram, 0, 0x20000);
             MC68000.m1.SaveStateBinary(writer);
             writer.Write(Memory.audioram, 0, 0x10000);
-            Z80A.z1.SaveStateBinary(writer);
+            Z80A.zz1[0].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
-            writer.Write(Video.screenstate.vblank_start_time.seconds);
-            writer.Write(Video.screenstate.vblank_start_time.attoseconds);
-            writer.Write(Video.screenstate.frame_number);
+            Video.SaveStateBinary(writer);
             writer.Write(Sound.last_update_second);
-            for (i = 0; i < 2; i++)
-            {
-                writer.Write(Cpuexec.cpu[i].suspend);
-                writer.Write(Cpuexec.cpu[i].nextsuspend);
-                writer.Write(Cpuexec.cpu[i].eatcycles);
-                writer.Write(Cpuexec.cpu[i].nexteatcycles);
-                writer.Write(Cpuexec.cpu[i].localtime.seconds);
-                writer.Write(Cpuexec.cpu[i].localtime.attoseconds);
-            }
+            Cpuexec.SaveStateBinary(writer);
             Timer.SaveStateBinary(writer);
             ICS2115.SaveStateBinary(writer);
             for (i = 0; i < 3; i++)
@@ -102,23 +92,13 @@ namespace mame
             Memory.mainram = reader.ReadBytes(0x20000);
             MC68000.m1.LoadStateBinary(reader);
             Memory.audioram = reader.ReadBytes(0x10000);
-            Z80A.z1.LoadStateBinary(reader);
+            Z80A.zz1[0].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
-            Video.screenstate.vblank_start_time.seconds = reader.ReadInt32();
-            Video.screenstate.vblank_start_time.attoseconds = reader.ReadInt64();
-            Video.screenstate.frame_number = reader.ReadInt64();
+            Video.LoadStateBinary(reader);
             Sound.last_update_second = reader.ReadInt32();
-            for (i = 0; i < 2; i++)
-            {
-                Cpuexec.cpu[i].suspend = reader.ReadByte();
-                Cpuexec.cpu[i].nextsuspend = reader.ReadByte();
-                Cpuexec.cpu[i].eatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].nexteatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].localtime.seconds = reader.ReadInt32();
-                Cpuexec.cpu[i].localtime.attoseconds = reader.ReadInt64();
-            }
+            Cpuexec.LoadStateBinary(reader);
             Timer.LoadStateBinary(reader);
             ICS2115.LoadStateBinary(reader);
             for (i = 0; i < 3; i++)

@@ -16,7 +16,7 @@ namespace mame
         public static byte osc_select;
         public static byte reg_select;
         public static byte irq_enabled, irq_pending;
-        public static bool irq_on;        
+        public static bool irq_on;
         public struct timer_struct
         {
             public byte scale, preset;
@@ -127,7 +127,9 @@ namespace mame
                 }
             }
             if (irq_invalid)
+            {
                 recalc_irq();
+            }
         }
         public static void keyon()
         {

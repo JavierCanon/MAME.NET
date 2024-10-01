@@ -26,6 +26,8 @@ namespace cpu.m6809
         public Action<ushort, byte> WM;
         public Func<ushort, byte> ReadIO;
         public Action<ushort, byte> WriteIO;
+        public delegate int irq_delegate(int irqline);
+        public irq_delegate irq_callback;
         public delegate void debug_delegate();
         public debug_delegate debugger_start_cpu_hook_callback, debugger_stop_cpu_hook_callback;
         private ulong totalExecutedCycles;
@@ -170,6 +172,10 @@ namespace cpu.m6809
                 }
                 CC |= (byte)(CC_IF | CC_II);
                 PC.LowWord = RM16(0xfff6);
+                if (irq_callback != null)
+                {
+                    irq_callback(M6809_FIRQ_LINE);
+                }
             }
             else if (irq_state[M6809_IRQ_LINE] != LineState.CLEAR_LINE && (CC & CC_II) == 0)
             {
@@ -194,6 +200,10 @@ namespace cpu.m6809
                 }
                 CC |= CC_II;
                 PC.LowWord = RM16(0xfff8);
+                if (irq_callback != null)
+                {
+                    irq_callback(M6809_IRQ_LINE);
+                }
             }
         }
         private byte IMMBYTE()
@@ -547,10 +557,6 @@ namespace cpu.m6809
                 CHECK_IRQ_LINES();
             }
         }
-        public override void set_input_line_and_vector(int line, LineState state, int vector)
-        {
-            Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
-        }
         public override void cpunum_set_input_line_and_vector(int cpunum, int line, LineState state, int vector)
         {
             Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
@@ -864,6 +870,42 @@ namespace cpu.m6809
                 case 0xfe: EA.LowWord = 0; break; /*ILLEGAL*/
                 case 0xff: EA = IMMWORD(); EA.d = RM16(EA.LowWord); pendingCycles -= 8; break;
             }
+        }
+        public void SaveStateBinary(BinaryWriter writer)
+        {
+            writer.Write(PC.LowWord);
+            writer.Write(PPC.LowWord);
+            writer.Write(D.LowWord);
+            writer.Write(DP.LowWord);
+            writer.Write(U.LowWord);
+            writer.Write(S.LowWord);
+            writer.Write(X.LowWord);
+            writer.Write(Y.LowWord);
+            writer.Write(CC);
+            writer.Write((byte)irq_state[0]);
+            writer.Write((byte)irq_state[1]);
+            writer.Write(int_state);
+            writer.Write((byte)nmi_state);
+            writer.Write(TotalExecutedCycles);
+            writer.Write(PendingCycles);
+        }
+        public void LoadStateBinary(BinaryReader reader)
+        {
+            PC.LowWord = reader.ReadUInt16();
+            PPC.LowWord = reader.ReadUInt16();
+            D.LowWord = reader.ReadUInt16();
+            DP.LowWord = reader.ReadUInt16();
+            U.LowWord = reader.ReadUInt16();
+            S.LowWord = reader.ReadUInt16();
+            X.LowWord = reader.ReadUInt16();
+            Y.LowWord = reader.ReadUInt16();
+            CC = reader.ReadByte();
+            irq_state[0] = (LineState)reader.ReadByte();
+            irq_state[1] = (LineState)reader.ReadByte();
+            int_state = reader.ReadByte();
+            nmi_state = (LineState)reader.ReadByte();
+            TotalExecutedCycles = reader.ReadUInt64();
+            PendingCycles = reader.ReadInt32();
         }
     }
 }

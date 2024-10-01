@@ -321,7 +321,6 @@ namespace mame
                 catch
                 {
                     Mame.playState = Mame.PlayState.PLAY_REPLAYEND;
-                    //Mame.mame_pause(true);
                 }
                 Inptport.bReplayRead = false;
             }

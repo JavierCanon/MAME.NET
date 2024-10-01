@@ -55,7 +55,6 @@ namespace mame
                 ttmap[i].rowscroll = new int[ttmap[i].scrollrows];
                 ttmap[i].colscroll = new int[ttmap[i].scrollcols];
                 ttmap[i].tilemap_draw_instance3 = ttmap[i].tilemap_draw_instanceC;
-                ttmap[i].tilemap_draw_instance4 = ttmap[i].tilemap_draw_instanceC4;
                 ttmap[i].tilemap_set_scrolldx(0,0);
                 ttmap[i].tilemap_set_scrolldy(0x100,0);
             }
@@ -99,7 +98,7 @@ namespace mame
                 {
                     if (match == 0)
                     {
-                        Array.Copy(Tilemap.empty_tile, 0, pen_data, 0, 0x40);
+                        Array.Copy(Tilemap.bb0F, 0, pen_data, 0, 0x40);
                     }
                     else
                     {
@@ -176,7 +175,7 @@ namespace mame
                 attr = CPS.gfxram[(CPS.scroll2 + 2 * memindex + 1) * 2] * 0x100 + CPS.gfxram[(CPS.scroll2 + 2 * memindex + 1) * 2 + 1];
                 if (match == 0)
                 {
-                    Array.Copy(Tilemap.empty_tile, 0, pen_data, 0, 0x100);
+                    Array.Copy(Tilemap.bb0F, 0, pen_data, 0, 0x100);
                 }
                 else
                 {
@@ -249,7 +248,7 @@ namespace mame
                 attr = CPS.gfxram[(CPS.scroll3 + 2 * memindex + 1) * 2] * 0x100 + CPS.gfxram[(CPS.scroll3 + 2 * memindex + 1) * 2 + 1];
                 if (match == 0)
                 {
-                    Array.Copy(Tilemap.empty_tile, 0, pen_data, 0, 0x400);
+                    Array.Copy(Tilemap.bb0F, 0, pen_data, 0, 0x400);
                 }
                 else
                 {
@@ -382,95 +381,6 @@ namespace mame
                                     {
                                         Video.bitmapbase[Video.curbitmap][(offsety2 + ypos) * 0x200 + i] = pixmap[offsety2 * width + i - xpos];
                                         Tilemap.priority_bitmap[offsety2 + ypos, i] = (byte)(Tilemap.priority_bitmap[offsety2 + ypos, i] | priority);
-                                    }
-                                }
-                                offsety2++;
-                            }
-                        }
-                    }
-                    x_start = x_end;
-                    prev_trans = cur_trans;
-                }
-                if (nexty == y2)
-                    break;
-                offsety1 += (nexty - y);
-                y = nexty;
-                nexty += tileheight;
-                nexty = Math.Min(nexty, y2);
-            }
-        }
-        public void tilemap_draw_instanceC4(RECT cliprect, int xpos, int ypos)
-        {
-            int mincol, maxcol;
-            int x1, y1, x2, y2;
-            int y, nexty;
-            int offsety1, offsety2;
-            int i;
-            x1 = Math.Max(xpos, cliprect.min_x);
-            x2 = Math.Min(xpos + width, cliprect.max_x + 1);
-            y1 = Math.Max(ypos, cliprect.min_y);
-            y2 = Math.Min(ypos + height, cliprect.max_y + 1);
-            if (x1 >= x2 || y1 >= y2)
-                return;
-            x1 -= xpos;
-            y1 -= ypos;
-            x2 -= xpos;
-            y2 -= ypos;
-            offsety1 = y1;
-            mincol = x1 / tilewidth;
-            maxcol = (x2 + tilewidth - 1) / tilewidth;
-            y = y1;
-            nexty = tileheight * (y1 / tileheight) + tileheight;
-            nexty = Math.Min(nexty, y2);
-            for (; ; )
-            {
-                int row = y / tileheight;
-                trans_t prev_trans = trans_t.WHOLLY_TRANSPARENT;
-                trans_t cur_trans;
-                int x_start = x1;
-                int column;
-                for (column = mincol; column <= maxcol; column++)
-                {
-                    int x_end;
-                    if (column == maxcol)
-                        cur_trans = trans_t.WHOLLY_TRANSPARENT;
-                    else
-                    {
-                        if ((tileflags[row, column] & 0x1f) != 0)
-                        {
-                            cur_trans = trans_t.MASKED;
-                        }
-                        else
-                        {
-                            cur_trans = ((flagsmap[offsety1, column * tilewidth] & 0x1f) == 0x10) ? trans_t.WHOLLY_OPAQUE : trans_t.WHOLLY_TRANSPARENT;
-                        }
-                    }
-                    if (cur_trans == prev_trans)
-                        continue;
-                    x_end = column * tilewidth;
-                    x_end = Math.Max(x_end, x1);
-                    x_end = Math.Min(x_end, x2);
-                    if (prev_trans != trans_t.WHOLLY_TRANSPARENT)
-                    {
-                        int cury;
-                        offsety2 = offsety1;
-                        if (prev_trans == trans_t.WHOLLY_OPAQUE)
-                        {
-                            for (cury = y; cury < nexty; cury++)
-                            {
-                                Array.Copy(Tilemap.bb01, 0, Tilemap.priority_bitmap, (offsety2 + ypos) * 0x200 + xpos + x_start, x_end - x_start);
-                                offsety2++;
-                            }
-                        }
-                        else if (prev_trans == trans_t.MASKED)
-                        {
-                            for (cury = y; cury < nexty; cury++)
-                            {
-                                for (i = xpos + x_start; i < xpos + x_end; i++)
-                                {
-                                    if ((flagsmap[offsety2, i - xpos] & 0x1f) == 0x10)
-                                    {
-                                        Tilemap.priority_bitmap[offsety2 + ypos, i] = 0x01;
                                     }
                                 }
                                 offsety2++;

@@ -7,23 +7,47 @@ namespace mame
 {
     public partial class IGS011
     {
+        public static byte bkey0, bkey1, bkey2, bkey3, bkey4;
+        public static byte bkey0_old, bkey1_old, bkey2_old, bkey3_old, bkey4_old;
         public static sbyte sbyte0, sbyte1, sbyte2, sbytec;
         public static sbyte sbyte0_old, sbyte1_old, sbyte2_old, sbytec_old;
-        public static sbyte MReadOpByte(int address)
+        public static sbyte MReadOpByte_drgnwrld(int address)
         {
             address &= 0xffffff;
             sbyte result = 0;
-            if (address >= 0 && address <= 0x7ffff)
+            if (address >= prot1_addr + 8 && address <= prot1_addr + 9)
+            {
+                if (address %2==0)
+                {
+                    result = (sbyte)(igs011_prot1_r() >> 8);
+                }
+                else if (address % 2 == 1)
+                {
+                    result = (sbyte)igs011_prot1_r();
+                }
+            }
+            else if (address >= 0 && address <= 0x7ffff)
             {
                 result = (sbyte)Memory.mainrom[address];
             }
             return result;
         }
-        public static sbyte MReadByte(int address)
+        public static sbyte MReadByte_drgnwrld(int address)
         {
             address &= 0xffffff;
             sbyte result = 0;
-            if (address >= 0 && address <= 0x7ffff)
+            if (address >= prot1_addr + 8 && address <= prot1_addr + 9)
+            {
+                if (address % 2 == 0)
+                {
+                    result = (sbyte)(igs011_prot1_r() >> 8);
+                }
+                else if (address % 2 == 1)
+                {
+                    result = (sbyte)igs011_prot1_r();
+                }
+            }
+            else if (address >= 0 && address <= 0x7ffff)
             {
                 result = (sbyte)Memory.mainrom[address];
             }
@@ -35,11 +59,11 @@ namespace mame
             else if (address >= 0x200000 && address <= 0x200fff)
             {
                 int offset = (address - 0x200000) / 2;
-                if ((address & 1) == 0)
+                if (address % 2 == 0)
                 {
                     result = (sbyte)(priority_ram[offset] >> 8);
                 }
-                else if ((address & 1) == 1)
+                else if (address % 2 == 1)
                 {
                     result = (sbyte)priority_ram[offset];
                 }
@@ -47,11 +71,11 @@ namespace mame
             else if (address >= 0x400000 && address <= 0x401fff)
             {
                 int offset = (address - 0x400000) / 2;
-                if ((address & 1) == 0)
+                if (address %2 == 0)
                 {
                     result = (sbyte)(paletteram16[offset] >> 8);
                 }
-                else if ((address & 1) == 1)
+                else if (address %2 == 1)
                 {
                     result = (sbyte)paletteram16[offset];
                 }
@@ -87,21 +111,29 @@ namespace mame
             }
             return result;
         }
-        public static short MReadOpWord(int address)
+        public static short MReadOpWord_drgnwrld(int address)
         {
             address &= 0xffffff;
             short result = 0;
-            if (address >= 0 && address + 1 <= 0x7ffff)
+            if (address >= prot1_addr + 8 && address + 1 <= prot1_addr + 9)
+            {
+                result = (short)igs011_prot1_r();
+            }
+            else if (address >= 0 && address + 1 <= 0x7ffff)
             {
                 result = (short)(Memory.mainrom[address] * 0x100 + Memory.mainrom[address + 1]);
             }
             return result;
         }
-        public static short MReadWord(int address)
+        public static short MReadWord_drgnwrld(int address)
         {
             address &= 0xffffff;
             short result = 0;
-            if (address >= 0 && address + 1 <= 0x7ffff)
+            if (address >= prot1_addr + 8 && address + 1 <= prot1_addr + 9)
+            {
+                result = (short)igs011_prot1_r();
+            }
+            else if (address >= 0 && address + 1 <= 0x7ffff)
             {
                 result = (short)(Memory.mainrom[address] * 0x100 + Memory.mainrom[address + 1]);
             }
@@ -122,7 +154,14 @@ namespace mame
             }
             else if (address >= 0x500000 && address + 1 <= 0x500001)
             {
-                result = (short)((byte)sbytec);
+                /*if (Video.screenstate.frame_number >= 60&&Video.screenstate.frame_number<=61)
+                {
+                    result = (short)(0xfe);
+                }
+                else*/
+                {
+                    result = (short)((byte)sbytec);
+                }
             }
             else if (address >= 0x600000 && address + 1 <= 0x600001)
             {
@@ -138,7 +177,7 @@ namespace mame
             }
             return result;
         }
-        public static int MReadOpLong(int address)
+        public static int MReadOpLong_drgnwrld(int address)
         {
             address &= 0xffffff;
             int result = 0;
@@ -148,7 +187,7 @@ namespace mame
             }
             return result;
         }
-        public static int MReadLong(int address)
+        public static int MReadLong_drgnwrld(int address)
         {
             address &= 0xffffff;
             int result = 0;
@@ -177,12 +216,17 @@ namespace mame
             }
             return result;
         }
-        public static void MWriteByte(int address,sbyte value)
+        public static void MWriteByte_drgnwrld(int address, sbyte value)
         {
             address &= 0xffffff;
-            if (address >= 0x100000 && address <= 0x103fff)
+            if (address >= prot1_addr && address <= prot1_addr + 7)
             {
-                int offset=address-0x100000;
+                int offset = (int)(address - prot1_addr);
+                igs011_prot1_w1(offset, (byte)value);
+            }
+            else if (address >= 0x100000 && address <= 0x103fff)
+            {
+                int offset = address - 0x100000;
                 Generic.generic_nvram[offset] = (byte)value;
             }
             else if (address >= 0x200000 && address <= 0x200fff)
@@ -237,6 +281,10 @@ namespace mame
             {
                 //igs_dips_w((ushort)value);
             }
+            else if (address >= 0xa50000 && address <= 0xa50001)
+            {
+                int i1 = 1;
+            }
             else if (address >= 0xa58000 && address <= 0xa58001)
             {
                 int offset = address - 0xa58000;
@@ -282,10 +330,15 @@ namespace mame
                 igs011_blit_depth_w(offset, (byte)value);
             }            
         }
-        public static void MWriteWord(int address, short value)
+        public static void MWriteWord_drgnwrld(int address, short value)
         {
             address &= 0xffffff;
-            if (address >= 0x100000 && address+1 <= 0x103fff)
+            if (address >= prot1_addr && address + 1 <= prot1_addr + 7)
+            {
+                int offset = (int)(address - prot1_addr);
+                igs011_prot1_w(offset, (ushort)value);
+            }
+            else if (address >= 0x100000 && address+1 <= 0x103fff)
             {
                 int offset = address - 0x100000;
                 Generic.generic_nvram[offset] = (byte)(value >> 8);
@@ -300,7 +353,7 @@ namespace mame
             {
                 int offset = (address - 0x400000)/2;
                 igs011_palette(offset,(ushort)value);
-            }
+            }            
             else if (address >= 0x600000 && address + 1 <= 0x600001)
             {
                 OKI6295.okim6295_data_0_lsb_w((byte)value);
@@ -325,6 +378,10 @@ namespace mame
             else if (address >= 0xa40000 && address + 1 <= 0xa40001)
             {
                 igs_dips_w((ushort)value);
+            }
+            else if (address >= 0xa50000 && address + 1 <= 0xa50001)
+            {
+                igs011_prot_addr_w((ushort)value);
             }
             else if (address >= 0xa58000 && address + 1 <= 0xa58001)
             {
@@ -363,7 +420,7 @@ namespace mame
                 igs011_blit_depth_w((ushort)value);
             }
         }
-        public static void MWriteLong(int address, int value)
+        public static void MWriteLong_drgnwrld(int address, int value)
         {
             address &= 0xffffff;
             if (address >= 0x100000 && address + 3 <= 0x103fff)

@@ -14,8 +14,6 @@ namespace mame
         public static sbyte sbyte0, sbyte3;
         public static short short0_old, short1_old, short2_old;
         public static sbyte sbyte0_old, sbyte3_old;
-        public static int iMStatus = 0;
-        public static int iAddStart, iAddEnd;
         public static sbyte MCReadOpByte(int address)
         {
             address &= 0xffffff;
@@ -31,22 +29,12 @@ namespace mame
                     result = 0;
                 }
             }
-            /*else if (address >= 0x900000 && address <= 0x92ffff)
-            {
-                result = (sbyte)gfxram[(address & 0x3ffff)];
-            }
-            else if (address >= 0xff0000 && address <= 0xffffff)
-            {
-                result = (sbyte)Memory.mainram[address & 0xffff];
-            }*/
             return result;
         }
         public static sbyte MCReadByte(int address)
         {
             address &= 0xffffff;
             sbyte result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x02;
             if (address <= 0x3fffff)
             {
                 if (address < Memory.mainrom.Length)
@@ -108,8 +96,6 @@ namespace mame
         {
             address &= 0xffffff;
             short result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x03;
             if (address <= 0x3fffff)
             {
                 if (address + 1 < Memory.mainrom.Length)
@@ -135,8 +121,6 @@ namespace mame
         {
             address &= 0xffffff;
             short result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x04;
             if (address <= 0x3fffff)
             {
                 if (address + 1 < Memory.mainrom.Length)
@@ -150,14 +134,7 @@ namespace mame
             }
             else if (address >= 0x800000 && address + 1 <= 0x800007)
             {
-                /*if (Attotime.attotime_compare(emu.Timer.global_basetime, new Atime(0x0d, 0x00)) >= 0 && Attotime.attotime_compare(emu.Timer.global_basetime, new Atime(0x0d, 0x06e1c1488dedd160)) < 0)
-                {
-                    return -0x200;
-                }
-                else*/
-                {
-                    result = short1;// input_port_4_word_r
-                }
+                result = short1;// input_port_4_word_r
             }
             else if (address >= 0x800018 && address + 1 <= 0x80001f)
             {
@@ -187,16 +164,8 @@ namespace mame
         {
             address &= 0xffffff;
             int result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x05;
             if (address <= 0x3fffff)
             {
-                /*if (Timer.global_basetime.attoseconds == 0)
-                {
-                    sw1.WriteLine(Timer.global_basetime.seconds.ToString("x") + "\t" + add.ToString("x"));
-                    sw1.WriteLine(Timer.global_basetime.seconds.ToString("x") + "\t" + (add + 2).ToString("x"));
-                    sw1.Flush();
-                }*/
                 if (address + 3 < Memory.mainrom.Length)
                 {
                     result = (int)(Memory.mainrom[address] * 0x1000000 + Memory.mainrom[address + 1] * 0x10000 + Memory.mainrom[address + 2] * 0x100 + Memory.mainrom[address + 3]);
@@ -220,8 +189,6 @@ namespace mame
         {
             address &= 0xffffff;
             int result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x06;
             if (address <= 0x3fffff)
             {
                 if (address + 3 < Memory.mainrom.Length)
@@ -263,8 +230,6 @@ namespace mame
         public static void MCWriteByte(int address, sbyte value)
         {
             address &= 0xffffff;
-            m68000Form.iWAddress = address;
-            m68000Form.iWOp = 0x01;
             if (address >= 0x800030 && address <= 0x800037)
             {
                 if (address % 2 == 0)
@@ -294,34 +259,11 @@ namespace mame
             }
             else if (address >= 0x900000 && address <= 0x92ffff)
             {
-                /*if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + address.ToString("X6") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }*/
                 gfxram[(address & 0x3ffff)] = (byte)(value);
                 cps1_gfxram_w((address & 0x3ffff) / 2);
             }
             else if (address >= 0xff0000 && address <= 0xffffff)
             {
-                /*if (address == 0xff807e)// && value == 0x11ca6)
-                {
-                    int i1 = 1;
-                }
-                if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X4") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                    if (address == 0xffb094 && ((byte)value == 0x01))
-                    {
-                        //iMStatus = 2;
-                        //sw1.Close();
-                    }
-                }*/
-                /*if (m68000Form.iStatus == 0 && add == 0xff8ffb)
-                {
-                    m68000Form.iStatus = 1;
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value);
             }
             else
@@ -332,18 +274,12 @@ namespace mame
         public static void MCWriteWord(int address, short value)
         {
             address &= 0xffffff;
-            m68000Form.iWAddress = address;
-            m68000Form.iWOp = 0x02;
             if (address >= 0x800030 && address + 1 <= 0x800037)
             {
                 return;
             }
             else if (address >= 0x800100 && address + 1 <= 0x80013f)
             {
-                if (address == 0x80010c)
-                {
-                    int i1 = 1;
-                }
                 cps1_cps_a_w((address & 0x3f) / 2, (ushort)value);
             }
             else if (address >= 0x800140 && address + 1 <= 0x80017f)
@@ -360,36 +296,12 @@ namespace mame
             }
             else if (address >= 0x900000 && address + 1 <= 0x92ffff)
             {
-                /*if (value == 0x0c66)
-                {
-                    int i11 = 1;
-                }
-                if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + address.ToString("X6") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + (address + 1).ToString("X6") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }*/
                 gfxram[(address & 0x3ffff)] = (byte)(value >> 8);
                 gfxram[(address & 0x3ffff) + 1] = (byte)value;
                 cps1_gfxram_w((address & 0x3ffff) / 2);
             }
             else if (address >= 0xff0000 && address + 1 <= 0xffffff)
             {
-                /*if (address == 0xff807e)// && value == 0x11ca6)
-                {
-                    int i1 = 1;
-                }
-                if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X4") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + ((address & 0xffff) + 1).ToString("X4") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                    if (address == 0xffb0b4 && ((value & 0xff00) == 0x1800))
-                    {
-                        //iMStatus = 2;
-                        sw1.Close();
-                        int i1 = 1;
-                    }
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value >> 8);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)(value);
             }
@@ -401,8 +313,6 @@ namespace mame
         public static void MCWriteLong(int address, int value)
         {
             address &= 0xffffff;
-            m68000Form.iWAddress = address;
-            m68000Form.iWOp = 0x03;
             if (address >= 0x800030 && address + 3 <= 0x800037)
             {
                 return;
@@ -427,27 +337,6 @@ namespace mame
             }
             else if (address >= 0x900000 && address + 3 <= 0x92ffff)
             {
-                /*if (value != 0)
-                {
-                    int i11 = 1;
-                }
-                if ((value >> 16) == 0x1880)
-                {
-                    int i11 = 1;
-                }
-                if (address == 0x908000 && (byte)(value >> 24) == 0x44)
-                {
-                    int i11 = 1;
-                }
-                if (address == 0x910004 && ((value & 0xff) == 0x27))
-                {
-                    int i11 = 1;
-                }
-                if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + address.ToString("X6") + "," + ((byte)(value >> 24)).ToString("X2") + ";" + (address + 1).ToString("X6") + "," + ((byte)(value >> 16)).ToString("X2") + ";" + (address + 2).ToString("X6") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + (address + 3).ToString("X6") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }*/
                 gfxram[(address & 0x3ffff)] = (byte)(value >> 24);
                 gfxram[(address & 0x3ffff) + 1] = (byte)(value >> 16);
                 gfxram[(address & 0x3ffff) + 2] = (byte)(value >> 8);
@@ -457,15 +346,6 @@ namespace mame
             }
             else if (address >= 0xff0000 && address + 3 <= 0xffffff)
             {
-                /*if (address == 0xff8568)// && value == 0x11ca6)
-                {
-                    int i1 = 1;
-                }
-                if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X4") + "," + ((byte)(value >> 24)).ToString("X2") + ";" + ((address & 0xffff) + 1).ToString("X4") + "," + ((byte)(value >> 16)).ToString("X2") + ";" + ((address & 0xffff) + 2).ToString("X4") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + ((address & 0xffff) + 3).ToString("X4") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value >> 24);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)(value >> 16);
                 Memory.mainram[(address & 0xffff) + 2] = (byte)(value >> 8);
@@ -903,19 +783,6 @@ namespace mame
             }
             else if (address >= 0xff0000 && address <= 0xffffff)
             {
-                /*if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X4") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }
-                if (address == 0xff5d96)
-                {
-                    int i1 = m68000.MC68000.m1.PPC;
-                }
-                if (address >= 0xff796c && address <= 0xff796f)
-                {
-                    int i1 = 1;
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value);
             }
             else
@@ -947,14 +814,6 @@ namespace mame
             }
             else if (address >= 0x900000 && address + 1 <= 0x92ffff)
             {
-                if (address == 0x90acb0)
-                {
-                    int i11 = 1;
-                }
-                if (address % 2 == 1)
-                {
-                    int i11 = 1;
-                }
                 gfxram[(address & 0x3ffff)] = (byte)(value >> 8);
                 gfxram[(address & 0x3ffff) + 1] = (byte)value;
                 cps1_gfxram_w((address & 0x3ffff) / 2);
@@ -977,15 +836,6 @@ namespace mame
             }
             else if (address >= 0xff0000 && address + 1 <= 0xffffff)
             {
-                /*if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X6") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + ((address & 0xffff) + 1).ToString("X6") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }
-                if (address >= 0xff796c && address <= 0xff796f)
-                {
-                    int i1 = 1;
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value >> 8);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)(value);
             }
@@ -1045,15 +895,6 @@ namespace mame
             }
             else if (address >= 0xff0000 && address + 3 <= 0xffffff)
             {
-                /*if (address >= iAddStart && address < iAddEnd && iMStatus == 1)
-                {
-                    sw1.WriteLine(m68000.MC68000.m1.PPC.ToString("X6") + "\t" + m68000.MC68000.m1.op.ToString("X4") + "\t" + (address & 0xffff).ToString("X6") + "," + ((byte)(value >> 24)).ToString("X2") + ";" + ((address & 0xffff) + 1).ToString("X6") + "," + ((byte)(value >> 16)).ToString("X2") + ";" + ((address & 0xffff) + 2).ToString("X6") + "," + ((byte)(value >> 8)).ToString("X2") + ";" + ((address & 0xffff) + 3).ToString("X6") + "," + ((byte)(value)).ToString("X2"));
-                    sw1.Flush();
-                }
-                if (address >= 0xff796c && address <= 0xff796f)
-                {
-                    int i1 = 1;
-                }*/
                 Memory.mainram[(address & 0xffff)] = (byte)(value >> 24);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)(value >> 16);
                 Memory.mainram[(address & 0xffff) + 2] = (byte)(value >> 8);
@@ -1190,18 +1031,6 @@ namespace mame
             }
             else if (address >= 0x804020 && address <= 0x804021)
             {
-                /*if (Attotime.attotime_compare(Timer.global_basetime, new Atime(9, 0x000e5d27b4e5f744)) >= 0 && Attotime.attotime_compare(Timer.global_basetime, new Atime(9, 0x008582fc8027ee10)) < 0)
-                {
-                    short2 = unchecked((short)0xefff);
-                }
-                if (Attotime.attotime_compare(Timer.global_basetime, new Atime(10, 0x0023f955a3837304)) >= 0 && Attotime.attotime_compare(Timer.global_basetime, new Atime(10, 0x009b134bcba83084)) < 0)
-                {
-                    short2 = unchecked((short)0xefff);
-                }
-                if (Attotime.attotime_compare(Timer.global_basetime, new Atime(11, 0x00398bf4e03e98bc)) >= 0 && Attotime.attotime_compare(Timer.global_basetime, new Atime(11, 0x00b0ac8bef1d3710)) < 0)
-                {
-                    short2 = unchecked((short)0xfeff);
-                }*/
                 if (address == 0x804020)
                 {
                     result = (sbyte)(short2 >> 8);
@@ -1964,7 +1793,7 @@ namespace mame
         }
         public static int ZIRQCallback()
         {
-            return Cpuint.cpu_irq_callback(Z80A.z1.cpunum, 0);
+            return Cpuint.cpu_irq_callback(Z80A.zz1[0].cpunum, 0);
         }
     }
 }

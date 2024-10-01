@@ -112,16 +112,6 @@ namespace mame
         {
             int pc = MC68000.m1.PC;
             Memory.audioram[offset] = data;
-            if (offset == 0 && data == 0xed)
-            {
-                int i1 = 1;
-            }
-            /*if (Video.screenstate.frame_number > 0)
-            {
-                StreamWriter sw1 = new StreamWriter("1.txt", true);
-                sw1.WriteLine(Video.screenstate.frame_number.ToString() + " " + offset.ToString("X4") + " " + data.ToString("X2"));
-                sw1.Close();
-            }*/
             if (pc != 0xf12 && pc != 0xde2 && pc != 0x100c50 && pc != 0x100b20)
             {
                 //error
@@ -177,7 +167,7 @@ namespace mame
         public static void pgm_calendar_w(ushort data)
         {
             //DateTime time = DateTime.Now;
-            DateTime time = DateTime.Parse("1970-1-1 8:00:00");
+            DateTime time = DateTime.Parse("1970-01-01 08:00:00");
             CalCom <<= 1;
             CalCom |= (byte)(data & 1);
             ++CalCnt;

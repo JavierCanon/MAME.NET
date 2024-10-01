@@ -80,7 +80,6 @@ namespace mame
                 sampleout >>= 2;
                 Sound.iremga20stream.streamoutput[0][offset + i] = sampleout;
                 Sound.iremga20stream.streamoutput[1][offset + i] = sampleout;
-
             }
             for (i = 0; i < 4; i++)
             {

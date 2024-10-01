@@ -36,15 +36,21 @@ namespace mame
         public static void Update()
         {
             for (int i = 0; i < 256; i++)
+            {
                 m_KeyStates[i].IsPressed = false;
+            }
             foreach (Key key in dIDevice.GetPressedKeys())
+            {
                 m_KeyStates[(int)key].IsPressed = true;
+            }
             for (int i = 0; i < 256; i++)
             {
                 if (m_KeyStates[i].IsPressed)
                 {
                     if (m_KeyStates[i].WasPressed)
+                    {
                         m_KeyStates[i].IsTriggered = false;
+                    }
                     else
                     {
                         m_KeyStates[i].WasPressed = true;

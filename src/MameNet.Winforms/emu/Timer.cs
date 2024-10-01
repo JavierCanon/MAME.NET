@@ -68,6 +68,10 @@ namespace mame
                     {
                         action = setvector;
                     }
+                    else if (index == 42)
+                    {
+                        action = Cpuexec.vblank_interrupt2;
+                    }
                 }
             }
             return action;
@@ -109,7 +113,8 @@ namespace mame
             lt2.Add(new emu_timer2(4, Sound.sound_update, "sound_update"));
             lt2.Add(new emu_timer2(5, Watchdog.watchdog_callback, "watchdog_callback"));
             lt2.Add(new emu_timer2(6, Generic.irq_1_0_line_hold, "irq_1_0_line_hold"));
-            
+            lt2.Add(new emu_timer2(7, Video.vblank_end_callback, "vblank_end_callback"));
+
             lt2.Add(new emu_timer2(10, YM2151.irqAon_callback, "irqAon_callback"));
             lt2.Add(new emu_timer2(11, YM2151.irqBon_callback, "irqBon_callback"));
             lt2.Add(new emu_timer2(12, YM2151.irqAoff_callback, "irqAoff_callback"));
@@ -119,7 +124,6 @@ namespace mame
             lt2.Add(new emu_timer2(16, Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt"));
             lt2.Add(new emu_timer2(17, Cpuexec.null_callback, "boost_callback"));
             lt2.Add(new emu_timer2(18, Cpuexec.end_interleave_boost, "end_interleave_boost"));
-
             lt2.Add(new emu_timer2(19, Video.scanline0_callback, "scanline0_callback"));
             lt2.Add(new emu_timer2(20, Sound.latch_callback, "latch_callback"));
             lt2.Add(new emu_timer2(21, Sound.latch_callback2, "latch_callback2"));
@@ -129,26 +133,39 @@ namespace mame
             lt2.Add(new emu_timer2(25, Neogeo.display_position_vblank_callback, "display_position_vblank_callback"));
             lt2.Add(new emu_timer2(26, Neogeo.vblank_interrupt_callback, "vblank_interrupt_callback"));
             lt2.Add(new emu_timer2(27, Neogeo.auto_animation_timer_callback, "auto_animation_timer_callback"));
-            lt2.Add(new emu_timer2(29, YM2610.timer_callback_0, "timer_callback_0"));
-            lt2.Add(new emu_timer2(30, YM2610.timer_callback_1, "timer_callback_1"));
-
+            lt2.Add(new emu_timer2(29, YM2610.F2610.timer_callback_0, "timer_callback_0"));
+            lt2.Add(new emu_timer2(30, YM2610.F2610.timer_callback_1, "timer_callback_1"));
+            lt2.Add(new emu_timer2(31, Neogeo.sprite_line_timer_callback, "sprite_line_timer_callback"));
             lt2.Add(new emu_timer2(32, M6800.action_rx, "m6800_rx_tick"));
             lt2.Add(new emu_timer2(33, M6800.action_tx, "m6800_tx_tick"));
             lt2.Add(new emu_timer2(34, YM3812.timer_callback_3812_0, "timer_callback_3812_0"));
             lt2.Add(new emu_timer2(35, YM3812.timer_callback_3812_1, "timer_callback_3812_1"));
             lt2.Add(new emu_timer2(36, ICS2115.timer_cb_0, "timer_cb_0"));
             lt2.Add(new emu_timer2(37, ICS2115.timer_cb_1, "timer_cb_1"));
-
             lt2.Add(new emu_timer2(38, M72.m72_scanline_interrupt, "m72_scanline_interrupt"));
             lt2.Add(new emu_timer2(39, setvector, "setvector_callback"));
             lt2.Add(new emu_timer2(40, M92.m92_scanline_interrupt, "m92_scanline_interrupt"));
+            lt2.Add(new emu_timer2(41, Cpuexec.cpu_timeslicecallback, "cpu_timeslicecallback"));
+            lt2.Add(new emu_timer2(42, Cpuexec.vblank_interrupt2, "vblank_interrupt2"));
+            lt2.Add(new emu_timer2(43, Konami68000.nmi_callback, "nmi_callback"));
+            lt2.Add(new emu_timer2(44, Upd7759.upd7759_slave_update, "upd7759_slave_update"));
+            lt2.Add(new emu_timer2(45, Generic.irq_2_0_line_hold, "irq_2_0_line_hold"));
+            lt2.Add(new emu_timer2(46, MSM5205.MSM5205_vclk_callback0, "msm5205_vclk_callback0"));
+            lt2.Add(new emu_timer2(47, MSM5205.MSM5205_vclk_callback1, "msm5205_vclk_callback1"));
+            lt2.Add(new emu_timer2(48, YM2203.timer_callback_2203_0_0, "timer_callback_2203_0_0"));
+            lt2.Add(new emu_timer2(49, YM2203.timer_callback_2203_0_1, "timer_callback_2203_0_1"));
+            lt2.Add(new emu_timer2(50, YM2203.timer_callback_2203_1_0, "timer_callback_2203_1_0"));
+            lt2.Add(new emu_timer2(51, YM2203.timer_callback_2203_1_1, "timer_callback_2203_1_1"));
+            lt2.Add(new emu_timer2(52, YM3812.timer_callback_3526_0, "timer_callback_3526_0"));
+            lt2.Add(new emu_timer2(53, YM3812.timer_callback_3526_1, "timer_callback_3526_1"));
+            lt2.Add(new emu_timer2(54, K054539.k054539_irq, "k054539_irq"));
+            lt2.Add(new emu_timer2(55, Taito.cchip_timer, "cchip_timer"));
         }
         public static Atime get_current_time()
         {
             if (callback_timer != null)
             {
                 return callback_timer_expire_time;
-                //return global_basetime;
             }
             if (Cpuexec.activecpu >= 0 && Cpuexec.activecpu < Cpuexec.ncpu)
             {
@@ -159,23 +176,25 @@ namespace mame
         public static void timer_remove(emu_timer timer1)
         {
             if (timer1 == callback_timer)
+            {
                 callback_timer_modified = true;
+            }
             timer_list_remove(timer1);
         }
         public static void timer_adjust_periodic(emu_timer which, Atime start_delay, Atime period)
         {
             Atime time = get_current_time();
             if (which == callback_timer)
+            {
                 callback_timer_modified = true;
+            }
             which.enabled = true;
             if (start_delay.seconds < 0)
+            {
                 start_delay = Attotime.ATTOTIME_ZERO;
+            }
             which.start = time;
             which.expire = Attotime.attotime_add(time, start_delay);
-            if (which.expire.attoseconds == 0x003be7e176706f58)
-            {
-                int i1 = 1;
-            }
             which.period = period;
             timer_list_remove(which);
             timer_list_insert(which);
@@ -187,6 +206,11 @@ namespace mame
                 }
             }
         }
+        public static void timer_pulse_internal(Atime period, Action action, string func)
+        {
+            emu_timer timer = timer_alloc_common(action, func, false);
+            timer_adjust_periodic(timer, period, period);
+        }
         public static void timer_set_internal(Action action, string func)
         {
             emu_timer timer = timer_alloc_common(action, func, true);
@@ -196,11 +220,7 @@ namespace mame
         {
             int i;
             int i1 = -1;
-            if (timer1.func == "latch_callback")
-            {
-                int i2 = 1;
-            }
-            if (timer1.func == "cpunum_empty_event_queue")
+            if (timer1.func == "cpunum_empty_event_queue" || timer1.func == "setvector_callback")
             {
                 foreach (emu_timer et in lt)
                 {
@@ -221,12 +241,12 @@ namespace mame
                         break;
                     }
                 }
-                lt.Insert(i,timer1);
+                lt.Insert(i, timer1);
             }
         }
         public static void timer_list_remove(emu_timer timer1)
         {
-            if (timer1.func == "cpunum_empty_event_queue")
+            if (timer1.func == "cpunum_empty_event_queue" || timer1.func == "setvector_callback")
             {
                 List<emu_timer> lt1 = new List<emu_timer>();
                 foreach (emu_timer et in lt)
@@ -263,6 +283,40 @@ namespace mame
                 }
             }
         }
+        /*public static void sort()
+        {
+            int i1, i2, n1;
+            Atime expire1, expire2;
+            n1 = lt.Count;
+            for (i2 = 1; i2 < n1; i2++)
+            {
+                for (i1 = 0; i1 < i2; i1++)
+                {
+                    if (lt[i1].enabled ==true)
+                    {
+                        expire1 = lt[i1].expire;
+                    }
+                    else
+                    {
+                        expire1 = Attotime.ATTOTIME_NEVER;
+                    }
+                    if (lt[i2].enabled == true)
+                    {
+                        expire2 = lt[i2].expire;
+                    }
+                    else
+                    {
+                        expire2 = Attotime.ATTOTIME_NEVER;
+                    }
+                    if (Attotime.attotime_compare(expire1, expire2) > 0)
+                    {
+                        var temp = lt[i1];
+                        lt[i1] = lt[i2];
+                        lt[i2] = temp;
+                    }
+                }
+            }
+        }*/
         public static void timer_set_global_time(Atime newbase)
         {
             emu_timer timer;
@@ -386,6 +440,12 @@ namespace mame
                     lt.Remove(lt[i]);
                     lt.Add(Video.vblank_begin_timer);
                 }
+                else if (lt[i].func == "vblank_end_callback")
+                {
+                    Video.vblank_end_timer = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(Video.vblank_end_timer);
+                }
                 else if (lt[i].func == "soft_reset")
                 {
                     Mame.soft_reset_timer = lt[i];
@@ -422,6 +482,7 @@ namespace mame
                     {
                         case "CPS2":
                         case "IGS011":
+                        case "Konami68000":
                             Cpuexec.cpu[0].partial_frame_timer = lt[i];
                             lt.Remove(lt[i]);
                             lt.Add(Cpuexec.cpu[0].partial_frame_timer);
@@ -430,6 +491,26 @@ namespace mame
                             Cpuexec.cpu[1].partial_frame_timer = lt[i];
                             lt.Remove(lt[i]);
                             lt.Add(Cpuexec.cpu[1].partial_frame_timer);
+                            break;
+                        case "Capcom":
+                            switch (Machine.sName)
+                            {
+                                case "gng":
+                                case "gnga":
+                                case "gngbl":
+                                case "gngprot":
+                                case "gngblita":
+                                case "gngc":
+                                case "gngt":
+                                case "makaimur":
+                                case "makaimurc":
+                                case "makaimurg":
+                                case "diamond":
+                                    Cpuexec.cpu[1].partial_frame_timer = lt[i];
+                                    lt.Remove(lt[i]);
+                                    lt.Add(Cpuexec.cpu[1].partial_frame_timer);
+                                    break;
+                            }
                             break;
                     }
                 }
@@ -475,17 +556,23 @@ namespace mame
                     lt.Remove(lt[i]);
                     lt.Add(Neogeo.auto_animation_timer);
                 }
+                else if (lt[i].func == "sprite_line_timer_callback")
+                {
+                    Neogeo.sprite_line_timer = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(Neogeo.sprite_line_timer);
+                }
                 else if (lt[i].func == "timer_callback_0")
                 {
-                    YM2610.timer0 = lt[i];
+                    YM2610.timer[0] = lt[i];
                     lt.Remove(lt[i]);
-                    lt.Add(YM2610.timer0);
+                    lt.Add(YM2610.timer[0]);
                 }
                 else if (lt[i].func == "timer_callback_1")
                 {
-                    YM2610.timer1 = lt[i];
+                    YM2610.timer[1] = lt[i];
                     lt.Remove(lt[i]);
-                    lt.Add(YM2610.timer1);
+                    lt.Add(YM2610.timer[1]);
                 }
                 else if (lt[i].func == "m6800_rx_tick")
                 {
@@ -534,6 +621,72 @@ namespace mame
                     M92.scanline_timer = lt[i];
                     lt.Remove(lt[i]);
                     lt.Add(M92.scanline_timer);
+                }
+                else if (lt[i].func == "cpu_timeslicecallback")
+                {
+                    Cpuexec.timeslice_timer = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(Cpuexec.timeslice_timer);
+                }
+                else if (lt[i].func == "upd7759_slave_update")
+                {
+                    Upd7759.chip.timer = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(Upd7759.chip.timer);
+                }
+                else if (lt[i].func == "irq_2_0_line_hold")
+                {
+                    Cpuexec.timedint_timer = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(Cpuexec.timedint_timer);
+                }
+                else if (lt[i].func == "msm5205_vclk_callback0")
+                {
+                    MSM5205.timer[0] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(MSM5205.timer[0]);
+                }
+                else if (lt[i].func == "msm5205_vclk_callback1")
+                {
+                    MSM5205.timer[1] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(MSM5205.timer[1]);
+                }
+                else if (lt[i].func == "timer_callback_2203_0_0")
+                {
+                    YM2203.FF2203[0].timer[0] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM2203.FF2203[0].timer[0]);
+                }
+                else if (lt[i].func == "timer_callback_2203_0_1")
+                {
+                    YM2203.FF2203[0].timer[1] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM2203.FF2203[0].timer[1]);
+                }
+                else if (lt[i].func == "timer_callback_2203_1_0")
+                {
+                    YM2203.FF2203[1].timer[0] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM2203.FF2203[1].timer[0]);
+                }
+                else if (lt[i].func == "timer_callback_2203_1_1")
+                {
+                    YM2203.FF2203[1].timer[1] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM2203.FF2203[1].timer[1]);
+                }
+                else if (lt[i].func == "timer_callback_3526_0")
+                {
+                    YM3812.timer[0] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM3812.timer[0]);
+                }
+                else if (lt[i].func == "timer_callback_3526_1")
+                {
+                    YM3812.timer[1] = lt[i];
+                    lt.Remove(lt[i]);
+                    lt.Add(YM3812.timer[1]);
                 }
             }
             for (i = n; i < 32; i++)

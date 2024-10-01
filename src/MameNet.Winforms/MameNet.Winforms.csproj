@@ -1,9 +1,9 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="3.5" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="Current" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProductVersion>9.0.30729</ProductVersion>
+    <ProductVersion>9.0.21022</ProductVersion>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectGuid>{8AFD3E98-81CF-4F1A-9C90-16A926AE40DB}</ProjectGuid>
     <OutputType>WinExe</OutputType>
@@ -12,6 +12,11 @@
     <AssemblyName>mame</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
+    <FileUpgradeFlags>
+    </FileUpgradeFlags>
+    <UpgradeBackupLocation>
+    </UpgradeBackupLocation>
+    <OldToolsVersion>3.5</OldToolsVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -31,11 +36,14 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <PlatformTarget>x86</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.DirectX, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="Microsoft.DirectX.DirectInput, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
     <Reference Include="Microsoft.DirectX.DirectSound, Version=1.0.2902.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35" />
+    <Reference Include="Microsoft.VisualC" />
     <Reference Include="System" />
     <Reference Include="System.Core">
       <RequiredTargetFramework>3.5</RequiredTargetFramework>
@@ -53,8 +61,14 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="cpu\m6502\Ill02.cs" />
+    <Compile Include="cpu\m6502\M6502.cs" />
+    <Compile Include="cpu\m6502\M6502op.cs" />
+    <Compile Include="cpu\m6502\Ops02.cs" />
     <Compile Include="cpu\m6800\M6800.cs" />
     <Compile Include="cpu\m6800\M6800op.cs" />
+    <Compile Include="cpu\m6805\M6805.cs" />
+    <Compile Include="cpu\m6805\M6805op.cs" />
     <Compile Include="cpu\m6809\Disassembler.cs" />
     <Compile Include="cpu\m6809\M6809.cs" />
     <Compile Include="cpu\m6809\M6809op.cs" />
@@ -62,15 +76,36 @@
     <Compile Include="cpu\nec\NecEa.cs" />
     <Compile Include="cpu\nec\NecInstr.cs" />
     <Compile Include="cpu\nec\NecModrm.cs" />
+    <Compile Include="emu\Crosshair.cs" />
+    <Compile Include="emu\Mouse.cs" />
     <Compile Include="emu\Pd4900a.cs" />
     <Compile Include="emu\Machine.cs" />
     <Compile Include="emu\State.cs" />
     <Compile Include="emu\Watchdog.cs" />
+    <Compile Include="emu\Window.cs" />
+    <Compile Include="mame\capcom\Capcom.cs" />
+    <Compile Include="mame\capcom\Drawgfx.cs" />
+    <Compile Include="mame\capcom\Gdi.cs" />
+    <Compile Include="mame\capcom\Gng.cs" />
+    <Compile Include="mame\capcom\Input.cs" />
+    <Compile Include="mame\capcom\Memory.cs" />
+    <Compile Include="mame\capcom\State.cs" />
+    <Compile Include="mame\capcom\Tilemap.cs" />
+    <Compile Include="mame\capcom\Video.cs" />
+    <Compile Include="mame\cps\Drawgfx.cs" />
     <Compile Include="mame\cps\Input.cs" />
     <Compile Include="mame\cps\Memory2.cs" />
     <Compile Include="mame\cps\State.cs" />
     <Compile Include="mame\cps\Tilemap.cs" />
-    <Compile Include="mame\igs011\GDI.cs" />
+    <Compile Include="mame\dataeast\Drawgfx.cs" />
+    <Compile Include="mame\dataeast\Gdi.cs" />
+    <Compile Include="mame\dataeast\Input.cs" />
+    <Compile Include="mame\dataeast\Memory.cs" />
+    <Compile Include="mame\dataeast\Pcktgal.cs" />
+    <Compile Include="mame\dataeast\State.cs" />
+    <Compile Include="mame\dataeast\Tilemap.cs" />
+    <Compile Include="mame\dataeast\Video.cs" />
+    <Compile Include="mame\igs011\Gdi.cs" />
     <Compile Include="mame\igs011\IGS011.cs" />
     <Compile Include="mame\igs011\Input.cs" />
     <Compile Include="mame\igs011\Machine.cs" />
@@ -78,7 +113,18 @@
     <Compile Include="mame\igs011\Memory2.cs" />
     <Compile Include="mame\igs011\State.cs" />
     <Compile Include="mame\igs011\Video.cs" />
+    <Compile Include="mame\konami68000\Drawgfx.cs" />
+    <Compile Include="mame\konami68000\Gdi.cs" />
+    <Compile Include="mame\konami68000\Input.cs" />
+    <Compile Include="mame\konami68000\Konami68000.cs" />
+    <Compile Include="mame\konami68000\Konamiic.cs" />
+    <Compile Include="mame\konami68000\Memory.cs" />
+    <Compile Include="mame\konami68000\Memory2.cs" />
+    <Compile Include="mame\konami68000\State.cs" />
+    <Compile Include="mame\konami68000\Tilemap.cs" />
+    <Compile Include="mame\konami68000\Video.cs" />
     <Compile Include="mame\m72\Audio.cs" />
+    <Compile Include="mame\m72\Drawgfx.cs" />
     <Compile Include="mame\m72\Gdi.cs" />
     <Compile Include="mame\m72\Input.cs" />
     <Compile Include="mame\m72\M72.cs" />
@@ -87,6 +133,7 @@
     <Compile Include="mame\m72\State.cs" />
     <Compile Include="mame\m72\Tilemap.cs" />
     <Compile Include="mame\m72\Video.cs" />
+    <Compile Include="mame\m92\Drawgfx.cs" />
     <Compile Include="mame\m92\Gdi.cs" />
     <Compile Include="mame\m92\Input.cs" />
     <Compile Include="mame\m92\M92.cs" />
@@ -95,6 +142,7 @@
     <Compile Include="mame\m92\State.cs" />
     <Compile Include="mame\m92\Tilemap.cs" />
     <Compile Include="mame\m92\Video.cs" />
+    <Compile Include="mame\namcos1\Drawgfx.cs" />
     <Compile Include="mame\namcos1\Gdi.cs" />
     <Compile Include="mame\namcos1\Input.cs" />
     <Compile Include="mame\namcos1\Machine.cs" />
@@ -122,6 +170,42 @@
     <Compile Include="mame\pgm\State.cs" />
     <Compile Include="mame\pgm\Tilemap.cs" />
     <Compile Include="mame\pgm\Video.cs" />
+    <Compile Include="mame\suna8\Drawgfx.cs" />
+    <Compile Include="mame\suna8\Gdi.cs" />
+    <Compile Include="mame\suna8\Input.cs" />
+    <Compile Include="mame\suna8\Memory.cs" />
+    <Compile Include="mame\suna8\State.cs" />
+    <Compile Include="mame\suna8\SunA8.cs" />
+    <Compile Include="mame\suna8\Video.cs" />
+    <Compile Include="mame\taitob\Drawgfx.cs" />
+    <Compile Include="mame\taitob\Gdi.cs" />
+    <Compile Include="mame\taitob\Input.cs" />
+    <Compile Include="mame\taitob\Mb87078.cs" />
+    <Compile Include="mame\taitob\Memory.cs" />
+    <Compile Include="mame\taitob\Memory2.cs" />
+    <Compile Include="mame\taitob\State.cs" />
+    <Compile Include="mame\taitob\Taitob.cs" />
+    <Compile Include="mame\taitob\Tilemap.cs" />
+    <Compile Include="mame\taitob\Video.cs" />
+    <Compile Include="mame\taito\Bublbobl.cs" />
+    <Compile Include="mame\taito\Drawgfx.cs" />
+    <Compile Include="mame\taito\Gdi.cs" />
+    <Compile Include="mame\taito\Input.cs" />
+    <Compile Include="mame\taito\Memory.cs" />
+    <Compile Include="mame\taito\Opwolf.cs" />
+    <Compile Include="mame\taito\State.cs" />
+    <Compile Include="mame\taito\Taito.cs" />
+    <Compile Include="mame\taito\Taitoic.cs" />
+    <Compile Include="mame\taito\Tilemap.cs" />
+    <Compile Include="mame\taito\Video.cs" />
+    <Compile Include="mame\tehkan\Drawgfx.cs" />
+    <Compile Include="mame\tehkan\Gdi.cs" />
+    <Compile Include="mame\tehkan\Input.cs" />
+    <Compile Include="mame\tehkan\Memory.cs" />
+    <Compile Include="mame\tehkan\Pbaction.cs" />
+    <Compile Include="mame\tehkan\State.cs" />
+    <Compile Include="mame\tehkan\Tilemap.cs" />
+    <Compile Include="mame\tehkan\Video.cs" />
     <Compile Include="Properties\Resources.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
@@ -133,7 +217,15 @@
     <Compile Include="sound\FMOpl.cs" />
     <Compile Include="sound\ICS2115.cs" />
     <Compile Include="sound\Iremga20.cs" />
+    <Compile Include="sound\K007232.cs" />
+    <Compile Include="sound\K053260.cs" />
+    <Compile Include="sound\K054539.cs" />
+    <Compile Include="sound\MSM5205.cs" />
     <Compile Include="sound\Namco.cs" />
+    <Compile Include="sound\Sample.cs" />
+    <Compile Include="sound\Taitosnd.cs" />
+    <Compile Include="sound\Upd7759.cs" />
+    <Compile Include="sound\YM2203.cs" />
     <Compile Include="sound\YM2413.cs" />
     <Compile Include="sound\YM2610.cs" />
     <Compile Include="sound\YM3812.cs" />
@@ -143,6 +235,12 @@
     </Compile>
     <Compile Include="ui\aboutForm.Designer.cs">
       <DependentUpon>aboutForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\capcomForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\capcomForm.Designer.cs">
+      <DependentUpon>capcomForm.cs</DependentUpon>
     </Compile>
     <Compile Include="ui\cheatForm.cs">
       <SubType>Form</SubType>
@@ -167,6 +265,30 @@
     <Compile Include="emu\Gdi.cs" />
     <Compile Include="mame\cps\Gdi.cs" />
     <Compile Include="emu\Generic.cs" />
+    <Compile Include="ui\dataeastForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\dataeastForm.Designer.cs">
+      <DependentUpon>dataeastForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\tehkanForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\tehkanForm.Designer.cs">
+      <DependentUpon>tehkanForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\igs011Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\igs011Form.Designer.cs">
+      <DependentUpon>igs011Form.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\konami68000Form.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\konami68000Form.Designer.cs">
+      <DependentUpon>konami68000Form.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\m72Form.cs">
       <SubType>Form</SubType>
     </Compile>
@@ -240,6 +362,18 @@
     <Compile Include="ui\neogeoForm.Designer.cs">
       <DependentUpon>neogeoForm.cs</DependentUpon>
     </Compile>
+    <Compile Include="ui\taitobForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\taitobForm.Designer.cs">
+      <DependentUpon>taitobForm.cs</DependentUpon>
+    </Compile>
+    <Compile Include="ui\taitoForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="ui\taitoForm.Designer.cs">
+      <DependentUpon>taitoForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="ui\Version.cs" />
     <Compile Include="mame\cps\Video.cs" />
     <Compile Include="ui\z80Form.cs">
@@ -279,6 +413,10 @@
       <DependentUpon>aboutForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\capcomForm.resx">
+      <DependentUpon>capcomForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\cheatForm.resx">
       <DependentUpon>cheatForm.cs</DependentUpon>
       <SubType>Designer</SubType>
@@ -291,8 +429,20 @@
       <DependentUpon>cpsForm.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+    <EmbeddedResource Include="ui\dataeastForm.resx">
+      <DependentUpon>dataeastForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\igs011Form.resx">
+      <DependentUpon>igs011Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
     <EmbeddedResource Include="ui\ipsForm.resx">
       <DependentUpon>ipsForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\konami68000Form.resx">
+      <DependentUpon>konami68000Form.cs</DependentUpon>
       <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\ListViewControl.resx">
@@ -309,12 +459,15 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\m6809Form.resx">
       <DependentUpon>m6809Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\m72Form.resx">
       <DependentUpon>m72Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\m92Form.resx">
       <DependentUpon>m92Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\mainForm.resx">
       <DependentUpon>mainForm.cs</DependentUpon>
@@ -322,6 +475,7 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\namcos1Form.resx">
       <DependentUpon>namcos1Form.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\neogeoForm.resx">
       <DependentUpon>neogeoForm.cs</DependentUpon>
@@ -329,6 +483,19 @@
     </EmbeddedResource>
     <EmbeddedResource Include="ui\pgmForm.resx">
       <DependentUpon>pgmForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\taitobForm.resx">
+      <DependentUpon>taitobForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\taitoForm.resx">
+      <DependentUpon>taitoForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
+    <EmbeddedResource Include="ui\tehkanForm.resx">
+      <DependentUpon>tehkanForm.cs</DependentUpon>
+      <SubType>Designer</SubType>
     </EmbeddedResource>
     <EmbeddedResource Include="ui\z80Form.resx">
       <DependentUpon>z80Form.cs</DependentUpon>

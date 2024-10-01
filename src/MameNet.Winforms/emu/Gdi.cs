@@ -9,7 +9,35 @@ using System.Runtime.InteropServices;
 namespace mame
 {
     partial class Video
-    {        
+    {
+        public delegate Bitmap drawcrosshairdelegate(Bitmap bm1);
+        public static drawcrosshairdelegate drawcrosshair;
+        public static Bitmap drawcrosshair_null(Bitmap bm1)
+        {
+            Bitmap bm2 = bm1;
+            return bm2;
+        }
+        public static Bitmap drawcrosshair_opwolf(Bitmap bm1)
+        {
+            Bitmap bm2 = bm1;
+            Graphics g = Graphics.FromImage(bm2);
+            g.DrawImage(MultiplyAlpha(Crosshair.global.bitmap[0], (float)Crosshair.global.fade / 0xff), new Rectangle(Crosshair.global.x[0] - 10, Crosshair.global.y[0] - 10, 20, 20), new Rectangle(0, 0, 100, 100), GraphicsUnit.Pixel);
+            g.Dispose();
+            return bm2;
+        }
+        public static Bitmap MultiplyAlpha(Bitmap bitmap, float factor)
+        {
+            Bitmap result = new Bitmap(bitmap.Width, bitmap.Height);
+            using (Graphics graphics = Graphics.FromImage(result))
+            {
+                ColorMatrix colorMatrix = new ColorMatrix();
+                colorMatrix.Matrix33 = factor;
+                ImageAttributes imageAttributes = new ImageAttributes();
+                imageAttributes.SetColorMatrix(colorMatrix);
+                graphics.DrawImage(bitmap, new Rectangle(0, 0, bitmap.Width, bitmap.Height), 0, 0, bitmap.Width, bitmap.Height, GraphicsUnit.Pixel, imageAttributes);
+            }
+            return result;
+        }
         public static void GDIDraw()
         {
             try
@@ -44,7 +72,7 @@ namespace mame
                         }
                     }
                 }
-                bbmp[iMode] = (Bitmap)bitmapGDI.Clone(new Rectangle(offsetx, offsety, width, height), PixelFormat.Format32bppArgb);
+                bbmp[iMode] = drawcrosshair((Bitmap)bitmapGDI.Clone(new Rectangle(offsetx, offsety, width, height), PixelFormat.Format32bppArgb));
                 switch (Machine.sDirection)
                 {
                     case "":

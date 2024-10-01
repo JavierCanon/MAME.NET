@@ -232,8 +232,8 @@ namespace mame
             Generic.paletteram16 = new ushort[0x800];
             Generic.spriteram16 = new ushort[0x400];
             Generic.buffered_spriteram16 = new ushort[0x400];
-            m92_vram_data = new byte[0x10000];
-            m92_spritecontrol = new byte[0x10];
+            m92_vram_data = new ushort[0x8000];
+            m92_spritecontrol = new ushort[8];
             bb1 = Machine.GetRom("maincpu.rom");
             Memory.mainrom = new byte[0x190000];
             Array.Copy(bb1, Memory.mainrom, bb1.Length);
@@ -284,8 +284,14 @@ namespace mame
                 case "rtypeleoj":
                     m92_irq_vectorbase = 0x20;
                     break;
+                case "nbbatman":
+                case "lnbbatmanu":
+                case "leaguemn":
+                    dsw = 0xff9f;
+                    break;
                 case "ssoldier":
                 case "psoldier":
+                    dsw = 0xff9f;
                     sound_status = 0x80;
                     m92_irq_vectorbase = 0x20;
                     break;
@@ -303,6 +309,7 @@ namespace mame
         }
         public static void machine_reset_m92()
         {
+            m92_scanline_param = 0;
             Timer.timer_adjust_periodic(scanline_timer, Video.video_screen_get_time_until_pos(0, 0), Attotime.ATTOTIME_NEVER);
         }
         public static void m92_scanline_interrupt()
@@ -310,10 +317,12 @@ namespace mame
             int scanline = m92_scanline_param;
             if (scanline == m92_raster_irq_position)
             {
+                Video.video_screen_update_partial(scanline);
                 Cpuexec.cpu[0].cpunum_set_input_line_and_vector(0, 0, LineState.HOLD_LINE, (m92_irq_vectorbase + 8) / 4);
             }
             else if (scanline == 0xf8)
             {
+                Video.video_screen_update_partial(scanline);
                 Cpuexec.cpu[0].cpunum_set_input_line_and_vector(0, 0, LineState.HOLD_LINE, (m92_irq_vectorbase + 0) / 4);
             }
             if (++scanline >= Video.screenstate.height)
@@ -321,10 +330,6 @@ namespace mame
                 scanline = 0;
             }
             m92_scanline_param = scanline;
-            if (scanline == 0xfa && Timer.global_basetime.seconds == 1 && Timer.global_basetime.attoseconds == 0x003b7174f8fbec2c)
-            {
-                int i1 = 1;
-            }
             Timer.timer_adjust_periodic(scanline_timer, Video.video_screen_get_time_until_pos(scanline, 0), Attotime.ATTOTIME_NEVER);
         }
         public static byte m92_eeprom_r(int offset)
@@ -357,9 +362,24 @@ namespace mame
         }
         public static void setvector_callback()
         {
-            /*StreamWriter sw1 = new StreamWriter("1.txt", false);
-            sw1.WriteLine(Video.screenstate.frame_number.ToString() + "\t" + setvector_param.ToString());
-            sw1.Close();*/
+            List<vec> lsvec = new List<vec>();
+            foreach (vec v1 in Cpuint.lvec)
+            {
+                if (Attotime.attotime_compare(v1.time, Timer.global_basetime) < 0)
+                {
+                    lsvec.Add(v1);
+                }
+                else if (Attotime.attotime_compare(v1.time, Timer.global_basetime) == 0)
+                {
+                    setvector_param = v1.vector;
+                    lsvec.Add(v1);
+                    break;
+                }
+            }
+            foreach (vec v1 in lsvec)
+            {
+                Cpuint.lvec.Remove(v1);
+            }
             switch (setvector_param)
             {
                 case 0:
@@ -378,7 +398,6 @@ namespace mame
                     irqvector &= 0xfe;
                     break;
             }
-
             if ((irqvector & 0x2) != 0)
             {
                 Cpuint.interrupt_vector[1, 0] = 0x18;
@@ -398,10 +417,8 @@ namespace mame
         }
         public static void m92_soundlatch_w(ushort data)
         {
-            /*StreamWriter sw1 = new StreamWriter("1.txt", false);
-            sw1.WriteLine(Video.screenstate.frame_number.ToString() + "\ta" + data.ToString());
-            sw1.Close();*/
-            setvector_param = 3;
+            Cpuint.lvec.Add(new vec(3, Timer.get_current_time()));
+            setvector_param = 3;            
             Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
             Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
             Sound.soundlatch_w((ushort)(data & 0xff));
@@ -416,6 +433,7 @@ namespace mame
         }
         public static void m92_sound_irq_ack_w()
         {
+            Cpuint.lvec.Add(new vec(4, Timer.get_current_time()));
             setvector_param = 4;
             Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
             Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
@@ -429,12 +447,14 @@ namespace mame
         {
             if (state != 0)
             {
+                Cpuint.lvec.Add(new vec(1, Timer.get_current_time()));
                 setvector_param = 1;
                 Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
                 Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
             }
             else
             {
+                Cpuint.lvec.Add(new vec(2, Timer.get_current_time()));
                 setvector_param = 2;
                 Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
                 Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
@@ -444,6 +464,5 @@ namespace mame
         {
             Cpuexec.cpu[0].cpunum_set_input_line_and_vector(0, 0, LineState.HOLD_LINE, (m92_irq_vectorbase + 4) / 4);
         }
-
     }
 }

@@ -430,8 +430,6 @@ namespace mame
         public static void MCWriteLong_sf2m3(int address, int value)
         {
             address &= 0xffffff;
-            m68000Form.iWAddress = address;
-            m68000Form.iWOp = 0x03;
             if (address >= 0x800030 && address + 3 <= 0x800037)
             {
                 return;
@@ -779,8 +777,6 @@ namespace mame
         public static void MCWriteLong_sf2m10(int address, int value)
         {
             address &= 0xffffff;
-            m68000Form.iWAddress = address;
-            m68000Form.iWOp = 0x03;
             if (address >= 0x800030 && address + 3 <= 0x800037)
             {
                 return;

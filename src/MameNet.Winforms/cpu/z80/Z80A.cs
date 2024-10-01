@@ -14,7 +14,8 @@ namespace cpu.z80
     /// </summary>
     public sealed partial class Z80A : cpuexec_data
     {
-        public static Z80A z1;
+        public static Z80A[] zz1;
+        public static int nZ80;
         private bool Interruptable;
         private ulong totalExecutedCycles;
         private int pendingCycles;
@@ -83,35 +84,6 @@ namespace cpu.z80
                 Interrupt = (state != LineState.CLEAR_LINE);
             }
         }
-        public override void set_input_line_and_vector(int line, LineState state, int vector)
-        {
-            Atime time1;
-            time1 = Timer.get_current_time();
-            bool b1 = false;
-            foreach (irq irq1 in Cpuint.lirq)
-            {
-                if (irq1.cpunum == 1 && irq1.line == line)
-                {
-                    if (Attotime.attotime_compare(irq1.time, time1) > 0)
-                    {
-                        b1 = true;
-                        break;
-                    }
-                    else
-                    {
-                        int i1 = 1;
-                    }
-                }
-            }
-            if (b1)
-            {
-                int i1 = 1;
-            }
-            else
-            {
-                Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
-            }
-        }
         public override void cpunum_set_input_line_and_vector(int cpunum, int line, LineState state, int vector)
         {
             Atime time1;
@@ -119,7 +91,7 @@ namespace cpu.z80
             bool b1 = false;
             foreach (irq irq1 in Cpuint.lirq)
             {
-                if (irq1.cpunum == 1 && irq1.line == line)
+                if (irq1.cpunum == cpunum && irq1.line == line)
                 {
                     if (Attotime.attotime_compare(irq1.time, time1) > 0)
                     {
@@ -166,61 +138,61 @@ namespace cpu.z80
 
         public void SaveStateBinary(BinaryWriter writer)
         {
-            writer.Write(Z80A.z1.PPC);
-            writer.Write(Z80A.z1.RegisterAF);
-            writer.Write(Z80A.z1.RegisterBC);
-            writer.Write(Z80A.z1.RegisterDE);
-            writer.Write(Z80A.z1.RegisterHL);
-            writer.Write(Z80A.z1.RegisterShadowAF);
-            writer.Write(Z80A.z1.RegisterShadowBC);
-            writer.Write(Z80A.z1.RegisterShadowDE);
-            writer.Write(Z80A.z1.RegisterShadowHL);
-            writer.Write(Z80A.z1.RegisterIX);
-            writer.Write(Z80A.z1.RegisterIY);
-            writer.Write(Z80A.z1.RegisterSP);
-            writer.Write(Z80A.z1.RegisterPC);
-            writer.Write(Z80A.z1.RegisterWZ);
-            writer.Write(Z80A.z1.RegisterI);
-            writer.Write(Z80A.z1.RegisterR);
-            writer.Write(Z80A.z1.RegisterR2);
-            writer.Write(Z80A.z1.Interrupt);
-            writer.Write(Z80A.z1.NonMaskableInterrupt);
-            writer.Write(Z80A.z1.NonMaskableInterruptPending);
-            writer.Write(Z80A.z1.InterruptMode);
-            writer.Write(Z80A.z1.IFF1);
-            writer.Write(Z80A.z1.IFF2);
-            writer.Write(Z80A.z1.Halted);
-            writer.Write(Z80A.z1.TotalExecutedCycles);
-            writer.Write(Z80A.z1.PendingCycles);
+            writer.Write(PPC);
+            writer.Write(RegisterAF);
+            writer.Write(RegisterBC);
+            writer.Write(RegisterDE);
+            writer.Write(RegisterHL);
+            writer.Write(RegisterShadowAF);
+            writer.Write(RegisterShadowBC);
+            writer.Write(RegisterShadowDE);
+            writer.Write(RegisterShadowHL);
+            writer.Write(RegisterIX);
+            writer.Write(RegisterIY);
+            writer.Write(RegisterSP);
+            writer.Write(RegisterPC);
+            writer.Write(RegisterWZ);
+            writer.Write(RegisterI);
+            writer.Write(RegisterR);
+            writer.Write(RegisterR2);
+            writer.Write(Interrupt);
+            writer.Write(NonMaskableInterrupt);
+            writer.Write(NonMaskableInterruptPending);
+            writer.Write(InterruptMode);
+            writer.Write(IFF1);
+            writer.Write(IFF2);
+            writer.Write(Halted);
+            writer.Write(TotalExecutedCycles);
+            writer.Write(PendingCycles);
         }
         public void LoadStateBinary(BinaryReader reader)
         {
-            Z80A.z1.PPC = reader.ReadUInt16();
-            Z80A.z1.RegisterAF = reader.ReadUInt16();
-            Z80A.z1.RegisterBC = reader.ReadUInt16();
-            Z80A.z1.RegisterDE = reader.ReadUInt16();
-            Z80A.z1.RegisterHL = reader.ReadUInt16();
-            Z80A.z1.RegisterShadowAF = reader.ReadUInt16();
-            Z80A.z1.RegisterShadowBC = reader.ReadUInt16();
-            Z80A.z1.RegisterShadowDE = reader.ReadUInt16();
-            Z80A.z1.RegisterShadowHL = reader.ReadUInt16();
-            Z80A.z1.RegisterIX = reader.ReadUInt16();
-            Z80A.z1.RegisterIY = reader.ReadUInt16();
-            Z80A.z1.RegisterSP = reader.ReadUInt16();
-            Z80A.z1.RegisterPC = reader.ReadUInt16();
-            Z80A.z1.RegisterWZ = reader.ReadUInt16();
-            Z80A.z1.RegisterI = reader.ReadByte();
-            Z80A.z1.RegisterR = reader.ReadByte();
-            Z80A.z1.RegisterR2 = reader.ReadByte();
-            Z80A.z1.Interrupt = reader.ReadBoolean();
-            Z80A.z1.NonMaskableInterrupt = reader.ReadBoolean();
-            Z80A.z1.NonMaskableInterruptPending = reader.ReadBoolean();
-            Z80A.z1.InterruptMode = reader.ReadInt32();
-            Z80A.z1.IFF1 = reader.ReadBoolean();
-            Z80A.z1.IFF2 = reader.ReadBoolean();
-            Z80A.z1.Halted = reader.ReadBoolean();
-            Z80A.z1.TotalExecutedCycles = reader.ReadUInt64();
-            Z80A.z1.PendingCycles = reader.ReadInt32();
+            PPC = reader.ReadUInt16();
+            RegisterAF = reader.ReadUInt16();
+            RegisterBC = reader.ReadUInt16();
+            RegisterDE = reader.ReadUInt16();
+            RegisterHL = reader.ReadUInt16();
+            RegisterShadowAF = reader.ReadUInt16();
+            RegisterShadowBC = reader.ReadUInt16();
+            RegisterShadowDE = reader.ReadUInt16();
+            RegisterShadowHL = reader.ReadUInt16();
+            RegisterIX = reader.ReadUInt16();
+            RegisterIY = reader.ReadUInt16();
+            RegisterSP = reader.ReadUInt16();
+            RegisterPC = reader.ReadUInt16();
+            RegisterWZ = reader.ReadUInt16();
+            RegisterI = reader.ReadByte();
+            RegisterR = reader.ReadByte();
+            RegisterR2 = reader.ReadByte();
+            Interrupt = reader.ReadBoolean();
+            NonMaskableInterrupt = reader.ReadBoolean();
+            NonMaskableInterruptPending = reader.ReadBoolean();
+            InterruptMode = reader.ReadInt32();
+            IFF1 = reader.ReadBoolean();
+            IFF2 = reader.ReadBoolean();
+            Halted = reader.ReadBoolean();
+            TotalExecutedCycles = reader.ReadUInt64();
+            PendingCycles = reader.ReadInt32();
         }
         public void SaveStateText(TextWriter writer)
         {

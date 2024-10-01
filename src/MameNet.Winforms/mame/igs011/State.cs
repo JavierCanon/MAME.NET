@@ -65,63 +65,12 @@ namespace mame
             Cpuint.SaveStateBinary(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
-            writer.Write(Video.screenstate.frame_number);
+            Video.SaveStateBinary(writer);
             writer.Write(Sound.last_update_second);
-            writer.Write(Cpuexec.cpu[0].localtime.seconds);
-            writer.Write(Cpuexec.cpu[0].localtime.attoseconds);
+            Cpuexec.SaveStateBinary(writer);
             Timer.SaveStateBinary(writer);
             OKI6295.SaveStateBinary(writer);
-            for (i = 0; i < 9; i++)
-            {
-                writer.Write(FMOpl.OPL.P_CH[i].block_fnum);
-                writer.Write(FMOpl.OPL.P_CH[i].kcode);
-                for (j = 0; j < 2; j++)
-                {
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].ar);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].dr);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].rr);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].KSR);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].ksl);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].ksr);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].mul);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].Cnt);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].FB);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].op1_out[0]);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].op1_out[1]);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].CON);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].eg_type);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].state);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].TL);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].volume);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].sl);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].key);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].AMmask);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].vib);
-                    writer.Write(FMOpl.OPL.P_CH[i].SLOT[j].wavetable);
-                }
-            }
-            writer.Write(FMOpl.OPL.eg_cnt);
-            writer.Write(FMOpl.OPL.eg_timer);
-            writer.Write(FMOpl.OPL.rhythm);
-            writer.Write(FMOpl.OPL.lfo_am_depth);
-            writer.Write(FMOpl.OPL.lfo_pm_depth_range);
-            writer.Write(FMOpl.OPL.lfo_am_cnt);
-            writer.Write(FMOpl.OPL.lfo_pm_cnt);
-            writer.Write(FMOpl.OPL.noise_rng);
-            writer.Write(FMOpl.OPL.noise_p);
-            writer.Write(FMOpl.OPL.wavesel);
-            for (i = 0; i < 2; i++)
-            {
-                writer.Write(FMOpl.OPL.T[i]);
-            }
-            for (i = 0; i < 2; i++)
-            {
-                writer.Write(FMOpl.OPL.st[i]);
-            }
-            writer.Write(FMOpl.OPL.address);
-            writer.Write(FMOpl.OPL.status);
-            writer.Write(FMOpl.OPL.statusmask);
-            writer.Write(FMOpl.OPL.mode);
+            YM3812.SaveStateBinary(writer);
             writer.Write(Sound.okistream.output_sampindex);
             writer.Write(Sound.okistream.output_base_sampindex);
             writer.Write(Sound.ym3812stream.output_sampindex);
@@ -185,63 +134,12 @@ namespace mame
             Cpuint.LoadStateBinary(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
-            Video.screenstate.frame_number = reader.ReadInt64();
+            Video.LoadStateBinary(reader);
             Sound.last_update_second = reader.ReadInt32();
-            Cpuexec.cpu[0].localtime.seconds = reader.ReadInt32();
-            Cpuexec.cpu[0].localtime.attoseconds = reader.ReadInt64();
+            Cpuexec.LoadStateBinary(reader);
             Timer.LoadStateBinary(reader);
             OKI6295.LoadStateBinary(reader);
-            for (i = 0; i < 9; i++)
-            {
-                FMOpl.OPL.P_CH[i].block_fnum = reader.ReadUInt32();
-                FMOpl.OPL.P_CH[i].kcode = reader.ReadByte();
-                for (j = 0; j < 2; j++)
-                {
-                    FMOpl.OPL.P_CH[i].SLOT[j].ar = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].dr = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].rr = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].KSR = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].ksl = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].ksr = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].mul = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].Cnt = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].FB = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].op1_out[0] = reader.ReadInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].op1_out[1] = reader.ReadInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].CON = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].eg_type = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].state = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].TL = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].volume = reader.ReadInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].sl = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].key = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].AMmask = reader.ReadUInt32();
-                    FMOpl.OPL.P_CH[i].SLOT[j].vib = reader.ReadByte();
-                    FMOpl.OPL.P_CH[i].SLOT[j].wavetable = reader.ReadUInt16();
-                }
-            }
-            FMOpl.OPL.eg_cnt = reader.ReadUInt32();
-            FMOpl.OPL.eg_timer = reader.ReadUInt32();
-            FMOpl.OPL.rhythm = reader.ReadByte();
-            FMOpl.OPL.lfo_am_depth = reader.ReadByte();
-            FMOpl.OPL.lfo_pm_depth_range = reader.ReadByte();
-            FMOpl.OPL.lfo_am_cnt = reader.ReadUInt32();
-            FMOpl.OPL.lfo_pm_cnt = reader.ReadUInt32();
-            FMOpl.OPL.noise_rng = reader.ReadUInt32();
-            FMOpl.OPL.noise_p = reader.ReadUInt32();
-            FMOpl.OPL.wavesel = reader.ReadByte();
-            for (i = 0; i < 2; i++)
-            {
-                FMOpl.OPL.T[i] = reader.ReadUInt32();
-            }
-            for (i = 0; i < 2; i++)
-            {
-                FMOpl.OPL.st[i] = reader.ReadByte();
-            }
-            FMOpl.OPL.address = reader.ReadByte();
-            FMOpl.OPL.status = reader.ReadByte();
-            FMOpl.OPL.statusmask = reader.ReadByte();
-            FMOpl.OPL.mode = reader.ReadByte();
+            YM3812.LoadStateBinary(reader);
             Sound.okistream.output_sampindex = reader.ReadInt32();
             Sound.okistream.output_base_sampindex = reader.ReadInt32();
             Sound.ym3812stream.output_sampindex = reader.ReadInt32();

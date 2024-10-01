@@ -32,7 +32,9 @@ namespace mame
         public static void lhb_interrupt()
         {
             if (lhb_irq_enable == 0)
+            {
                 return;
+            }
             if (Cpuexec.iloops == 0)
             {
                 Cpuint.cpunum_set_input_line(0, 6, LineState.HOLD_LINE);

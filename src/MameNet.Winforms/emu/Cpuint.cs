@@ -37,18 +37,17 @@ namespace mame
     }
     public enum LineState
     {
-        /* line states */
-        CLEAR_LINE = 0,				/* clear (a fired, held or pulsed) line */
-        ASSERT_LINE,				/* assert an interrupt immediately */
-        HOLD_LINE,					/* hold interrupt line until acknowledged */
-        PULSE_LINE,					/* pulse interrupt line for one instruction */
+        CLEAR_LINE = 0,
+        ASSERT_LINE,
+        HOLD_LINE,
+        PULSE_LINE,
         INTERNAL_CLEAR_LINE = 100 + CLEAR_LINE,
         INTERNAL_ASSERT_LINE = 100 + ASSERT_LINE,
         MAX_INPUT_LINES = 32 + 3,
         INPUT_LINE_NMI = MAX_INPUT_LINES - 3,
         INPUT_LINE_RESET = MAX_INPUT_LINES - 2,
         INPUT_LINE_HALT = MAX_INPUT_LINES - 1,
-    }
+    }           
     public class irq
     {
         public int cpunum;
@@ -69,6 +68,20 @@ namespace mame
             time = _time;
         }
     }
+    public class vec
+    {
+        public int vector;
+        public Atime time;
+        public vec()
+        {
+
+        }
+        public vec(int _vector, Atime _time)
+        {
+            vector = _vector;
+            time = _time;
+        }
+    }
     public class Cpuint
     {
         public static int[,] interrupt_vector;
@@ -76,10 +89,13 @@ namespace mame
         public static int[,] input_line_vector;
         public static int[,] input_event_index;
         //public static int[, ,] input_state;
-        public static List<irq> lirq = new List<irq>();
+        public static List<irq> lirq;
+        public static List<vec> lvec;
         public static void cpuint_init()
         {
             int i, j;
+            lirq = new List<irq>();
+            lvec = new List<vec>();
             interrupt_vector = new int[8, 35];
             input_line_state = new byte[8, 35];
             input_line_vector = new int[8, 35];
@@ -98,6 +114,8 @@ namespace mame
         public static void cpuint_reset()
         {
             int i, j;
+            lirq = new List<irq>();
+            lvec = new List<vec>();
             for (i = 0; i < 8; i++)
             {
                 for (j = 0; j < 35; j++)
@@ -105,7 +123,7 @@ namespace mame
                     interrupt_vector[i, j] = 0xff;
                     input_event_index[i, j] = 0;
                 }
-            }
+            }            
         }
         public static void cps1_irq_handler_mus(int irq)
         {
@@ -121,9 +139,29 @@ namespace mame
             lirq.Add(new irq(cpunum, line, state, vector, Timer.get_current_time()));
             Cpuexec.cpu[cpunum].cpunum_set_input_line_and_vector(cpunum, line, state, vector);
         }
+        public static void cpunum_set_input_line_vector(int cpunum, int line, int vector)
+        {
+            if (cpunum < Cpuexec.ncpu && line >= 0 && line < (int)LineState.MAX_INPUT_LINES)
+            {
+                interrupt_vector[cpunum,line] = vector;
+                return;
+            }
+        }
+        public static void cpunum_set_input_line_and_vector2(int cpunum, int line, LineState state, int vector)
+        {
+            if (line >= 0 && line < 35)
+            {
+                lirq.Add(new irq(cpunum, line, state, vector, Timer.get_current_time()));
+                Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
+            }
+        }
         public static void cpunum_empty_event_queue()
         {
             List<irq> lsirq = new List<irq>();
+            if (lirq.Count == 0)
+            {
+                int i1 = 1;
+            }
             foreach(irq irq1 in lirq)
             {
                 if (Attotime.attotime_compare(irq1.time, Timer.global_basetime) <= 0)
@@ -148,9 +186,13 @@ namespace mame
                     else if (irq1.line == (int)LineState.INPUT_LINE_HALT)
                     {
                         if (irq1.state == LineState.ASSERT_LINE)
+                        {
                             Cpuexec.cpunum_suspend(irq1.cpunum, Cpuexec.SUSPEND_REASON_HALT, 1);
+                        }
                         else if (irq1.state == LineState.CLEAR_LINE)
+                        {
                             Cpuexec.cpunum_resume(irq1.cpunum, Cpuexec.SUSPEND_REASON_HALT);
+                        }
                     }
                     else
                     {
@@ -168,7 +210,10 @@ namespace mame
                                 Cpuexec.cpu[irq1.cpunum].set_irq_line(irq1.line, LineState.CLEAR_LINE);
                                 break;
                         }
-
+                        if (irq1.state != LineState.CLEAR_LINE)
+                        {
+                            Cpuexec.cpu_triggerint(irq1.cpunum);
+                        }
                     }                    
                     lsirq.Add(irq1);
                 }
@@ -177,6 +222,10 @@ namespace mame
             {
                 input_event_index[irq1.cpunum, irq1.line] = 0;
                 lirq.Remove(irq1);
+            }
+            if (lirq.Count > 0)
+            {
+                int i1 = 1;
             }
         }
         public static int cpu_irq_callback(int cpunum, int line)
@@ -188,6 +237,59 @@ namespace mame
                 input_line_state[cpunum, line] = (byte)LineState.CLEAR_LINE;
             }
             return vector;
+        }
+        public static int cpu_0_irq_callback(int line)
+        {
+            return cpu_irq_callback(0, line);
+        }
+        public static int cpu_1_irq_callback(int line)
+        {
+            return cpu_irq_callback(1, line);
+        }
+        public static int cpu_2_irq_callback(int line)
+        {
+            return cpu_irq_callback(2, line);
+        }
+        public static int cpu_3_irq_callback(int line)
+        {
+            return cpu_irq_callback(3, line);
+        }
+        public static void SaveStateBinary_v(BinaryWriter writer)
+        {
+            int i, n;
+            n = lvec.Count;
+            writer.Write(n);
+            for (i = 0; i < n; i++)
+            {
+                writer.Write(lvec[i].vector);
+                writer.Write(lvec[i].time.seconds);
+                writer.Write(lvec[i].time.attoseconds);
+            }
+            for (i = n; i < 16; i++)
+            {
+                writer.Write(0);
+                writer.Write(0);
+                writer.Write((long)0);
+            }
+        }
+        public static void LoadStateBinary_v(BinaryReader reader)
+        {
+            int i, n;
+            n = reader.ReadInt32();
+            lvec = new List<vec>();
+            for (i = 0; i < n; i++)
+            {
+                lvec.Add(new vec());
+                lvec[i].vector = reader.ReadInt32();
+                lvec[i].time.seconds = reader.ReadInt32();
+                lvec[i].time.attoseconds = reader.ReadInt64();
+            }
+            for (i = n; i < 16; i++)
+            {
+                reader.ReadInt32();
+                reader.ReadInt32();
+                reader.ReadInt64();
+            }
         }
         public static void SaveStateBinary(BinaryWriter writer)
         {
@@ -239,7 +341,7 @@ namespace mame
                 {
                     writer.Write(input_event_index[i, j]);
                 }
-            }
+            }            
         }
         public static void LoadStateBinary(BinaryReader reader)
         {

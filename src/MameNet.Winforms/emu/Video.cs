@@ -30,11 +30,11 @@ namespace mame
         public static long frame_number_obj;
         public static Atime frame_update_time;
         public static screen_state screenstate;
-        private static int PAUSED_REFRESH_RATE = 30;
-        public static Timer.emu_timer vblank_begin_timer;
+        public static int video_attributes;
+        private static int PAUSED_REFRESH_RATE = 30, VIDEO_UPDATE_AFTER_VBLANK=4;
+        public static Timer.emu_timer vblank_begin_timer,vblank_end_timer;
         public static Timer.emu_timer scanline0_timer, scanline_timer;
         private static Atime throttle_emutime, throttle_realtime, speed_last_emutime, overall_emutime;
-        //public static Atime partial_frame_period;        
         private static long throttle_last_ticks;
         private static long average_oversleep;        
         private static long speed_last_realtime, overall_real_ticks;
@@ -95,6 +95,7 @@ namespace mame
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 59.61));//59.61Hz
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
                     UI.ui_update_callback = UI.ui_updateC;
                     bitmapbase = new ushort[2][];
@@ -118,6 +119,7 @@ namespace mame
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 8000000) * 512 * 262);//59.637404580152669Hz
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
                     UI.ui_update_callback = UI.ui_updateC;
                     bitmapbase = new ushort[2][];
@@ -130,6 +132,61 @@ namespace mame
                     video_update_callback = CPS.video_update_cps1;
                     video_eof_callback = CPS.video_eof_cps1;
                     break;
+                case "Data East":
+                    screenstate.width = 0x100;
+                    screenstate.height = 0x100;
+                    screenstate.visarea.min_x = 0;
+                    screenstate.visarea.max_x = 0xff;
+                    screenstate.visarea.min_y = 0x10;
+                    screenstate.visarea.max_y = 0xef;
+                    fullwidth = 0x100;
+                    fullheight = 0x100;
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
+                    screenstate.vblank_period = 0;
+                    video_attributes = 0;
+                    bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
+                    UI.ui_update_callback = UI.ui_updateC;
+                    bitmapbase = new ushort[2][];
+                    bitmapbase[0] = new ushort[0x100 * 0x100];
+                    bitmapbase[1] = new ushort[0x100 * 0x100];
+                    bbmp = new Bitmap[1];
+                    bbmp[0] = new Bitmap(256, 256);
+                    video_update_callback = Dataeast.video_update_pcktgal;
+                    video_eof_callback = Dataeast.video_eof_pcktgal;
+                    switch (Machine.sName)
+                    {
+                        case "pcktgal":
+                        case "pcktgalb":
+                        case "pcktgal2":
+                        case "pcktgal2j":
+                        case "spool3":
+                        case "spool3i":
+                            Dataeast.palette_init_pcktgal(Dataeast.prom);
+                            break;
+                    }
+                    break;
+                case "Tehkan":
+                    screenstate.width = 0x100;
+                    screenstate.height = 0x100;
+                    screenstate.visarea.min_x = 0;
+                    screenstate.visarea.max_x = 0xff;
+                    screenstate.visarea.min_y = 0x10;
+                    screenstate.visarea.max_y = 0xef;
+                    fullwidth = 0x100;
+                    fullheight = 0x100;
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
+                    screenstate.vblank_period = 0;
+                    video_attributes = 0;
+                    bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
+                    UI.ui_update_callback = UI.ui_updateTehkan;
+                    bitmapbase = new ushort[2][];
+                    bitmapbase[0] = new ushort[0x100 * 0x100];
+                    bitmapbase[1] = new ushort[0x100 * 0x100];
+                    bbmp = new Bitmap[1];
+                    bbmp[0] = new Bitmap(256, 256);
+                    video_update_callback = Tehkan.video_update_pbaction;
+                    video_eof_callback = Tehkan.video_eof_pbaction;
+                    break;
                 case "Neo Geo":
                     screenstate.width = 384;
                     screenstate.height = 264;
@@ -141,6 +198,7 @@ namespace mame
                     fullheight = 264;
                     frame_update_time = new Atime(0, (long)(1e18 / 6000000) * screenstate.width * screenstate.height);//59.1856060608428Hz
                     screenstate.vblank_period = (long)(1e18 / 6000000) * 384 * (264 - 224);
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updateN;
                     bitmapbaseN = new int[2][];
                     bitmapbaseN[0] = new int[384 * 264];
@@ -149,6 +207,27 @@ namespace mame
                     bbmp[0] = new Bitmap(320, 224);
                     video_update_callback = Neogeo.video_update_neogeo;
                     video_eof_callback = Neogeo.video_eof_neogeo;
+                    break;
+                case "SunA8":
+                    screenstate.width = 0x100;
+                    screenstate.height = 0x100;
+                    screenstate.visarea.min_x = 0;
+                    screenstate.visarea.min_x = 0xff;
+                    screenstate.visarea.min_y = 0x10;
+                    screenstate.visarea.max_y = 0xef;
+                    fullwidth = 0x100;
+                    fullheight = 0x100;
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
+                    screenstate.vblank_period = (long)(1e12 * 2500);
+                    video_attributes = 0;
+                    UI.ui_update_callback = UI.ui_updatePGM;
+                    bitmapbase = new ushort[2][];
+                    bitmapbase[0] = new ushort[0x100 * 0x100];
+                    bitmapbase[1] = new ushort[0x100 * 0x100];
+                    bbmp = new Bitmap[1];
+                    bbmp[0] = new Bitmap(256, 224);
+                    video_update_callback = SunA8.video_update_suna8;
+                    video_eof_callback = SunA8.video_eof_suna8;
                     break;
                 case "Namco System 1":
                     screenstate.width = 0x200;
@@ -161,6 +240,7 @@ namespace mame
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 60.606060));
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updateNa;
                     bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
                     bitmapbase = new ushort[2][];
@@ -178,11 +258,12 @@ namespace mame
                     screenstate.visarea.min_x = 0;
                     screenstate.visarea.max_x = 0x1ff;
                     screenstate.visarea.min_y = 0;
-                    screenstate.visarea.max_y = 0xff;
+                    screenstate.visarea.max_y = 0xef;
                     fullwidth = 0x200;
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 60));
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updateIGS011;
                     bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
                     bitmapbase = new ushort[2][];
@@ -202,8 +283,9 @@ namespace mame
                     screenstate.visarea.max_y = 0xdf;
                     fullwidth = 0x200;
                     fullheight = 0x200;
-                    frame_update_time = new Atime(0, (long)(1e18 / 60));                    
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updatePGM;
                     bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
                     bitmapbase = new ushort[2][];
@@ -225,6 +307,7 @@ namespace mame
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 8000000) * screenstate.width * screenstate.height);
                     screenstate.vblank_period = (long)(1e18 / 8000000) * 512 * (284 - 256);
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updatePGM;
                     bitmapbase = new ushort[2][];
                     bitmapbase[0] = new ushort[0x200 * 0x200];//0x11c
@@ -245,6 +328,7 @@ namespace mame
                     fullheight = 0x200;
                     frame_update_time = new Atime(0, (long)(1e18 / 60));
                     screenstate.vblank_period = 0;
+                    video_attributes = 0;
                     UI.ui_update_callback = UI.ui_updatePGM;
                     bitmapbase = new ushort[2][];
                     bitmapbase[0] = new ushort[0x200 * 0x200];
@@ -254,6 +338,295 @@ namespace mame
                     video_update_callback = M92.video_update_m92;
                     video_eof_callback = M92.video_eof_m92;
                     break;
+                case "Taito":                    
+                    video_attributes = 0;
+                    UI.ui_update_callback = UI.ui_updatePGM;
+                    switch (Machine.sName)
+                    {
+                        case "tokio":
+                        case "tokioo":
+                        case "tokiou":
+                        case "tokiob":
+                        case "bublbobl":
+                        case "bublbobl1":
+                        case "bublboblr":
+                        case "bublboblr1":
+                        case "boblbobl":
+                        case "sboblbobl":
+                        case "sboblbobla":
+                        case "sboblboblb":
+                        case "sboblbobld":
+                        case "sboblboblc":
+                        case "bub68705":
+                        case "dland":
+                        case "bbredux":
+                        case "bublboblb":
+                        case "bublcave":
+                        case "boblcave":
+                        case "bublcave11":
+                        case "bublcave10":
+                            screenstate.width = 0x100;
+                            screenstate.height = 0x100;
+                            screenstate.visarea.min_x = 0;
+                            screenstate.visarea.max_x = 255;
+                            screenstate.visarea.min_y = 16;
+                            screenstate.visarea.max_y = 240 - 1;
+                            fullwidth = 0x100;
+                            fullheight = 0x100;
+                            frame_update_time = new Atime(0, 0x003c372a18883411);
+                            screenstate.vblank_period = 0;// (long)(1e18 * 0.00256);
+                            bitmapbase = new ushort[2][];
+                            bitmapbase[0] = new ushort[0x100 * 0x100];
+                            bitmapbase[1] = new ushort[0x100 * 0x100];
+                            bbmp = new Bitmap[1];
+                            bbmp[0] = new Bitmap(256, 224);
+                            video_update_callback = Taito.video_update_bublbobl;
+                            video_eof_callback = Taito.video_eof_taito;
+                            break;
+                        case "opwolf":
+                        case "opwolfa":
+                        case "opwolfj":
+                        case "opwolfu":
+                        case "opwolfb":
+                        case "opwolfp":
+                            screenstate.width = 0x140;
+                            screenstate.height = 0x100;
+                            screenstate.visarea.min_x = 0;
+                            screenstate.visarea.max_x = 0x13f;
+                            screenstate.visarea.min_y = 8;
+                            screenstate.visarea.max_y = 0xf7;
+                            fullwidth = 0x140;
+                            fullheight = 0x100;
+                            frame_update_time = new Atime(0, (long)(1e18 / 60));
+                            screenstate.vblank_period = 0;// (long)(1e18 * 0.00256);
+                            bitmapbase = new ushort[2][];
+                            bitmapbase[0] = new ushort[0x140 * 0x100];
+                            bitmapbase[1] = new ushort[0x140 * 0x100];
+                            bbmp = new Bitmap[1];
+                            bbmp[0] = new Bitmap(320, 240);
+                            video_update_callback = Taito.video_update_opwolf;
+                            video_eof_callback = Taito.video_eof_taito;
+                            break;
+                    }
+                    break;
+                case "Taito B":
+                    screenstate.width = 0x200;
+                    screenstate.height = 0x100;
+                    screenstate.visarea.min_x = 0;//0
+                    screenstate.visarea.max_x = 320 - 1;//319
+                    screenstate.visarea.min_y = 16;//16
+                    screenstate.visarea.max_y = 240 - 1;//239
+                    fullwidth = 0x200;
+                    fullheight = 0x100;
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
+                    screenstate.vblank_period = 0;
+                    video_attributes = 0;
+                    UI.ui_update_callback = UI.ui_updatePGM;
+                    bitmapbase = new ushort[2][];
+                    bitmapbase[0] = new ushort[0x200 * 0x100];
+                    bitmapbase[1] = new ushort[0x200 * 0x100];
+                    bbmp = new Bitmap[1];
+                    bbmp[0] = new Bitmap(320, 224);
+                    video_update_callback = Taitob.video_update_taitob;
+                    video_eof_callback = Taitob.video_eof_taitob;
+                    break;
+                case "Konami 68000":
+                    screenstate.width = 0x200;
+                    screenstate.height = 0x100;
+                    fullwidth = 0x200;
+                    fullheight = 0x100;
+                    frame_update_time = new Atime(0, (long)(1e18 / 60));
+                    screenstate.vblank_period = (long)(1e12 * 2500);
+                    video_attributes = 0x34;
+                    UI.ui_update_callback = UI.ui_updatePGM;
+                    bitmapbase = new ushort[2][];
+                    bitmapbase[0] = new ushort[0x200 * 0x100];
+                    bitmapbase[1] = new ushort[0x200 * 0x100];
+                    bbmp = new Bitmap[1];
+                    bbmp[0] = new Bitmap(288, 224);
+                    video_eof_callback = Konami68000.video_eof;
+                    switch (Machine.sName)
+                    {
+                        case "cuebrick":
+                            screenstate.visarea.min_x = 0x68;
+                            screenstate.visarea.max_x = 0x197;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_mia;
+                            break;
+                        case "mia":
+                        case "mia2":
+                            screenstate.visarea.min_x = 0x68;
+                            screenstate.visarea.max_x = 0x197;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_attributes = 0x30;
+                            video_update_callback = Konami68000.video_update_mia;
+                            break;
+                        case "tmnt":
+                        case "tmntu":
+                        case "tmntua":
+                        case "tmntub":
+                        case "tmht":
+                        case "tmhta":
+                        case "tmhtb":
+                        case "tmntj":
+                        case "tmnta":
+                        case "tmht2p":
+                        case "tmht2pa":
+                        case "tmnt2pj":
+                        case "tmnt2po":
+                            screenstate.visarea.min_x = 0x60;
+                            screenstate.visarea.max_x = 0x19f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_attributes = 0x30;
+                            video_update_callback = Konami68000.video_update_mia;
+                            break;
+                        case "punkshot":
+                        case "punkshot2":
+                        case "punkshotj":
+                            screenstate.visarea.min_x = 0x70;
+                            screenstate.visarea.max_x = 0x18f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_punkshot;
+                            break;
+                        case "lgtnfght":
+                        case "lgtnfghta":
+                        case "lgtnfghtu":
+                        case "trigon":
+                            screenstate.visarea.min_x = 0x60;
+                            screenstate.visarea.max_x = 0x19f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_lgtnfght;
+                            break;
+                        case "blswhstl":
+                        case "blswhstla":
+                        case "detatwin":
+                            screenstate.visarea.min_x = 0x60;
+                            screenstate.visarea.max_x = 0x19f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_lgtnfght;
+                            video_eof_callback = Konami68000.video_eof_blswhstl;
+                            break;
+                        case "glfgreat":
+                        case "glfgreatj":
+                        case "prmrsocr":
+                        case "prmrsocrj":
+                            screenstate.visarea.min_x = 0x70;
+                            screenstate.visarea.max_x = 0x18f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_glfgreat;
+                            break;
+                        case "tmnt2":
+                        case "tmnt2a":
+                        case "tmht22pe":
+                        case "tmht24pe":
+                        case "tmnt22pu":
+                        case "qgakumon":
+                            screenstate.visarea.min_x = 0x68;
+                            screenstate.visarea.max_x = 0x197;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_tmnt2;
+                            break;
+                        case "ssriders":
+                        case "ssriderseaa":
+                        case "ssridersebd":
+                        case "ssridersebc":
+                        case "ssridersuda":
+                        case "ssridersuac":
+                        case "ssridersuab":
+                        case "ssridersubc":
+                        case "ssridersadd":
+                        case "ssridersabd":
+                        case "ssridersjad":
+                        case "ssridersjac":
+                        case "ssridersjbd":
+                            screenstate.visarea.min_x = 0x70;
+                            screenstate.visarea.max_x = 0x18f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_update_callback = Konami68000.video_update_tmnt2;
+                            break;
+                        case "thndrx2":
+                        case "thndrx2a":
+                        case "thndrx2j":
+                            screenstate.visarea.min_x = 0x70;
+                            screenstate.visarea.max_x = 0x18f;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            video_attributes = 0x30;
+                            video_update_callback = Konami68000.video_update_thndrx2;
+                            break;
+                    }
+                    break;
+                case "Capcom":
+                    switch (Machine.sName)
+                    {
+                        case "gng":
+                        case "gnga":
+                        case "gngbl":
+                        case "gngprot":
+                        case "gngblita":
+                        case "gngc":
+                        case "gngt":
+                        case "makaimur":
+                        case "makaimurc":
+                        case "makaimurg":
+                        case "diamond":
+                            screenstate.width = 0x100;
+                            screenstate.height = 0x100;
+                            screenstate.visarea.min_x = 0;
+                            screenstate.visarea.max_x = 0xff;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            fullwidth = 0x100;
+                            fullheight = 0x100;
+                            frame_update_time = new Atime(0, (long)(1e18 / 60));
+                            screenstate.vblank_period = 0;
+                            video_attributes = 0;
+                            UI.ui_update_callback = UI.ui_updatePGM;
+                            bitmapbase = new ushort[2][];
+                            bitmapbase[0] = new ushort[0x100 * 0x100];
+                            bitmapbase[1] = new ushort[0x100 * 0x100];
+                            bbmp = new Bitmap[1];
+                            bbmp[0] = new Bitmap(256, 224);
+                            video_update_callback = Capcom.video_update_gng;
+                            video_eof_callback = Capcom.video_eof_gng;
+                            break;
+                        case "sf":
+                        case "sfua":
+                        case "sfj":
+                        case "sfjan":
+                        case "sfan":
+                        case "sfp":
+                            screenstate.width = 0x200;
+                            screenstate.height = 0x100;
+                            screenstate.visarea.min_x = 0x40;
+                            screenstate.visarea.max_x = 0x1bf;
+                            screenstate.visarea.min_y = 0x10;
+                            screenstate.visarea.max_y = 0xef;
+                            fullwidth = 0x200;
+                            fullheight = 0x100;
+                            frame_update_time = new Atime(0, (long)(1e18 / 60));
+                            screenstate.vblank_period = 0;
+                            video_attributes = 0;
+                            UI.ui_update_callback = UI.ui_updatePGM;
+                            bitmapbase = new ushort[2][];
+                            bitmapbase[0] = new ushort[0x200 * 0x100];
+                            bitmapbase[1] = new ushort[0x200 * 0x100];
+                            bbmp = new Bitmap[1];
+                            bbmp[0] = new Bitmap(384, 224);
+                            video_update_callback = Capcom.video_update_sf;
+                            video_eof_callback = Capcom.video_eof;
+                            break;
+                    }
+                    break;
             }
             screenstate.frame_period = frame_update_time.attoseconds;
             screenstate.scantime = screenstate.frame_period / screenstate.height;
@@ -262,37 +635,127 @@ namespace mame
             bitmapGDI = new Bitmap(Video.fullwidth, Video.fullheight);
             bitmapcolor = new int[Video.fullwidth * Video.fullheight];
             vblank_begin_timer = Timer.timer_alloc_common(vblank_begin_callback, "vblank_begin_callback", false);
-            Timer.timer_adjust_periodic(vblank_begin_timer, frame_update_time, Attotime.ATTOTIME_NEVER);
+            Timer.timer_adjust_periodic(vblank_begin_timer, video_screen_get_time_until_vblank_start(), Attotime.ATTOTIME_NEVER);
             scanline0_timer = Timer.timer_alloc_common(scanline0_callback, "scanline0_callback", false);
             Timer.timer_adjust_periodic(scanline0_timer, video_screen_get_time_until_pos(0, 0), Attotime.ATTOTIME_NEVER);
+            vblank_end_timer = Timer.timer_alloc_common(vblank_end_callback, "vblank_end_callback", false);
             switch (Machine.sBoard)
             {
                 case "CPS-1":
                 case "CPS-1(QSound)":
                 case "Namco System 1":
+                case "M92":
+                case "Taito B":                
                     break;
                 case "CPS2":
                     Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 262);
                     Cpuexec.cpu[0].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
                     break;
+                case "Tehkan":
+                    Cpuexec.cpu[1].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 2);
+                    Cpuexec.cpu[1].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                    break;
                 case "Neo Geo":
                     break;
-                case "IGS011":
-                    Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 5);
+                case "SunA8":
+                    Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 0x100);
                     Cpuexec.cpu[0].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                    Cpuexec.cpu[1].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 4);
+                    Cpuexec.cpu[1].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger2, "trigger2", false);
+                    break;
+                case "IGS011":
+                    switch (Machine.sName)
+                    {
+                        case "drgnwrld":
+                        case "drgnwrldv30":
+                        case "drgnwrldv21":
+                        case "drgnwrldv21j":
+                        case "drgnwrldv20j":
+                        case "drgnwrldv10c":
+                        case "drgnwrldv11h":
+                        case "drgnwrldv40k":
+                        case "lhb2":
+                            Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 5);
+                            Cpuexec.cpu[0].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                            break;
+                        case "lhb":
+                        case "lhbv33c":
+                        case "dbc":
+                        case "ryukobou":
+                            Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 4);
+                            Cpuexec.cpu[0].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                            break;
+                    }                    
                     break;
                 case "M72":
                     Cpuexec.cpu[1].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 128);
                     Cpuexec.cpu[1].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
                     break;
+                case "Taito":
+                    switch (Machine.sName)
+                    {
+                        case "bub68705":
+                            Cpuexec.cpu[3].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 2);
+                            Cpuexec.cpu[3].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                            break;
+                    }
+                    break;
+                case "Konami 68000":
+                    switch (Machine.sName)
+                    {
+                        case "cuebrick":
+                            Cpuexec.cpu[0].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 10);
+                            Cpuexec.cpu[0].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                            break;
+                    }
+                    break;
+                case "Capcom":
+                    switch (Machine.sName)
+                    {
+                        case "gng":
+                        case "gnga":
+                        case "gngbl":
+                        case "gngprot":
+                        case "gngblita":
+                        case "gngc":
+                        case "gngt":
+                        case "makaimur":
+                        case "makaimurc":
+                        case "makaimurg":
+                        case "diamond":
+                            Cpuexec.cpu[1].partial_frame_period = Attotime.attotime_div(Video.frame_update_time, 4);
+                            Cpuexec.cpu[1].partial_frame_timer = Timer.timer_alloc_common(Cpuexec.trigger_partial_frame_interrupt, "trigger_partial_frame_interrupt", false);
+                            break;
+                    }
+                    break;
             }
             screenstate.vblank_start_time = Attotime.ATTOTIME_ZERO;
-
+            screenstate.vblank_end_time = new Atime(0, screenstate.vblank_period);
+        }
+        public static void video_screen_configure(int width, int height, RECT visarea, long frame_period)
+        {
+            screenstate.width = width;
+            screenstate.height = height;
+            screenstate.visarea = visarea;
+            //realloc_screen_bitmaps(screen);
+            screenstate.frame_period=frame_period;
+            screenstate.scantime = frame_period / height;
+            screenstate.pixeltime = frame_period / (height * width);
+            /*if (config->vblank == 0 && !config->oldstyle_vblank_supplied)
+                state->vblank_period = state->scantime * (height - (visarea->max_y + 1 - visarea->min_y));
+            else
+                state->vblank_period = config->vblank;
+            if (video_screen_get_vpos(screen) == 0)
+                timer_adjust_oneshot(state->scanline0_timer, attotime_zero, 0);
+            else
+                timer_adjust_oneshot(state->scanline0_timer, video_screen_get_time_until_pos(screen, 0, 0), 0);
+            timer_adjust_oneshot(state->vblank_begin_timer, video_screen_get_time_until_vblank_start(screen), 0);
+            update_refresh_speed(screen->machine);*/
         }
         public static bool video_screen_update_partial(int scanline)
         {
             new_clip = screenstate.visarea;
-            bool result = false;	
+            bool result = false;
             if (screenstate.last_partial_scan > new_clip.min_y)
             {
                 new_clip.min_y = screenstate.last_partial_scan;
@@ -317,6 +780,10 @@ namespace mame
             vpos = (int)(delta / screenstate.scantime);
             return (screenstate.visarea.max_y + 1 + vpos) % screenstate.height;
         }
+        public static bool video_screen_get_vblank()
+        {
+            return (Attotime.attotime_compare(Timer.get_current_time(), screenstate.vblank_end_time) < 0);
+        }
         public static Atime video_screen_get_time_until_pos(int vpos, int hpos)
         {
             long curdelta = Attotime.attotime_to_attoseconds(Attotime.attotime_sub(Timer.get_current_time(), screenstate.vblank_start_time));
@@ -330,6 +797,24 @@ namespace mame
                 targetdelta += screenstate.frame_period;
             return new Atime(0, targetdelta - curdelta);
         }
+        public static Atime video_screen_get_time_until_vblank_start()
+        {
+            return video_screen_get_time_until_pos(Video.screenstate.visarea.max_y + 1, 0);
+        }
+        public static Atime video_screen_get_time_until_vblank_end()
+        {
+            Atime ret;
+            Atime current_time = Timer.get_current_time();
+            if (video_screen_get_vblank())
+            {
+                ret = Attotime.attotime_sub(screenstate.vblank_end_time, current_time);
+            }
+            else
+            {
+                ret = Attotime.attotime_sub(Attotime.attotime_add_attoseconds(screenstate.vblank_end_time, screenstate.frame_period), current_time);
+            }
+            return ret;
+        }
         private static bool effective_throttle()
         {
             //	if (mame_is_paused(machine) || ui_is_menu_active())
@@ -341,14 +826,29 @@ namespace mame
         public static void vblank_begin_callback()
         {
             screenstate.vblank_start_time = Timer.global_basetime;// Timer.get_current_time();
+            screenstate.vblank_end_time = Attotime.attotime_add_attoseconds(screenstate.vblank_start_time, screenstate.vblank_period);
             Cpuexec.on_vblank();
-            video_frame_update();
-            Timer.timer_adjust_periodic(vblank_begin_timer, frame_update_time, Attotime.ATTOTIME_NEVER);
+            if ((video_attributes & VIDEO_UPDATE_AFTER_VBLANK) == 0)
+            {
+                video_frame_update();
+            }
+            Timer.timer_adjust_periodic(vblank_begin_timer, video_screen_get_time_until_vblank_start(), Attotime.ATTOTIME_NEVER);
+            if (screenstate.vblank_period == 0)
+            {
+                vblank_end_callback();
+            }
+            else
+            {
+                Timer.timer_adjust_periodic(vblank_end_timer, video_screen_get_time_until_vblank_end(),Attotime.ATTOTIME_NEVER);
+            }
         }
         public static void vblank_end_callback()
         {
             int i;
-            //screenstate.frame_number++;
+            if ((video_attributes & VIDEO_UPDATE_AFTER_VBLANK) != 0)
+            {
+                video_frame_update();
+            }
         }
         public static void scanline0_callback()
         {
@@ -375,6 +875,7 @@ namespace mame
                 finish_screen_updates();
             }
             Keyboard.Update();
+            Mouse.Update();
             Inptport.frame_update_callback();
             UI.ui_update_and_render();
             if(Machine.FORM.cheatform.lockState == ui.cheatForm.LockState.LOCK_FRAME)
@@ -386,6 +887,8 @@ namespace mame
             {
                 update_throttle(current_time);
             }
+            Window.osd_update(false);
+            //UI.ui_input_frame_update();
             recompute_speed(current_time);
             if (Mame.paused)
             {
@@ -523,7 +1026,9 @@ namespace mame
             writer.Write(screenstate.last_partial_scan);
             writer.Write(screenstate.vblank_start_time.seconds);
             writer.Write(screenstate.vblank_start_time.attoseconds);
-            writer.Write(screenstate.frame_number);            
+            writer.Write(screenstate.vblank_end_time.seconds);
+            writer.Write(screenstate.vblank_end_time.attoseconds);
+            writer.Write(screenstate.frame_number);
         }
         public static void LoadStateBinary(BinaryReader reader)
         {
@@ -531,7 +1036,9 @@ namespace mame
             screenstate.last_partial_scan = reader.ReadInt32();
             screenstate.vblank_start_time.seconds = reader.ReadInt32();
             screenstate.vblank_start_time.attoseconds = reader.ReadInt64();
-            screenstate.frame_number = reader.ReadInt64();            
+            screenstate.vblank_end_time.seconds = reader.ReadInt32();
+            screenstate.vblank_end_time.attoseconds = reader.ReadInt64();
+            screenstate.frame_number = reader.ReadInt64();
         }
     }
 }

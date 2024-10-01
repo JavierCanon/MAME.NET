@@ -269,6 +269,7 @@ namespace mame
         }
         public static void okim6295_data_0_lsb_w(byte data)
         {
+            //if (ACCESSING_BITS_0_7)
             okim6295_data_w(0, data & 0xff);
         }
         public static void SaveStateBinary(BinaryWriter writer)

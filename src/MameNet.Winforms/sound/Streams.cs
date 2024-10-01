@@ -10,20 +10,25 @@ namespace mame
     public class sound_stream
     {
         public int sample_rate;
+        public int new_sample_rate;
+        public int gain;
         public long attoseconds_per_sample;
         public int max_samples_per_update;
-        public int output_sampindex;		/* current position within each output buffer */
-        public int output_base_sampindex;	/* sample at base of buffer, relative to the current emulated second */
+        public int inputs;
+        public int outputs;
+        public int output_sampindex;
+        public int output_base_sampindex;
         public int[][] streaminput,streamoutput;
         private updatedelegate updatecallback;
         public delegate void updatedelegate(int offset, int length);
-        private static long update_attoseconds = Attotime.ATTOSECONDS_PER_SECOND / 50;
-        public sound_stream(int _sample_rate, int inputs, int outputs, updatedelegate callback)
+        public sound_stream(int _sample_rate, int _inputs, int _outputs, updatedelegate callback)
         {
             int i;
             sample_rate = _sample_rate;
+            inputs = _inputs;
+            outputs = _outputs;
             attoseconds_per_sample = Attotime.ATTOSECONDS_PER_SECOND / sample_rate;
-            max_samples_per_update = (int)((update_attoseconds + attoseconds_per_sample - 1) / attoseconds_per_sample);
+            max_samples_per_update = (int)((Sound.update_attoseconds + attoseconds_per_sample - 1) / attoseconds_per_sample);
             output_base_sampindex = -max_samples_per_update;
             streaminput = new int[inputs][];
             for (i = 0; i < inputs; i++)
@@ -84,17 +89,41 @@ namespace mame
             }
             return sample;
         }
+        public void updatesamplerate()
+        {
+            int i;
+            if (new_sample_rate != 0)
+            {
+                int old_rate = sample_rate;
+                sample_rate = new_sample_rate;
+                new_sample_rate = 0;
+                attoseconds_per_sample = (long)1e18 / sample_rate;
+                max_samples_per_update = (int)((Sound.update_attoseconds + attoseconds_per_sample - 1) /attoseconds_per_sample);
+                output_sampindex = (int)((long)output_sampindex * (long)sample_rate / old_rate);
+                output_base_sampindex = output_sampindex - max_samples_per_update;
+                for (i = 0; i < outputs; i++)
+                {
+                    Array.Clear(streamoutput[i], 0, max_samples_per_update);
+                }
+            }
+        }
     };
     public partial class Sound
     {
         public static int last_update_second;        
         public static sound_stream ym2151stream, okistream, mixerstream;
         public static sound_stream qsoundstream;
-        public static sound_stream ay8910stream, ym2610stream;
+        public static sound_stream ym2610stream;
         public static sound_stream namcostream,dacstream;
         public static sound_stream ics2115stream;
         public static sound_stream ym3812stream,ym3526stream,ym2413stream;
         public static sound_stream iremga20stream;
+        public static sound_stream k053260stream;
+        public static sound_stream upd7759stream;
+        public static sound_stream k007232stream;
+        public static sound_stream samplestream;
+        public static sound_stream k054539stream;
+        public static long update_attoseconds = Attotime.ATTOSECONDS_PER_SECOND / 50;
         private static void generate_resampled_dataY5(int gain)
         {            
             int offset;
@@ -165,7 +194,7 @@ namespace mame
             {
                 for (sampindex = 0; sampindex < 0x3c0; sampindex++)
                 {
-                    int interp_frac = (int)(basefrac >> (10));
+                    int interp_frac = (int)(basefrac >> 10);
                     sample = (okistream.streamoutput[0][offset] * (0x1000 - interp_frac) + okistream.streamoutput[0][offset + 1] * interp_frac) >> 12;
                     mixerstream.streaminput[minput][sampindex] = (sample * gain) >> 8;
                     basefrac += step;
@@ -190,17 +219,20 @@ namespace mame
             offset = basesample - qsoundstream.output_base_sampindex;
             basefrac = (uint)((basetime - basesample * qsoundstream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
             step = (uint)(((ulong)qsoundstream.sample_rate << 22) / 48000);
-            for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+            if (step < 0x400000)
             {
-                int interp_frac = (int)(basefrac >> 10);
-                mixerstream.streaminput[0][sampindex] = (qsoundstream.streamoutput[0][offset] * (0x1000 - interp_frac) + qsoundstream.streamoutput[0][offset + 1] * interp_frac) >> 12;
-                mixerstream.streaminput[1][sampindex] = (qsoundstream.streamoutput[1][offset] * (0x1000 - interp_frac) + qsoundstream.streamoutput[1][offset + 1] * interp_frac) >> 12;
-                basefrac += step;
-                offset += (int)(basefrac >> 22);
-                basefrac &= 0x3fffff;
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int interp_frac = (int)(basefrac >> 10);
+                    mixerstream.streaminput[0][sampindex] = (qsoundstream.streamoutput[0][offset] * (0x1000 - interp_frac) + qsoundstream.streamoutput[0][offset + 1] * interp_frac) >> 12;
+                    mixerstream.streaminput[1][sampindex] = (qsoundstream.streamoutput[1][offset] * (0x1000 - interp_frac) + qsoundstream.streamoutput[1][offset + 1] * interp_frac) >> 12;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
             }
         }
-        private static void generate_resampled_dataA()
+        private static void generate_resampled_dataA_neogeo()
         {
             int offset;
             int sample;
@@ -211,12 +243,12 @@ namespace mame
             int sampindex;
             basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
             if (basetime >= 0)
-                basesample = (int)(basetime / ay8910stream.attoseconds_per_sample);
+                basesample = (int)(basetime / AY8910.AA8910[0].stream.attoseconds_per_sample);
             else
-                basesample = (int)(-(-basetime / ay8910stream.attoseconds_per_sample) - 1);
-            offset = basesample - ay8910stream.output_base_sampindex;
-            basefrac = 0x0d;
-            step = (uint)(((ulong)ay8910stream.sample_rate << 22) / 48000);
+                basesample = (int)(-(-basetime / AY8910.AA8910[0].stream.attoseconds_per_sample) - 1);
+            offset = basesample - AY8910.AA8910[0].stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * AY8910.AA8910[0].stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)AY8910.AA8910[0].stream.sample_rate << 22) / 48000);
             if (step > 0x400000)
             {
                 int smallstep = (int)(step >> 14);
@@ -226,18 +258,177 @@ namespace mame
                     int tpos = 0;
                     int scale;
                     scale = (int)((0x400000 - basefrac) >> 14);
-                    sample = ay8910stream.streamoutput[0][offset + tpos] * scale;
+                    sample = AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * scale;
                     tpos++;
                     remainder -= scale;
                     while (remainder > 0x100)
                     {
-                        sample += ay8910stream.streamoutput[0][offset + tpos] * 0x100;
+                        sample += AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * 0x100;
                         tpos++;
                         remainder -= 0x100;
                     }
-                    sample += ay8910stream.streamoutput[0][offset + tpos] * remainder;
+                    sample += AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * remainder;
                     sample /= smallstep;
                     mixerstream.streaminput[0][sampindex] = (sample * 0x99) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        private static void generate_resampled_dataA3(int chip, int gain, int start)
+        {
+            int offset;
+            int sample0, sample1, sample2;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / AY8910.AA8910[chip].stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / AY8910.AA8910[chip].stream.attoseconds_per_sample) - 1);
+            offset = basesample - AY8910.AA8910[chip].stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * AY8910.AA8910[chip].stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)AY8910.AA8910[chip].stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample0 = AY8910.AA8910[chip].stream.streamoutput[0][offset + tpos] * scale;
+                    sample1 = AY8910.AA8910[chip].stream.streamoutput[1][offset + tpos] * scale;
+                    sample2 = AY8910.AA8910[chip].stream.streamoutput[2][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample0 += AY8910.AA8910[chip].stream.streamoutput[0][offset + tpos] * 0x100;
+                        sample1 += AY8910.AA8910[chip].stream.streamoutput[1][offset + tpos] * 0x100;
+                        sample2 += AY8910.AA8910[chip].stream.streamoutput[2][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample0 += AY8910.AA8910[chip].stream.streamoutput[0][offset + tpos] * remainder;
+                    sample1 += AY8910.AA8910[chip].stream.streamoutput[1][offset + tpos] * remainder;
+                    sample2 += AY8910.AA8910[chip].stream.streamoutput[2][offset + tpos] * remainder;
+                    sample0 /= smallstep;
+                    sample1 /= smallstep;
+                    sample2 /= smallstep;
+                    mixerstream.streaminput[start][sampindex] = (sample0 * gain) >> 8;
+                    mixerstream.streaminput[start + 1][sampindex] = (sample1 * gain) >> 8;
+                    mixerstream.streaminput[start + 2][sampindex] = (sample2 * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        private static void generate_resampled_dataA_taitob()
+        {
+            int offset;
+            int sample;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int gain;
+            int sampindex;
+            gain = (0x40 * AY8910.AA8910[0].stream.gain) >> 8;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / AY8910.AA8910[0].stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / AY8910.AA8910[0].stream.attoseconds_per_sample) - 1);
+            offset = basesample - AY8910.AA8910[0].stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * AY8910.AA8910[0].stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)AY8910.AA8910[0].stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample = AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample += AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample += AY8910.AA8910[0].stream.streamoutput[0][offset + tpos] * remainder;
+                    sample /= smallstep;
+                    mixerstream.streaminput[0][sampindex] = (sample * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        private static void generate_resampled_dataYM2203(int c,int gain,int minput)
+        {
+            int offset;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - YM2203.FF2203[c].stream.attoseconds_per_sample * 2;
+            if (basetime >= 0)
+                basesample = (int)(basetime / YM2203.FF2203[c].stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / YM2203.FF2203[c].stream.attoseconds_per_sample) - 1);
+            offset = basesample - YM2203.FF2203[c].stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * YM2203.FF2203[c].stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)YM2203.FF2203[c].stream.sample_rate << 22) / 48000);
+            if (step < 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int interp_frac = (int)(basefrac >> 10);
+                    int i2 = YM2203.FF2203[c].stream.streamoutput[0][offset];
+                    int i3 = YM2203.FF2203[c].stream.streamoutput[0][offset + 1];
+                    int i4 = (((YM2203.FF2203[c].stream.streamoutput[0][offset] * (0x1000 - interp_frac) + YM2203.FF2203[c].stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
+                    mixerstream.streaminput[minput][sampindex] = (((YM2203.FF2203[c].stream.streamoutput[0][offset] * (0x1000 - interp_frac) + YM2203.FF2203[c].stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        private static void generate_resampled_dataYM3526(int gain, int minput)
+        {
+            int offset;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / ym3526stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / ym3526stream.attoseconds_per_sample) - 1);
+            offset = basesample - ym3526stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * ym3526stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)ym3526stream.sample_rate << 22) / 48000);
+            if (step < 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int interp_frac = (int)(basefrac >> 10);
+                    mixerstream.streaminput[minput][sampindex] = (((ym3526stream.streamoutput[0][offset] * (0x1000 - interp_frac) + ym3526stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
                     basefrac += step;
                     offset += (int)(basefrac >> 22);
                     basefrac &= 0x3fffff;
@@ -247,7 +438,7 @@ namespace mame
         private static void generate_resampled_dataY6()
         {
             int offset;
-            int sample0,sample1;
+            int sample0, sample1;
             long basetime;
             int basesample;
             uint basefrac;
@@ -344,7 +535,7 @@ namespace mame
                 }
             }
         }
-        private static void generate_resampled_dataDac(int gain,int minput)
+        private static void generate_resampled_dataDac(int gain, int minput)
         {
             int offset;
             int sample;
@@ -388,7 +579,56 @@ namespace mame
                 }
             }
         }
-        private static void generate_resampled_dataYM3812(int gain,int minput)
+        private static void generate_resampled_dataYM2413(int gain, int minput)
+        {
+            int offset;
+            int sample0, sample1;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / ym2413stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / ym2413stream.attoseconds_per_sample) - 1);
+            offset = basesample - ym2413stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * ym2413stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)ym2413stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample0 = ym2413stream.streamoutput[0][offset + tpos] * scale;
+                    sample1 = ym2413stream.streamoutput[1][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample0 += ym2413stream.streamoutput[0][offset + tpos] * 0x100;
+                        sample1 += ym2413stream.streamoutput[1][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample0 += ym2413stream.streamoutput[0][offset + tpos] * remainder;
+                    sample1 += ym2413stream.streamoutput[1][offset + tpos] * remainder;
+                    sample0 /= smallstep;
+                    sample1 /= smallstep;
+                    mixerstream.streaminput[minput][sampindex] = (sample0 * gain) >> 8;
+                    mixerstream.streaminput[minput + 1][sampindex] = (sample1 * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        private static void generate_resampled_dataYM3812(int gain, int minput)
         {
             int offset;
             int sample;
@@ -431,10 +671,17 @@ namespace mame
                     basefrac &= 0x3fffff;
                 }
             }
-        }
-        private static void generate_resampled_dataYM2413(int gain)
-        {
-
+            else if (step < 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int interp_frac = (int)(basefrac >> 10);
+                    mixerstream.streaminput[minput][sampindex] = (((ym3812stream.streamoutput[0][offset] * (0x1000 - interp_frac) + ym3812stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
         }
         private static void generate_resampled_dataIcs2115(int gain)
         {
@@ -456,7 +703,7 @@ namespace mame
             {
                 for (sampindex = 0; sampindex < 0x3c0; sampindex++)
                 {
-                    int interp_frac = (int)(basefrac >> (10));
+                    int interp_frac = (int)(basefrac >> 10);
                     mixerstream.streaminput[0][sampindex] = (((ics2115stream.streamoutput[0][offset] * (0x1000 - interp_frac) + ics2115stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
                     mixerstream.streaminput[1][sampindex] = (((ics2115stream.streamoutput[1][offset] * (0x1000 - interp_frac) + ics2115stream.streamoutput[1][offset + 1] * interp_frac) >> 12) * gain) >> 8;
                     basefrac += step;
@@ -514,6 +761,265 @@ namespace mame
                 }
             }
         }
+        public static void generate_resampled_dataK053260(int gain,int minput1,int minput2)
+        {
+            int offset;
+            int sample0, sample1;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / k053260stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / k053260stream.attoseconds_per_sample) - 1);
+            offset = basesample - k053260stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * k053260stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)k053260stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample0 = k053260stream.streamoutput[0][offset + tpos] * scale;
+                    sample1 = k053260stream.streamoutput[1][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample0 += k053260stream.streamoutput[0][offset + tpos] * 0x100;
+                        sample1 += k053260stream.streamoutput[1][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample0 += k053260stream.streamoutput[0][offset + tpos] * remainder;
+                    sample1 += k053260stream.streamoutput[1][offset + tpos] * remainder;
+                    sample0 /= smallstep;
+                    sample1 /= smallstep;
+                    mixerstream.streaminput[minput1][sampindex] = (sample0 * gain) >> 8;
+                    mixerstream.streaminput[minput2][sampindex] = (sample1 * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        public static void generate_resampled_dataK007232(int gain)
+        {
+            int offset;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - k007232stream.attoseconds_per_sample * 2;
+            if (basetime >= 0)
+                basesample = (int)(basetime / k007232stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / k007232stream.attoseconds_per_sample) - 1);
+            offset = basesample - k007232stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * k007232stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)k007232stream.sample_rate << 22) / 48000);
+            if (step < 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int interp_frac = (int)(basefrac >> 10);
+                    mixerstream.streaminput[2][sampindex] = (((k007232stream.streamoutput[0][offset] * (0x1000 - interp_frac) + k007232stream.streamoutput[0][offset + 1] * interp_frac) >> 12) * gain) >> 8;
+                    mixerstream.streaminput[3][sampindex] = (((k007232stream.streamoutput[1][offset] * (0x1000 - interp_frac) + k007232stream.streamoutput[1][offset + 1] * interp_frac) >> 12) * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        public static void generate_resampled_dataUpd7759(int gain)
+        {
+            int offset;
+            int sample;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / upd7759stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / upd7759stream.attoseconds_per_sample) - 1);
+            offset = basesample - upd7759stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * upd7759stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)upd7759stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample = upd7759stream.streamoutput[0][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample += upd7759stream.streamoutput[0][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample += upd7759stream.streamoutput[0][offset + tpos] * remainder;
+                    sample /= smallstep;
+                    mixerstream.streaminput[4][sampindex] = (sample * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        public static void generate_resampled_dataSample(int gain,int minput)
+        {
+            int offset;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / samplestream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / samplestream.attoseconds_per_sample) - 1);
+            offset = basesample - samplestream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * samplestream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)samplestream.sample_rate << 22) / 48000);
+            if (step == 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    mixerstream.streaminput[minput][sampindex] = (samplestream.streamoutput[0][offset + sampindex] * gain) >> 8;
+                }
+            }
+        }
+        public static void generate_resampled_dataK054539(int gain)
+        {
+            int offset;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / k054539stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / k054539stream.attoseconds_per_sample) - 1);
+            offset = basesample - k054539stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * k054539stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)k054539stream.sample_rate << 22) / 48000);
+            if (step == 0x400000)
+            {
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    mixerstream.streaminput[0][sampindex] = (k054539stream.streamoutput[0][offset + sampindex] * gain) >> 8;
+                    mixerstream.streaminput[1][sampindex] = (k054539stream.streamoutput[1][offset + sampindex] * gain) >> 8;
+                }
+            }
+        }
+        public static void generate_resampled_dataMSM5205_0(int gain, int minput)
+        {
+            int offset;
+            int sample;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / MSM5205.mm1[0].voice.stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / MSM5205.mm1[0].voice.stream.attoseconds_per_sample) - 1);
+            offset = basesample - MSM5205.mm1[0].voice.stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * MSM5205.mm1[0].voice.stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)MSM5205.mm1[0].voice.stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample = MSM5205.mm1[0].voice.stream.streamoutput[0][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample += MSM5205.mm1[0].voice.stream.streamoutput[0][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample += MSM5205.mm1[0].voice.stream.streamoutput[0][offset + tpos] * remainder;
+                    sample /= smallstep;
+                    mixerstream.streaminput[minput][sampindex] = (sample * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
+        public static void generate_resampled_dataMSM5205_1(int gain, int minput)
+        {
+            int offset;
+            int sample;
+            long basetime;
+            int basesample;
+            uint basefrac;
+            uint step;
+            int sampindex;
+            basetime = mixerstream.output_sampindex * mixerstream.attoseconds_per_sample - mixerstream.attoseconds_per_sample;
+            if (basetime >= 0)
+                basesample = (int)(basetime / MSM5205.mm1[1].voice.stream.attoseconds_per_sample);
+            else
+                basesample = (int)(-(-basetime / MSM5205.mm1[1].voice.stream.attoseconds_per_sample) - 1);
+            offset = basesample - MSM5205.mm1[1].voice.stream.output_base_sampindex;
+            basefrac = (uint)((basetime - basesample * MSM5205.mm1[1].voice.stream.attoseconds_per_sample) / (Attotime.ATTOSECONDS_PER_SECOND >> 22));
+            step = (uint)(((ulong)MSM5205.mm1[1].voice.stream.sample_rate << 22) / 48000);
+            if (step > 0x400000)
+            {
+                int smallstep = (int)(step >> 14);
+                for (sampindex = 0; sampindex < 0x3c0; sampindex++)
+                {
+                    int remainder = smallstep;
+                    int tpos = 0;
+                    int scale;
+                    scale = (int)((0x400000 - basefrac) >> 14);
+                    sample = MSM5205.mm1[1].voice.stream.streamoutput[0][offset + tpos] * scale;
+                    tpos++;
+                    remainder -= scale;
+                    while (remainder > 0x100)
+                    {
+                        sample += MSM5205.mm1[1].voice.stream.streamoutput[0][offset + tpos] * 0x100;
+                        tpos++;
+                        remainder -= 0x100;
+                    }
+                    sample += MSM5205.mm1[1].voice.stream.streamoutput[0][offset + tpos] * remainder;
+                    sample /= smallstep;
+                    mixerstream.streaminput[minput][sampindex] = (sample * gain) >> 8;
+                    basefrac += step;
+                    offset += (int)(basefrac >> 22);
+                    basefrac &= 0x3fffff;
+                }
+            }
+        }
         public static void streams_updateC()
         {
             Atime curtime =Timer.global_basetime;
@@ -539,6 +1045,39 @@ namespace mame
             mixerstream.adjuststream(second_tick);
             last_update_second = curtime.seconds;
         }
+        private static void streams_updateDataeast_pcktgal()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            YM2203.FF2203[0].stream.adjuststream(second_tick);
+            ym3812stream.adjuststream(second_tick);
+            MSM5205.mm1[0].voice.stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+            AY8910.AA8910[0].stream.updatesamplerate();
+        }
+        private static void streams_updateTehkan()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            AY8910.AA8910[1].stream.adjuststream(second_tick);
+            AY8910.AA8910[2].stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+            AY8910.AA8910[0].stream.updatesamplerate();
+            AY8910.AA8910[1].stream.updatesamplerate();
+            AY8910.AA8910[2].stream.updatesamplerate();
+        }
         private static void streams_updateN()
         {
             Atime curtime = Timer.global_basetime;
@@ -547,10 +1086,26 @@ namespace mame
             {
                 second_tick = true;
             }
-            ay8910stream.adjuststream(second_tick);
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
             ym2610stream.adjuststream(second_tick);
             mixerstream.adjuststream(second_tick);
             last_update_second = curtime.seconds;
+            AY8910.AA8910[0].stream.updatesamplerate();
+        }
+        private static void streams_updateSunA8()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym3812stream.adjuststream(second_tick);
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            samplestream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+            //AY8910.AA8910[0].stream.updatesamplerate();
         }
         private static void streams_updateNa()
         {
@@ -566,7 +1121,7 @@ namespace mame
             mixerstream.adjuststream(second_tick);
             last_update_second = curtime.seconds;
         }
-        private static void streams_updateIGS011()
+        private static void streams_updateIGS011_drgnwrld()
         {
             Atime curtime = Timer.global_basetime;
             bool second_tick = false;
@@ -576,6 +1131,43 @@ namespace mame
             }
             okistream.adjuststream(second_tick);
             ym3812stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateIGS011_lhb()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            okistream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateIGS011_lhb2()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            okistream.adjuststream(second_tick);
+            ym2413stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateIGS011_vbowl()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ics2115stream.adjuststream(second_tick);
             mixerstream.adjuststream(second_tick);
             last_update_second = curtime.seconds;
         }
@@ -614,6 +1206,142 @@ namespace mame
             }
             ym2151stream.adjuststream(second_tick);
             iremga20stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateTaito_tokio()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            YM2203.FF2203[0].stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateTaito_bublbobl()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            YM2203.FF2203[0].stream.adjuststream(second_tick);
+            ym3526stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+            AY8910.AA8910[0].stream.updatesamplerate();
+        }
+        private static void streams_updateKonami68000_cuebrick()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym2151stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateKonami68000_mia()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym2151stream.adjuststream(second_tick);
+            k007232stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateKonami68000_tmnt()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym2151stream.adjuststream(second_tick);
+            k007232stream.adjuststream(second_tick);
+            upd7759stream.adjuststream(second_tick);
+            samplestream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateKonami68000_glfgreat()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            k053260stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        } 
+        private static void streams_updateKonami68000_ssriders()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym2151stream.adjuststream(second_tick);
+            k053260stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateKonami68000_prmrsocr()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            k054539stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+        }
+        private static void streams_updateCapcom_gng()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            AY8910.AA8910[0].stream.adjuststream(second_tick);
+            AY8910.AA8910[1].stream.adjuststream(second_tick);
+            YM2203.FF2203[0].stream.adjuststream(second_tick);            
+            YM2203.FF2203[1].stream.adjuststream(second_tick);
+            mixerstream.adjuststream(second_tick);
+            last_update_second = curtime.seconds;
+            AY8910.AA8910[0].stream.updatesamplerate();
+            AY8910.AA8910[1].stream.updatesamplerate();
+        }
+        private static void streams_updateCapcom_sf()
+        {
+            Atime curtime = Timer.global_basetime;
+            bool second_tick = false;
+            if (curtime.seconds != last_update_second)
+            {
+                second_tick = true;
+            }
+            ym2151stream.adjuststream(second_tick);
+            MSM5205.mm1[0].voice.stream.adjuststream(second_tick);
+            MSM5205.mm1[1].voice.stream.adjuststream(second_tick);
             mixerstream.adjuststream(second_tick);
             last_update_second = curtime.seconds;
         }

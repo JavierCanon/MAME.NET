@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace mame
 {
@@ -257,6 +258,60 @@ namespace mame
         public static byte namcos1_cus30_r(int offset)
         {
             return namco_wavedata[offset];
+        }
+        public static void SaveStateBinary(BinaryWriter writer)
+        {
+            int i, j;
+            writer.Write(nam1.num_voices);
+            writer.Write(nam1.sound_enable);
+            for (i = 0; i < 16; i++)
+            {
+                for (j = 0; j < 32 * 16; j++)
+                {
+                    writer.Write(nam1.waveform[i][j]);
+                }
+            }
+            for (i = 0; i < 8; i++)
+            {
+                writer.Write(nam1.channel_list[i].frequency);
+                writer.Write(nam1.channel_list[i].counter);
+                writer.Write(nam1.channel_list[i].volume[0]);
+                writer.Write(nam1.channel_list[i].volume[1]);
+                writer.Write(nam1.channel_list[i].noise_sw);
+                writer.Write(nam1.channel_list[i].noise_state);
+                writer.Write(nam1.channel_list[i].noise_seed);
+                writer.Write(nam1.channel_list[i].noise_hold);
+                writer.Write(nam1.channel_list[i].noise_counter);
+                writer.Write(nam1.channel_list[i].waveform_select);
+            }
+            writer.Write(namco_wavedata, 0, 0x400);
+        }
+        public static void LoadStateBinary(BinaryReader reader)
+        {
+            int i, j;
+            nam1.num_voices = reader.ReadInt32();
+            nam1.sound_enable = reader.ReadInt32();
+            for (i = 0; i < 16; i++)
+            {
+                for (j = 0; j < 32 * 16; j++)
+                {
+                    nam1.waveform[i][j] = reader.ReadInt16();
+                }
+            }
+            for (i = 0; i < 8; i++)
+            {
+                nam1.channel_list[i].frequency = reader.ReadInt32();
+                nam1.channel_list[i].counter = reader.ReadInt32();
+                nam1.channel_list[i].volume[0] = reader.ReadInt32();
+                nam1.channel_list[i].volume[1] = reader.ReadInt32();
+                nam1.channel_list[i].noise_sw = reader.ReadInt32();
+                nam1.channel_list[i].noise_state = reader.ReadInt32();
+                nam1.channel_list[i].noise_seed = reader.ReadInt32();
+                nam1.channel_list[i].noise_hold = reader.ReadInt32();
+                nam1.channel_list[i].noise_counter = reader.ReadInt32();
+                nam1.channel_list[i].waveform_select = reader.ReadInt32();
+            }
+            namco_wavedata = reader.ReadBytes(0x400);
         }
     }
 }

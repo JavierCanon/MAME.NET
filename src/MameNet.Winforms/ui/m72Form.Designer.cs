@@ -34,7 +34,6 @@
             this.cbBg = new System.Windows.Forms.CheckBox();
             this.cbFg = new System.Windows.Forms.CheckBox();
             this.cbSprite = new System.Windows.Forms.CheckBox();
-            this.btnDraw2 = new System.Windows.Forms.Button();
             this.tbResult = new System.Windows.Forms.TextBox();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsslLocation = new System.Windows.Forms.ToolStripStatusLabel();
@@ -98,16 +97,6 @@
             this.cbSprite.Text = "sprite";
             this.cbSprite.UseVisualStyleBackColor = true;
             // 
-            // btnDraw2
-            // 
-            this.btnDraw2.Location = new System.Drawing.Point(12, 230);
-            this.btnDraw2.Name = "btnDraw2";
-            this.btnDraw2.Size = new System.Drawing.Size(70, 21);
-            this.btnDraw2.TabIndex = 4;
-            this.btnDraw2.Text = "draw2";
-            this.btnDraw2.UseVisualStyleBackColor = true;
-            this.btnDraw2.Click += new System.EventHandler(this.btnDraw2_Click);
-            // 
             // tbResult
             // 
             this.tbResult.Location = new System.Drawing.Point(12, 257);
@@ -140,7 +129,6 @@
             this.ClientSize = new System.Drawing.Size(672, 569);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.tbResult);
-            this.Controls.Add(this.btnDraw2);
             this.Controls.Add(this.cbSprite);
             this.Controls.Add(this.cbFg);
             this.Controls.Add(this.cbBg);
@@ -167,7 +155,6 @@
         private System.Windows.Forms.CheckBox cbBg;
         private System.Windows.Forms.CheckBox cbFg;
         private System.Windows.Forms.CheckBox cbSprite;
-        private System.Windows.Forms.Button btnDraw2;
         public System.Windows.Forms.TextBox tbResult;
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel tsslLocation;

@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Microsoft.DirectX.DirectInput;
-using ui;
 
 namespace mame
 {
@@ -11,11 +10,11 @@ namespace mame
     {
         //public byte shift;
         public int adjdefvalue;
-        //public int adjmin;
-        //public int adjmax;
+        public int adjmin;
+        public int adjmax;
 
         public int sensitivity;
-        public byte reverse;
+        public bool reverse;
         public int delta;
         //public int centerdelta;
 
@@ -30,15 +29,15 @@ namespace mame
 
         public long scalepos;
         public long scaleneg;
-        //public long keyscalepos;
-        //public long keyscaleneg;
+        public long keyscalepos;
+        public long keyscaleneg;
         //public long positionalscale;
 
-        //public byte absolute;
-        //public byte wraps;
+        public bool absolute;
+        public bool wraps;
         //public byte autocenter;
-        //public byte single_scale;
-        //public byte interpolate;
+        public byte single_scale;
+        public bool interpolate;
         public byte lastdigital;
     }
     public class input_port_private
@@ -51,7 +50,7 @@ namespace mame
         public static bool bReplayRead;
         public delegate void loop_delegate();
         public static loop_delegate loop_inputports_callback, record_port_callback, replay_port_callback;
-        public static analog_field_state analog_p0, analog_p1;
+        public static analog_field_state analog_p0, analog_p1,analog_p1x,analog_p1y;
         public static input_port_private portdata;
         public static void input_port_init()
         {
@@ -69,8 +68,8 @@ namespace mame
                     analog_p1.adjdefvalue = 0;
                     analog_p0.sensitivity = 100;
                     analog_p1.sensitivity = 100;
-                    analog_p0.reverse = 0;
-                    analog_p1.reverse = 0;
+                    analog_p0.reverse = false;
+                    analog_p1.reverse = false;
                     analog_p0.delta = 20;
                     analog_p1.delta = 20;
                     analog_p0.minimum = 0;
@@ -83,6 +82,12 @@ namespace mame
                     analog_p1.scalepos = 0x8000;
                     analog_p0.scaleneg = 0x8000;
                     analog_p1.scaleneg = 0x8000;
+                    analog_p0.absolute = false;
+                    analog_p0.wraps = true;
+                    analog_p0.interpolate = true;
+                    analog_p1.absolute = false;
+                    analog_p1.wraps = true;
+                    analog_p1.interpolate = true;
                     break;
                 case "CPS2":
                     loop_inputports_callback = CPS.loop_inputports_cps2_2p6b;
@@ -94,8 +99,8 @@ namespace mame
                     analog_p1.adjdefvalue = 0;
                     analog_p0.sensitivity = 100;
                     analog_p1.sensitivity = 100;
-                    analog_p0.reverse = 0;
-                    analog_p1.reverse = 0;
+                    analog_p0.reverse = false;
+                    analog_p1.reverse = false;
                     analog_p0.delta = 20;
                     analog_p1.delta = 20;
                     analog_p0.minimum = 0;
@@ -108,6 +113,19 @@ namespace mame
                     analog_p1.scalepos = 0x8000;
                     analog_p0.scaleneg = 0x8000;
                     analog_p1.scaleneg = 0x8000;
+                    analog_p0.absolute = false;
+                    analog_p0.wraps = true;
+                    analog_p0.interpolate = true;
+                    analog_p1.absolute = false;
+                    analog_p1.wraps = true;
+                    analog_p1.interpolate = true;
+                    break;
+                case "Data East":
+                    loop_inputports_callback = Dataeast.loop_inputports_dataeast_pcktgal;
+                    record_port_callback = Dataeast.record_port_pcktgal;
+                    replay_port_callback = Dataeast.replay_port_pcktgal;
+                    break;
+                case "Tehkan":
                     break;
                 case "Neo Geo":
                     loop_inputports_callback = Neogeo.loop_inputports_neogeo_standard;
@@ -119,8 +137,8 @@ namespace mame
                     analog_p1.adjdefvalue = 0;
                     analog_p0.sensitivity = 10;
                     analog_p1.sensitivity = 10;
-                    analog_p0.reverse = 1;
-                    analog_p1.reverse = 1;
+                    analog_p0.reverse = true;
+                    analog_p1.reverse = true;
                     analog_p0.delta = 20;
                     analog_p1.delta = 20;
                     analog_p0.minimum = 0;
@@ -133,6 +151,17 @@ namespace mame
                     analog_p1.scalepos = 0x8000;
                     analog_p0.scaleneg = 0x8000;
                     analog_p1.scaleneg = 0x8000;
+                    analog_p0.absolute = false;
+                    analog_p0.wraps = true;
+                    analog_p0.interpolate = true;
+                    analog_p1.absolute = false;
+                    analog_p1.wraps = true;
+                    analog_p1.interpolate = true;
+                    break;
+                case "SunA8":
+                    loop_inputports_callback = SunA8.loop_inputports_suna8_starfigh;
+                    record_port_callback = SunA8.record_port_starfigh;
+                    replay_port_callback = SunA8.replay_port_starfigh;
                     break;
                 case "Namco System 1":
                     loop_inputports_callback = Namcos1.loop_inputports_ns1_3b;
@@ -144,13 +173,13 @@ namespace mame
                     analog_p1.adjdefvalue = 0;
                     analog_p0.sensitivity = 30;
                     analog_p1.sensitivity = 30;
-                    analog_p0.reverse = 0;
-                    analog_p1.reverse = 0;
+                    analog_p0.reverse = false;
+                    analog_p1.reverse = false;
                     analog_p0.delta = 15;
                     analog_p1.delta = 15;
                     analog_p0.minimum = 0;
                     analog_p1.minimum = 0;
-                    analog_p0.maximum = 0x1fe00;                    
+                    analog_p0.maximum = 0x1fe00;
                     analog_p1.maximum = 0x1fe00;
                     analog_p0.reverse_val = 0x20000;
                     analog_p1.reverse_val = 0x20000;
@@ -158,11 +187,42 @@ namespace mame
                     analog_p1.scalepos = 0x8000;
                     analog_p0.scaleneg = 0x8000;
                     analog_p1.scaleneg = 0x8000;
+                    analog_p0.absolute = false;
+                    analog_p0.wraps = true;
+                    analog_p0.interpolate = true;
+                    analog_p1.absolute = false;
+                    analog_p1.wraps = true;
+                    analog_p1.interpolate = true;
                     break;
                 case "IGS011":
-                    loop_inputports_callback = IGS011.loop_inputports_igs011_drgnwrld;
-                    record_port_callback = IGS011.record_port;
-                    replay_port_callback = IGS011.replay_port;
+                    switch (Machine.sName)
+                    {
+                        case "drgnwrld":
+                        case "drgnwrldv30":
+                        case "drgnwrldv21":
+                        case "drgnwrldv21j":
+                        case "drgnwrldv20j":
+                        case "drgnwrldv10c":
+                        case "drgnwrldv11h":
+                        case "drgnwrldv40k":
+                            loop_inputports_callback = IGS011.loop_inputports_igs011_drgnwrld;
+                            record_port_callback = IGS011.record_port_drgnwrld;
+                            replay_port_callback = IGS011.replay_port_drgnwrld;
+                            break;
+                        case "lhb":
+                        case "lhbv33c":
+                        case "dbc":
+                        case "ryukobou":
+                            loop_inputports_callback = IGS011.loop_inputports_igs011_lhb;
+                            record_port_callback = IGS011.record_port_lhb;
+                            replay_port_callback = IGS011.replay_port_lhb;
+                            break;
+                        case "lhb2":
+                            loop_inputports_callback = IGS011.loop_inputports_igs011_lhb2;
+                            record_port_callback = IGS011.record_port_lhb;
+                            replay_port_callback = IGS011.replay_port_lhb;
+                            break;
+                    }
                     break;
                 case "PGM":
                     loop_inputports_callback = PGM.loop_inputports_pgm_standard;
@@ -178,6 +238,58 @@ namespace mame
                     loop_inputports_callback = M92.loop_inputports_m92_common;
                     record_port_callback = M92.record_port;
                     replay_port_callback = M92.replay_port;
+                    break;
+                case "Taito":
+                    record_port_callback = Taito.record_port_bublbobl;
+                    replay_port_callback = Taito.replay_port_bublbobl;
+                    analog_p1x = new analog_field_state();
+                    analog_p1x.adjdefvalue = 0x80;
+                    analog_p1x.adjmin = 0;
+                    analog_p1x.adjmax = 0xff;
+                    analog_p1x.sensitivity = 25;
+                    analog_p1x.reverse = false;
+                    analog_p1x.delta = 15;
+                    analog_p1x.minimum = -0x10000;
+                    analog_p1x.maximum = 0x10000;
+                    analog_p1x.absolute = true;
+                    analog_p1x.wraps = false;
+                    analog_p1x.interpolate = false;
+                    analog_p1x.single_scale = 0;
+                    analog_p1x.scalepos = 0x7f00;
+                    analog_p1x.scaleneg = 0x8000;
+                    analog_p1x.reverse_val = 0x200000;
+                    analog_p1x.keyscalepos = 0x0000000204081020;
+                    analog_p1x.keyscaleneg = 0x0000000200000000;
+                    analog_p1y = new analog_field_state();
+                    analog_p1y.adjdefvalue = 0x80;
+                    analog_p1y.adjmin = 0;
+                    analog_p1y.adjmax = 0xff;
+                    analog_p1y.sensitivity = 25;
+                    analog_p1y.reverse = false;
+                    analog_p1y.delta = 15;
+                    analog_p1y.minimum = -0x10000;
+                    analog_p1y.maximum = 0x10000;
+                    analog_p1y.absolute = true;
+                    analog_p1y.wraps = false;
+                    analog_p1y.interpolate = false;
+                    analog_p1y.single_scale = 0;
+                    analog_p1y.scalepos = 0x7f00;
+                    analog_p1y.scaleneg = 0x8000;
+                    analog_p1y.reverse_val = 0x200000;
+                    analog_p1y.keyscalepos = 0x0000000204081020;
+                    analog_p1y.keyscaleneg = 0x0000000200000000;
+                    break;
+                case "Taito B":
+                    //loop_inputports_callback = Taitob.loop_inputports_taitob_pbobble;
+                    record_port_callback = Taitob.record_port;
+                    replay_port_callback = Taitob.replay_port;
+                    break;
+                case "Konami 68000":
+                    //loop_inputports_callback = Konami68000.loop_inputports_konami68000_ssriders;
+                    record_port_callback = Konami68000.record_port;
+                    replay_port_callback = Konami68000.replay_port;
+                    break;
+                case "Capcom":
                     break;
             }
             switch (Machine.sName)
@@ -214,11 +326,25 @@ namespace mame
                 case "qtono2j":
                     loop_inputports_callback = CPS.loop_inputports_cps1_cworld2j;
                     break;
+                case "pzloop2":
+                case "pzloop2j":
+                case "pzloop2jr1":
+                    loop_inputports_callback = CPS.loop_inputports_cps2_pzloop2;
+                    break;
                 case "ecofghtr":
                     loop_inputports_callback = CPS.loop_inputports_cps2_ecofghtr;
                     break;
                 case "qndream":
                     loop_inputports_callback = CPS.loop_inputports_cps2_qndream;
+                    break;
+                case "pbaction":
+                case "pbaction2":
+                case "pbaction3":
+                case "pbaction4":
+                case "pbaction5":
+                    loop_inputports_callback = Tehkan.loop_inputports_tehkan_pbaction;
+                    record_port_callback = Tehkan.record_port_pbaction;
+                    replay_port_callback = Tehkan.replay_port_pbaction;
                     break;
                 case "irrmaze":
                     loop_inputports_callback = Neogeo.loop_inputports_neogeo_irrmaze;
@@ -240,27 +366,197 @@ namespace mame
                 case "":
                     loop_inputports_callback = IGS011.loop_inputports_igs011_drgnwrldj;
                     break;*/
+
+                case "tokio":
+                case "tokioo":
+                case "tokiou":
+                case "tokiob":
+                    loop_inputports_callback = Taito.loop_inputports_taito_tokio;
+                    break;
+                case "bublbobl":
+                case "bublbobl1":
+                case "bublboblr":
+                case "bublboblr1":
+                case "bub68705":
+                case "bublcave":
+                case "bublcave11":
+                case "bublcave10":
+                    loop_inputports_callback = Taito.loop_inputports_taito_bublbobl;
+                    break;
+                case "boblbobl":
+                case "sboblbobl":
+                case "sboblbobla":
+                case "sboblboblb":
+                case "sboblbobld":
+                case "sboblboblc":
+                case "dland":
+                case "bbredux":
+                case "bublboblb":
+                case "boblcave":                
+                    loop_inputports_callback = Taito.loop_inputports_taito_boblbobl;
+                    break;
+                case "opwolf":
+                case "opwolfa":
+                case "opwolfj":
+                case "opwolfu":
+                case "opwolfb":
+                    loop_inputports_callback = Taito.loop_inputports_taito_opwolf;
+                    record_port_callback = Taito.record_port_opwolf;
+                    replay_port_callback = Taito.replay_port_opwolf;
+                    break;
+                case "opwolfp":
+                    loop_inputports_callback = Taito.loop_inputports_taito_opwolfp;
+                    record_port_callback = Taito.record_port_opwolfp;
+                    replay_port_callback = Taito.replay_port_opwolfp;
+                    break;
+                case "pbobble":
+                    loop_inputports_callback = Taitob.loop_inputports_taitob_pbobble;
+                    record_port_callback = Taitob.record_port_pbobble;
+                    replay_port_callback = Taitob.replay_port_pbobble;
+                    break;
+                case "silentd":
+                case "silentdj":
+                case "silentdu":
+                    loop_inputports_callback = Taitob.loop_inputports_taitob_silentd;
+                    break;
+                case "cuebrick":
+                case "mia":
+                case "mia2":
+                case "lgtnfght":
+                case "lgtnfghta":
+                case "lgtnfghtu":
+                case "trigon":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_cuebrick;
+                    break;
+                case "tmnt":
+                case "tmntu":
+                case "tmntua":
+                case "tmntub":
+                case "tmht":
+                case "tmhta":
+                case "tmhtb":
+                case "tmntj":
+                case "tmnta":
+                case "punkshot":
+                case "punkshot2":
+                case "punkshotj":
+                case "tmnt2":
+                case "ssriders":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_tmnt;
+                    break;
+                case "blswhstl":
+                case "blswhstla":
+                case "detatwin":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_blswhstl;
+                    break;
+                case "glfgreat":
+                case "glfgreatj":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_glfgreat;
+                    break;
+                case "tmht2p":
+                case "tmht2pa":
+                case "tmnt2pj":
+                case "tmnt2po":
+                case "tmnt2a":
+                case "tmht22pe":
+                case "tmht24pe":
+                case "tmnt22pu":
+                case "ssriderseaa":
+                case "ssridersebd":
+                case "ssridersebc":
+                case "ssridersuda":
+                case "ssridersuac":
+                case "ssridersuab":
+                case "ssridersubc":
+                case "ssridersadd":
+                case "ssridersabd":
+                case "ssridersjad":
+                case "ssridersjac":
+                case "ssridersjbd":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_ssriders;
+                    break;
+                case "qgakumon":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_qgakumon;
+                    break;
+                case "thndrx2":
+                case "thndrx2a":
+                case "thndrx2j":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_thndrx2;
+                    break;
+                case "prmrsocr":
+                case "prmrsocrj":
+                    loop_inputports_callback = Konami68000.loop_inputports_konami68000_prmrsocr;
+                    record_port_callback = Konami68000.record_port_prmrsocr;
+                    replay_port_callback = Konami68000.replay_port_prmrsocr;
+                    break;
+                case "gng":
+                case "gnga":
+                case "gngbl":
+                case "gngprot":
+                case "gngblita":
+                case "gngc":
+                case "gngt":
+                case "makaimur":
+                case "makaimurc":
+                case "makaimurg":
+                    loop_inputports_callback = Capcom.loop_inputports_gng;
+                    record_port_callback = Capcom.record_port_gng;
+                    replay_port_callback = Capcom.replay_port_gng;
+                    break;
+                case "diamond":
+                    loop_inputports_callback = Capcom.loop_inputports_diamond;
+                    record_port_callback = Capcom.record_port_gng;
+                    replay_port_callback = Capcom.replay_port_gng;
+                    break;
+                case "sf":
+                    loop_inputports_callback = Capcom.loop_inputports_sfus;
+                    record_port_callback = Capcom.record_port_sf;
+                    replay_port_callback = Capcom.replay_port_sf;
+                    break;
+                case "sfua":
+                case "sfj":
+                    loop_inputports_callback = Capcom.loop_inputports_sfjp;
+                    record_port_callback = Capcom.record_port_sf;
+                    replay_port_callback = Capcom.replay_port_sf;
+                    break;
+                case "sfjan":
+                case "sfan":
+                case "sfp":
+                    loop_inputports_callback = Capcom.loop_inputports_sfan;
+                    record_port_callback = Capcom.record_port_sf;
+                    replay_port_callback = Capcom.replay_port_sf;
+                    break;
             }
         }
         public static int apply_analog_min_max(analog_field_state analog, int value)
         {
             int adjmin = (analog.minimum * 100) / analog.sensitivity;
             int adjmax = (analog.maximum * 100) / analog.sensitivity;
-            int adj1 = (512 * 100) / analog.sensitivity;
-            int adjdif = adjmax - adjmin + adj1;
-            if (analog.reverse != 0)
+            if (!analog.wraps)
             {
-                while (value <= adjmin - adj1)
-                    value += adjdif;
-                while (value > adjmax)
-                    value -= adjdif;
+                if (value > adjmax)
+                    value = adjmax;
+                else if (value < adjmin)
+                    value = adjmin;
             }
             else
             {
-                while (value >= adjmax + adj1)
-                    value -= adjdif;
-                while (value < adjmin)
-                    value += adjdif;
+                int adj1 = (512 * 100) / analog.sensitivity;
+                int adjdif = adjmax - adjmin + adj1;
+                if (analog.reverse)
+                {
+                    while (value <= adjmin - adj1)
+                        value += adjdif;
+                    while (value > adjmax)
+                        value -= adjdif;
+                }
+                else
+                {
+                    while (value >= adjmax + adj1)
+                        value -= adjdif;
+                    while (value < adjmin)
+                        value += adjdif;
+                }
             }
             return value;
         }
@@ -269,26 +565,32 @@ namespace mame
             uint result;
             int value;
             long nsec_since_last;
-            nsec_since_last = Attotime.attotime_to_attoseconds(Attotime.attotime_sub(Timer.get_current_time(), portdata.last_frame_time)) /Attotime.ATTOSECONDS_PER_NANOSECOND;
-            value = (int)(analog.previous + ((long)(analog.accum - analog.previous) * nsec_since_last / portdata.last_delta_nsec));
-            if (value != 0)
+            value = analog.accum;
+            if (analog.interpolate && portdata.last_delta_nsec != 0)
             {
-                int i1 = 1;
+                nsec_since_last = Attotime.attotime_to_attoseconds(Attotime.attotime_sub(Timer.get_current_time(), portdata.last_frame_time)) / Attotime.ATTOSECONDS_PER_NANOSECOND;
+                value = (int)(analog.previous + ((long)(analog.accum - analog.previous) * nsec_since_last / portdata.last_delta_nsec));
             }
-            result = (uint)apply_analog_settings(value);            
+            result = (uint)apply_analog_settings(value, analog);
             return result;
         }
-        public static int apply_analog_settings(int value)
+        public static int apply_analog_settings(int value,analog_field_state analog)
         {
-            value = apply_analog_min_max(analog_p0, value);
-            value = (int)((long)value * analog_p0.sensitivity / 100);
-            if (analog_p0.reverse!=0)
-                value = analog_p0.reverse_val - value;
+            value = apply_analog_min_max(analog, value);
+            value = (int)((long)value * analog.sensitivity / 100);            
+            if (analog.reverse)
+            {
+                value = analog.reverse_val - value;
+            }
             if (value >= 0)
-                value = (int)(value * analog_p0.scalepos / 0x1000000);
+            {
+                value = (int)((long)(value * analog.scalepos)>>24);
+            }
             else
-                value = (int)(value * analog_p0.scaleneg / 0x1000000);
-            value += analog_p0.adjdefvalue;
+            {
+                value = (int)((long)(value * analog.scaleneg)>>24);
+            }
+            value += analog.adjdefvalue;
             return value;
         }
         public static void frame_update_callback()
@@ -344,21 +646,29 @@ namespace mame
             int delta = 0;
             int value2;
             value2 = apply_analog_min_max(analog, analog.accum);
-            if (analog.accum != value2)
-            {
-                int i1 = 1;
-            }
             analog.previous = analog.accum = value2;
             if (Keyboard.IsPressed(Key.K))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.L))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
+                analog.lastdigital = 2;
+            }
+            if (Mouse.deltaY < 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaY * 0x200;
+                analog.lastdigital = 1;
+            }
+            if (Mouse.deltaY > 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaY * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -371,21 +681,17 @@ namespace mame
             int delta = 0;
             int value2;
             value2 = apply_analog_min_max(analog, analog.accum);
-            if (analog.accum != value2)
-            {
-                int i1 = 1;
-            }
             analog.previous = analog.accum = value2;
             if (Keyboard.IsPressed(Key.NumPad2))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.NumPad3))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -398,10 +704,6 @@ namespace mame
             int delta = 0;
             int value2;
             value2 = apply_analog_min_max(analog, analog.accum);
-            if (analog.accum != value2)
-            {
-                int i1 = 1;
-            }
             analog.previous = analog.accum = value2;
             if (Keyboard.IsPressed(Key.U))
             {
@@ -429,13 +731,13 @@ namespace mame
             if (Keyboard.IsPressed(Key.NumPad4))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.NumPad5))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -452,13 +754,13 @@ namespace mame
             if (Keyboard.IsPressed(Key.A))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.D))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -475,13 +777,13 @@ namespace mame
             if (Keyboard.IsPressed(Key.S))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.W))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -498,13 +800,13 @@ namespace mame
             if (Keyboard.IsPressed(Key.A))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.D))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
@@ -521,18 +823,108 @@ namespace mame
             if (Keyboard.IsPressed(Key.Left))
             {
                 keypressed = true;
-                delta -= analog_p0.delta * 0x200;
+                delta -= analog.delta * 0x200;
                 analog.lastdigital = 1;
             }
             if (Keyboard.IsPressed(Key.Right))
             {
                 keypressed = true;
-                delta += analog_p0.delta * 0x200;
+                delta += analog.delta * 0x200;
                 analog.lastdigital = 2;
             }
             analog.accum += delta;
             if (!keypressed)
                 analog.lastdigital = 0;
+        }
+        public static void frame_update_analog_field_opwolf_p1x(analog_field_state analog)
+        {
+            bool keypressed = false;
+            long keyscale;
+            int rawvalue;
+            int delta = 0;
+            int value2;
+            value2 = apply_analog_min_max(analog, analog.accum);
+            analog.previous = analog.accum = value2;
+            rawvalue = Mouse.deltaX;
+            if (rawvalue != 0)
+            {
+                delta = rawvalue;
+                analog.lastdigital = 0;
+            }
+            if (Keyboard.IsPressed(Key.A))
+            {
+                keypressed = true;
+                delta -= analog.delta * 0x200;
+                analog.lastdigital = 1;
+            }
+            if (Keyboard.IsPressed(Key.D))
+            {
+                keypressed = true;
+                delta += analog.delta * 0x200;
+                analog.lastdigital = 2;
+            }
+            if (Mouse.deltaX < 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaX * 0x200;
+                analog.lastdigital = 1;
+            }
+            if (Mouse.deltaX > 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaX * 0x200;
+                analog.lastdigital = 2;
+            }
+            analog.accum += delta;
+            if (!keypressed)
+            {
+                analog.lastdigital = 0;
+            }
+        }
+        public static void frame_update_analog_field_opwolf_p1y(analog_field_state analog)
+        {
+            bool keypressed = false;
+            long keyscale;
+            int rawvalue;
+            int delta = 0;
+            int value2;
+            value2 = apply_analog_min_max(analog, analog.accum);
+            analog.previous = analog.accum = value2;
+            rawvalue = Mouse.deltaY;
+            if (rawvalue != 0)
+            {
+                delta = rawvalue;
+                analog.lastdigital = 0;
+            }
+            if (Keyboard.IsPressed(Key.W))
+            {
+                keypressed = true;
+                delta -= analog.delta * 0x200;
+                analog.lastdigital = 1;
+            }
+            if (Keyboard.IsPressed(Key.S))
+            {
+                keypressed = true;
+                delta += analog.delta * 0x200;
+                analog.lastdigital = 2;
+            }
+            if (Mouse.deltaY < 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaY * 0x200;
+                analog.lastdigital = 1;
+            }
+            if (Mouse.deltaY > 0)
+            {
+                keypressed = true;
+                delta += Mouse.deltaY * 0x200;
+                analog.lastdigital = 2;
+            }
+            analog.accum += delta;
+            if (!keypressed)
+            {
+                analog.lastdigital = 0;
+            }
         }
     }
 }

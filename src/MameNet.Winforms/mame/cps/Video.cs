@@ -16,6 +16,7 @@ namespace mame
         private static int cpsb_addr, cpsb_value, mult_factor1, mult_factor2, mult_result_lo, mult_result_hi;
         public static int layercontrol, layer_control, palette_control, in2_addr, in3_addr, out2_addr, bootleg_kludge;        
         public static int[] priority, layer_enable_mask;
+        public static int total_elements;
         public static uint[] primasks;
         private static int CPS1_OBJ_BASE = 0;    /* Base address of objects */
         private static int CPS1_SCROLL1_BASE = (0x02 / 2);   /* Base address of scroll 1 */
@@ -121,7 +122,6 @@ namespace mame
             {
                 if (offset == 0x0e / 2)
                 {
-                    // UNKNOWN
                     return;
                 }
                 if (offset == 0x10 / 2)
@@ -296,7 +296,7 @@ namespace mame
             cps1_update_transmasks();
             for (i = 0; i < 0xc00; i++)
             {
-                Palette.palette_entry_set_color(i, Palette.make_rgb(0, 0, 0));
+                Palette.palette_entry_set_color1(i, Palette.make_rgb(0, 0, 0));
             }
             primasks = new uint[8];
             cps1_stars_enabled = new int[2];
@@ -375,7 +375,7 @@ namespace mame
                         r = ((palette >> 8) & 0x0f) * 0x11 * bright / 0x2d;
                         g = ((palette >> 4) & 0x0f) * 0x11 * bright / 0x2d;
                         b = ((palette >> 0) & 0x0f) * 0x11 * bright / 0x2d;
-                        Palette.palette_entry_set_color(0x200 * page + offset, Palette.make_rgb(r, g, b));
+                        Palette.palette_entry_set_color1(0x200 * page + offset, Palette.make_rgb(r, g, b));
                     }
                 }
                 else
@@ -419,26 +419,8 @@ namespace mame
         }
         private static void cps1_render_sprites()
         {
-            int i,match;
-            string[] ss1;
-            int[] iiRender;
-            int i9,n1;
-            int baseoffset,baseadd;
-            Color c1 = new Color();
-            int iSprite = 0, nSprite, iOffset, iRatio=1,iFlip, iXCount, iYCount;
-            int width1=512, height1=512;
-            int[] iiX = new int[256], iiY = new int[256], iiCode = new int[256], iiColor = new int[256], iiIndex = new int[256];
-            List<int> lX = new List<int>(), lY = new List<int>(), lY2 = new List<int>(), lCode = new List<int>(), lColor = new List<int>();
-            List<int> lFlip = new List<int>();
-            List<int> lIndex = new List<int>(), lXCount = new List<int>(), lYCount = new List<int>();
-            /*ss1 = CPS1.c1.FORM.tbInput.Text.Split(sde2, StringSplitOptions.RemoveEmptyEntries);
-            n1 = ss1.Length;
-            iiRender=new int[n1];
-            for (i9 = 0; i9 < n1; i9++)
-            {
-                iiRender[i9] = int.Parse(ss1[i9]);
-            }*/
-            /* some sf2 hacks draw the sprites in reverse order */
+            int i, match;
+            int baseoffset, baseadd;
             if ((bootleg_kludge == 1) || (bootleg_kludge == 2) || (bootleg_kludge == 3))
             {
                 baseoffset = cps1_last_sprite_offset;
@@ -449,7 +431,7 @@ namespace mame
                 baseoffset = 0;
                 baseadd = 4;
             }
-            for (i = 0; i <= cps1_last_sprite_offset; i +=4)
+            for (i = 0; i <= cps1_last_sprite_offset; i += 4)
             {
                 int x, y, code, colour, col;
                 x = cps1_buffered_obj[baseoffset];
@@ -457,31 +439,6 @@ namespace mame
                 code = cps1_buffered_obj[baseoffset + 2];
                 colour = cps1_buffered_obj[baseoffset + 3];
                 col = colour & 0x1f;
-                /*if ((colour & 0xff00) == 0xff00)
-                {
-                    break;
-                }*/
-                iiX[iSprite] = x;
-                iiY[iSprite] = y;
-                iiCode[iSprite] = code;
-                iiColor[iSprite] = colour;
-                /*iiIndex[iSprite] = Array.IndexOf(iiRender, iiColor[iSprite] % 32);
-                if (iiIndex[iSprite] >= 0)
-                {
-                    lX.Add(iiX[iSprite]);
-                    lY.Add(iiY[iSprite]);
-                    lCode.Add(iiCode[iSprite]);
-                    lColor.Add(iiColor[iSprite]);
-                    lIndex.Add(iiIndex[iSprite]);
-                    iFlip = ((iiColor[iSprite] & 0x60) >> 5) & 3;
-                    iXCount = iiColor[iSprite] / 256 % 16 + 1;
-                    iYCount = iiColor[iSprite] / 256 / 16 + 1;
-                    lXCount.Add(iXCount);
-                    lYCount.Add(iYCount);
-                    lY2.Add(iiY[iSprite] + iYCount * 16);
-                    lFlip.Add(iFlip);
-                    iSprite++;
-                }*/
                 if (x == 0 && y == 0 && code == 0 && colour == 0)
                 {
                     baseoffset += baseadd;
@@ -505,7 +462,6 @@ namespace mame
                 y += 0x100;
                 if ((colour & 0xff00) != 0)
                 {
-                    /* handle blocked sprites */
                     int nx = (colour & 0x0f00) >> 8;
                     int ny = (colour & 0xf000) >> 12;
                     int nxs, nys, sx, sy;
@@ -522,7 +478,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16) & 0x1ff;
                                     sy = (y + nys * 16) & 0x1ff;
-                                    Drawgfx.common_drawgfx_c((code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * (ny - 1 - nys), col, 1, 1, sx, sy, 0x80000002);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, (code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * (ny - 1 - nys), col, 1, 1, sx, sy, 0x80000002, Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -534,7 +490,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16) & 0x1ff;
                                     sy = (y + nys * 16) & 0x1ff;
-                                    Drawgfx.common_drawgfx_c((code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * (ny - 1 - nys), col, 0, 1, sx, sy, 0x80000002);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, (code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * (ny - 1 - nys), col, 0, 1, sx, sy, 0x80000002, Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -549,7 +505,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16) & 0x1ff;
                                     sy = (y + nys * 16) & 0x1ff;
-                                    Drawgfx.common_drawgfx_c((code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * nys, col, 1, 0, sx, sy, 0x80000002);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, (code & ~0xf) + ((code + (nx - 1) - nxs) & 0xf) + 0x10 * nys, col, 1, 0, sx, sy, 0x80000002, Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -561,7 +517,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16) & 0x1ff;
                                     sy = (y + nys * 16) & 0x1ff;
-                                    Drawgfx.common_drawgfx_c((code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * nys, col, 0, 0, sx, sy, 0x80000002);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, (code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * nys, col, 0, 0, sx, sy, 0x80000002, Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -569,168 +525,10 @@ namespace mame
                 }
                 else
                 {
-                    Drawgfx.common_drawgfx_c(code, col, colour & 0x20, colour & 0x40, x & 0x1ff, y & 0x1ff, 0x80000002);
+                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, code, col, colour & 0x20, colour & 0x40, x & 0x1ff, y & 0x1ff, 0x80000002, Video.screenstate.visarea);
                 }
                 baseoffset += baseadd;
             }
-            return;
-            nSprite = lX.Count;
-            if (nSprite == 0)
-            {
-                return;
-            }
-            int i1, i2, i3, i4, i5, i6, i7, i8, rows, cols, minX, minY, maxX, maxY, maxY2, nX, nY, maxXCount, maxYCount;
-            minX = lX.Min();
-            minY = lY.Min();
-            maxX = lX.Max();
-            maxY = lY.Max();
-            maxY2 = lY2.Max();
-            maxXCount = lXCount.Max();
-            maxYCount = lYCount.Max();
-            string sHash = "";
-            Bitmap bm1, bm2;
-            nX = (maxX - minX) / 16 + 1;
-            nY = (maxY - minY) / 16 + 1;
-            if (maxXCount == 1 && maxYCount == 1)
-            {
-                if (nX % 2 == 1)
-                {
-                    nX += 1;
-                }
-                if (nY <= 8)
-                {
-                    nY = 8;
-                }
-                else if (nY > 8 && nY % 2 == 1)
-                {
-                    nY += 1;
-                }
-            }
-            else
-            {
-                if ((nX + maxXCount - 1) % 2 == 0)
-                {
-                    nX = nX + maxXCount - 1;
-                }
-                else if ((nX + maxXCount - 1) % 2 == 1)
-                {
-                    nX = nX + maxXCount;
-                }
-                if (nY + maxYCount - 1 <= 8)
-                {
-                    nY = 8;
-                }
-                else if (nY + maxYCount - 1 > 8 && (nY + maxYCount - 1) % 2 == 1)
-                {
-                    nY = nY + maxYCount;
-                }
-            }
-            bm1 = new Bitmap(16 * nX, 16 * nY);
-            Graphics g = Graphics.FromImage(bm1);
-            g.Clear(Color.Magenta);
-            for (iSprite = nSprite - 1; iSprite >= 0; iSprite--)
-            {
-                bm2 = new Bitmap(16 * lXCount[iSprite], 16 * lYCount[iSprite]);
-                cols = lColor[iSprite] / 256 % 16 + 1;
-                rows = lColor[iSprite] / 256 / 16 + 1;
-                /*for (i5 = 0; i5 < lYCount[iSprite]; i5++)
-                {
-                    for (i6 = 0; i6 < lXCount[iSprite]; i6++)
-                    {
-                        iOffset = (lCode[iSprite] + i5 * 16 + i6) * 16 * 16 / 2;
-                        sHash += lCode[iSprite].ToString("X4");// +lbXFlip[iSprite] + lbYFlip[iSprite];             
-                        for (i1 = 0; i1 < 16; i1++)
-                        {
-                            for (i2 = 0; i2 < 16; i2++)
-                            {
-                                int iByte;
-                                iByte = CPS1.gfxrom[iOffset + (i1 * 16 + i2) / 2];
-                                if (i2 % 2 == 0)
-                                {
-                                    if (iByte % 16 == 0x0f)
-                                    {
-                                        c1 = Color.Magenta;
-                                    }
-                                    else
-                                    {
-                                        c1 = Color.FromArgb((int)Palette.entry_color[iiRender[lIndex[iSprite]] * 16 + iByte % 16]);
-                                    }
-                                }
-                                else if (i2 % 2 == 1)
-                                {
-                                    if (iByte / 16 == 0x0f)
-                                    {
-                                        c1 = Color.Magenta;
-                                    }
-                                    else
-                                    {
-                                        c1 = Color.FromArgb((int)Palette.entry_color[iiRender[lIndex[iSprite]] * 16 + iByte / 16]);
-                                    }
-                                }
-                                for (i7 = 0; i7 < iRatio; i7++)
-                                {
-                                    for (i8 = 0; i8 < iRatio; i8++)
-                                    {
-                                        bm2.SetPixel((i6 * 16 + i2) * iRatio + i8, (i5 * 16 + i1) * iRatio + i7, c1);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }*/
-                if (lFlip[iSprite] == 0)
-                {
-                    g.DrawImage(bm2, new Rectangle(lX[iSprite] - minX, 16 * nY - maxY2 + lY[iSprite], 16 * lXCount[iSprite], 16 * lYCount[iSprite]), new Rectangle(0, 0, 16 * lXCount[iSprite], 16 * lYCount[iSprite]), GraphicsUnit.Pixel);
-                }
-                else if (lFlip[iSprite] == 1)
-                {
-                    //bm2.RotateFlip(RotateFlipType.RotateNoneFlipX);
-                    g.DrawImage(bm2, new Rectangle(maxX - lX[iSprite], 16 * nY - maxY2 - (lYCount[iSprite] - 1) * 16 + lY[iSprite], 16 * lXCount[iSprite], 16 * lYCount[iSprite]), new Rectangle(0, 0, 16 * lXCount[iSprite], 16 * lYCount[iSprite]), GraphicsUnit.Pixel);
-                }
-                else if (lFlip[iSprite] == 2)
-                {
-                    bm2.RotateFlip(RotateFlipType.RotateNoneFlipY);
-                    g.DrawImage(bm2, new Rectangle(lX[iSprite] - minX, 16 * (nY - 1) - maxY - (lYCount[iSprite] - 1) * 16 + lY[iSprite], 16 * lXCount[iSprite], 16 * lYCount[iSprite]), new Rectangle(0, 0, 16 * lXCount[iSprite], 16 * lYCount[iSprite]), GraphicsUnit.Pixel);
-                }
-                else if (lFlip[iSprite] == 3)
-                {
-                    //bm2.RotateFlip(RotateFlipType.RotateNoneFlipXY);
-                    g.DrawImage(bm2, new Rectangle(lX[iSprite] - minX, 16 * (nY - 1) - maxY - (lYCount[iSprite] - 1) * 16 + lY[iSprite], 16 * lXCount[iSprite], 16 * lYCount[iSprite]), new Rectangle(0, 0, 16 * lXCount[iSprite], 16 * lYCount[iSprite]), GraphicsUnit.Pixel);
-                }
-            }
-            g.Dispose();
-            if (bRecord && lBitmapHash.IndexOf(sHash) < 0)
-            {
-                lBitmapHash.Add(sHash);
-                Machine.FORM.cpsform.tbResult.AppendText(sHash + "\r\n");
-                int iYRow = 128;
-                if (iXAll + bm1.Width <= width1 && iYAll + bm1.Height <= height1)
-                {
-
-                }
-                else if (iXAll + bm1.Width > width1 && iYAll + iYRow + bm1.Height <= height1)
-                {
-                    iXAll = 0;
-                    iYAll = iYAll + iYRow;
-                }
-                else if (iXAll + bm1.Width > width1 && iYAll + iYRow + bm1.Height > height1)
-                {
-                    bmAll.Save(nBitmap.ToString("00") + ".png", ImageFormat.Png);
-                    nBitmap++;
-                    bmAll = new Bitmap(512, 512);
-                    Graphics g2 = Graphics.FromImage(bmAll);
-                    g2.Clear(Color.Magenta);
-                    g2.Dispose();
-                    iXAll = 0;
-                    iYAll = 0;
-                }
-                Graphics gAll = Graphics.FromImage(bmAll);
-                gAll.DrawImage(bm1, new Rectangle(iXAll, iYAll, bm1.Width, bm1.Height), new Rectangle(0, 0, bm1.Width, bm1.Height), GraphicsUnit.Pixel);
-                gAll.Dispose();
-                iXAll += bm1.Width;
-                Machine.FORM.cpsform.pictureBox1.Image = bmAll;
-            }
-            //CPS1.c1.FORM.cps1form.pictureBox1.Image = bm1;
         }
         private static void cps2_render_sprites()
         {
@@ -781,8 +579,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16 + xoffs) & 0x3ff;
                                     sy = (y + nys * 16 + yoffs) & 0x3ff;
-                                    Drawgfx.common_drawgfx_c(code + (nx - 1) - nxs + 0x10 * (ny - 1 - nys), (col & 0x1f), 1, 1, sx, sy, (uint)(primasks[priority] | 0x80000000));
-                                    //cliprect, TRANSPARENCY_PEN, 15, priority_bitmap, primasks[priority] | 0x80000000);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, code + (nx - 1) - nxs + 0x10 * (ny - 1 - nys), (col & 0x1f), 1, 1, sx, sy, (uint)(primasks[priority] | 0x80000000), Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -794,8 +591,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16 + xoffs) & 0x3ff;
                                     sy = (y + nys * 16 + yoffs) & 0x3ff;
-                                    Drawgfx.common_drawgfx_c(code + nxs + 0x10 * (ny - 1 - nys), (col & 0x1f), 0, 1, sx, sy, (uint)(primasks[priority] | 0x80000000));
-                                    //cliprect, TRANSPARENCY_PEN, 15, priority_bitmap, primasks[priority] | 0x80000000);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, code + nxs + 0x10 * (ny - 1 - nys), (col & 0x1f), 0, 1, sx, sy, (uint)(primasks[priority] | 0x80000000), Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -810,8 +606,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16 + xoffs) & 0x3ff;
                                     sy = (y + nys * 16 + yoffs) & 0x3ff;
-                                    Drawgfx.common_drawgfx_c(code + (nx - 1) - nxs + 0x10 * nys, (col & 0x1f), 1, 0, sx, sy, (uint)(primasks[priority] | 0x80000000));
-                                    //cliprect, TRANSPARENCY_PEN, 15, priority_bitmap, primasks[priority] | 0x80000000);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, code + (nx - 1) - nxs + 0x10 * nys, (col & 0x1f), 1, 0, sx, sy, (uint)(primasks[priority] | 0x80000000), Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -823,8 +618,7 @@ namespace mame
                                 {
                                     sx = (x + nxs * 16 + xoffs) & 0x3ff;
                                     sy = (y + nys * 16 + yoffs) & 0x3ff;
-                                    Drawgfx.common_drawgfx_c((code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * nys, (col & 0x1f), 0, 0, sx, sy, (uint)(primasks[priority] | 0x80000000));
-                                    //cliprect, TRANSPARENCY_PEN, 15, priority_bitmap, primasks[priority] | 0x80000000);
+                                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, (code & ~0xf) + ((code + nxs) & 0xf) + 0x10 * nys, (col & 0x1f), 0, 0, sx, sy, (uint)(primasks[priority] | 0x80000000), Video.screenstate.visarea);
                                 }
                             }
                         }
@@ -833,8 +627,7 @@ namespace mame
                 else
                 {
                     /* Simple case... 1 sprite */
-                    Drawgfx.common_drawgfx_c(code, (col & 0x1f), colour & 0x20, colour & 0x40, (x + xoffs) & 0x3ff, (y + yoffs) & 0x3ff, (uint)(primasks[priority] | 0x80000000));
-                    //cliprect, TRANSPARENCY_PEN, 15, priority_bitmap, primasks[priority] | 0x80000000);
+                    Drawgfx.common_drawgfx_c(CPS.gfx1rom, code, (col & 0x1f), colour & 0x20, colour & 0x40, (x + xoffs) & 0x3ff, (y + yoffs) & 0x3ff, (uint)(primasks[priority] | 0x80000000), Video.screenstate.visarea);
                 }
             }
         }
@@ -880,24 +673,6 @@ namespace mame
                 }
             }
         }
-        private static void cps1_render_layer(int layer)
-        {
-            switch (layer)
-            {
-                case 0:
-                    cps1_render_sprites();
-                    break;
-                case 1:
-                    ttmap[0].tilemap_draw_primask(Tilemap.videovisarea, 0x20, 0);
-                    break;
-                case 2:
-                    ttmap[1].tilemap_draw_primask(Tilemap.videovisarea, 0x20, 0);
-                    break;
-                case 3:
-                    ttmap[2].tilemap_draw_primask(Tilemap.videovisarea, 0x20, 0);
-                    break;
-            }
-        }
         private static void cps1_render_layer(int layer, byte primask)
         {
             switch (layer)
@@ -906,13 +681,13 @@ namespace mame
                     cps1_render_sprites();
                     break;
                 case 1:
-                    ttmap[0].tilemap_draw_primask(Tilemap.videovisarea, 0x20, primask);
+                    ttmap[0].tilemap_draw_primask(Video.screenstate.visarea, 0x20, primask);
                     break;
                 case 2:
-                    ttmap[1].tilemap_draw_primask(Tilemap.videovisarea, 0x20, primask);
+                    ttmap[1].tilemap_draw_primask(Video.screenstate.visarea, 0x20, primask);
                     break;
                 case 3:
-                    ttmap[2].tilemap_draw_primask(Tilemap.videovisarea, 0x20, primask);
+                    ttmap[2].tilemap_draw_primask(Video.screenstate.visarea, 0x20, primask);
                     break;
             }
         }
@@ -923,13 +698,13 @@ namespace mame
                 case 0:
                     break;
                 case 1:
-                    ttmap[0].tilemap_draw_primask4(Tilemap.videovisarea);
+                    ttmap[0].tilemap_draw_primask(Video.screenstate.visarea, 0x10, 1);
                     break;
                 case 2:
-                    ttmap[1].tilemap_draw_primask4(Tilemap.videovisarea);
+                    ttmap[1].tilemap_draw_primask(Video.screenstate.visarea, 0x10, 1);
                     break;
                 case 3:
-                    ttmap[2].tilemap_draw_primask4(Tilemap.videovisarea);
+                    ttmap[2].tilemap_draw_primask(Video.screenstate.visarea, 0x10, 1);
                     break;
             }
         }
@@ -938,10 +713,6 @@ namespace mame
             int i;
             int l0, l1, l2, l3;
             int videocontrol = cps_a_regs[CPS1_VIDEOCONTROL];
-            if ((videocontrol & 0x8000) != 0)
-            {
-                int i1 = 1;
-            }
             layercontrol = cps_b_regs[layer_control / 2];
             cps1_get_video_base();
             cps1_find_last_sprite();
@@ -980,16 +751,16 @@ namespace mame
                 {
                     cps1_build_palette(cps1_base(CPS1_PALETTE_BASE, 0x0400));
                 }
-                cps1_render_layer(l0);
+                cps1_render_layer(l0, 0);
                 if (l1 == 0)
                     cps1_render_high_layer(l0); /* prepare mask for sprites */
-                cps1_render_layer(l1);
+                cps1_render_layer(l1, 0);
                 if (l2 == 0)
                     cps1_render_high_layer(l1); /* prepare mask for sprites */
-                cps1_render_layer(l2);
+                cps1_render_layer(l2, 0);
                 if (l3 == 0)
                     cps1_render_high_layer(l2); /* prepare mask for sprites */
-                cps1_render_layer(l3);
+                cps1_render_layer(l3, 0);
             }
             else
             {

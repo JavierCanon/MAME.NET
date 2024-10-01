@@ -52,6 +52,7 @@ namespace mame
             protection_ram = new byte[0x1000];
             Memory.mainrom = Machine.GetRom("maincpu.rom");
             Memory.audiorom = Machine.GetRom("soundcpu.rom");
+            //Memory.audiorom = new byte[0x10000];
             spritesrom = Machine.GetRom("sprites.rom");
             n1 = spritesrom.Length;
             sprites1rom = new byte[n1 * 2];

@@ -10,46 +10,18 @@ namespace cpu.m6800
 {
     public partial class M6800 : cpuexec_data
     {
-        [StructLayout(LayoutKind.Explicit)]
-        [Serializable()]
-        public struct RegisterPair
-        {
-            [FieldOffset(0)]
-            public ushort Word;
-
-            [FieldOffset(0)]
-            public byte Low;
-
-            [FieldOffset(1)]
-            public byte High;
-
-            public RegisterPair(ushort value)
-            {
-                Word = value;
-                Low = (byte)(Word);
-                High = (byte)(Word >> 8);
-            }
-
-            public static implicit operator ushort(RegisterPair rp)
-            {
-                return rp.Word;
-            }
-
-            public static implicit operator RegisterPair(ushort value)
-            {
-                return new RegisterPair(value);
-            }
-        }
         public static M6800 m1;
         public static Action action_rx, action_tx;
-        public Action[] insn, m6800_insn,hd63701_insn;        
+        public Action[] insn, m6800_insn, hd63701_insn, m6803_insn;
         public Register PPC, PC;
         public Register S, X, D, EA;
         public byte[] cycles;
         public byte cc, wai_state, ic_eddge;
-        public LineState[] irq_state = new LineState[2];
-        public LineState nmi_state;
+        public byte[] irq_state = new byte[2];
+        public byte nmi_state;
         public int extra_cycles;
+        public delegate int irq_delegate(int i);
+        public irq_delegate irq_callback;
         public byte port1_ddr, port2_ddr, port3_ddr, port4_ddr, port1_data, port2_data, port3_data, port4_data;
         public byte tcsr, pending_tcsr, irq2, ram_ctrl;
         public Register counter, output_compare, timer_over;
@@ -60,7 +32,7 @@ namespace cpu.m6800
         public M6800_TX_STATE txstate;
         public Timer.emu_timer m6800_rx_timer, m6800_tx_timer;
         private byte TCSR_OLVL = 0x01, TCSR_IEDG = 0x02, TCSR_ETOI = 0x04, TCSR_EOCI = 0x08, TCSR_EICI = 0x10, TCSR_TOF = 0x20, TCSR_OCF = 0x40, TCSR_ICF = 0x80;
-        private byte M6800_WAI = 8, M6800_SLP = 0x10;
+        protected byte M6800_WAI = 8, M6800_SLP = 0x10;
         private const byte M6800_IRQ_LINE = 0, M6800_TIN_LINE = 1;
         private ushort M6803_DDR1 = 0x00, M6803_DDR2 = 0x01, M6803_DDR3 = 0x04, M6803_DDR4 = 0x05, M6803_PORT1 = 0x100, M6803_PORT2 = 0x101, M6803_PORT3 = 0x102, M6803_PORT4 = 0x103;
         private byte M6800_RMCR_SS_MASK = 0x03, M6800_RMCR_SS_4096 = 0x03, M6800_RMCR_SS_1024 = 0x02, M6800_RMCR_SS_128 = 0x01, M6800_RMCR_SS_16 = 0x00, M6800_RMCR_CC_MASK = 0x0c;
@@ -72,8 +44,8 @@ namespace cpu.m6800
             READY
         }
         private byte CLEAR_LINE = 0, INPUT_LINE_NMI = 32;
-        private ulong totalExecutedCycles;
-        private int pendingCycles;
+        protected ulong totalExecutedCycles;
+        protected int pendingCycles;
         public override ulong TotalExecutedCycles
         {
             get
@@ -155,6 +127,26 @@ namespace cpu.m6800
 	/*E*/  5, 5, 5,99, 5, 5, 5, 6, 5, 5, 5, 5,99,99, 6, 7,
 	/*F*/  4, 4, 4,99, 4, 4, 4, 5, 4, 4, 4, 4,99,99, 5, 6
 };
+        protected byte[] cycles_6803 =
+{
+		/* 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
+	/*0*/ 99, 2,99,99, 3, 3, 2, 2, 3, 3, 2, 2, 2, 2, 2, 2,
+	/*1*/  2, 2,99,99,99,99, 2, 2,99, 2,99, 2,99,99,99,99,
+	/*2*/  3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3,
+	/*3*/  3, 3, 4, 4, 3, 3, 3, 3, 5, 5, 3,10, 4,10, 9,12,
+	/*4*/  2,99,99, 2, 2,99, 2, 2, 2, 2, 2,99, 2, 2,99, 2,
+	/*5*/  2,99,99, 2, 2,99, 2, 2, 2, 2, 2,99, 2, 2,99, 2,
+	/*6*/  6,99,99, 6, 6,99, 6, 6, 6, 6, 6,99, 6, 6, 3, 6,
+	/*7*/  6,99,99, 6, 6,99, 6, 6, 6, 6, 6,99, 6, 6, 3, 6,
+	/*8*/  2, 2, 2, 4, 2, 2, 2,99, 2, 2, 2, 2, 4, 6, 3,99,
+	/*9*/  3, 3, 3, 5, 3, 3, 3, 3, 3, 3, 3, 3, 5, 5, 4, 4,
+	/*A*/  4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5,
+	/*B*/  4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 6, 6, 5, 5,
+	/*C*/  2, 2, 2, 4, 2, 2, 2,99, 2, 2, 2, 2, 3,99, 3,99,
+	/*D*/  3, 3, 3, 5, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4,
+	/*E*/  4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5,
+	/*F*/  4, 4, 4, 6, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5
+};
         private byte[] cycles_63701 =
 {
 		/* 0  1  2  3  4  5  6  7  8  9  A  B  C  D  E  F */
@@ -221,7 +213,7 @@ namespace cpu.m6800
             };
             hd63701_insn=new Action[]
             {
-                trap	,nop,	trap	,trap	,lsrd,	asld,	tap,	tpa,
+                trap,   nop,	trap	,trap	,lsrd,	asld,	tap,	tpa,
                 inx,	dex,	clv,	sev,	clc,	sec,	cli,	sei,
                 sba,	cba,	undoc1, undoc2, trap	,trap	,tab,	tba,
                 xgdx,	daa,	slp		,aba,	trap	,trap	,trap	,trap	,
@@ -257,6 +249,7 @@ namespace cpu.m6800
             insn = hd63701_insn;
             cycles = cycles_63701;
             clock = 1536000;
+            irq_callback = null;
             m6800_rx_timer = Timer.timer_alloc_common(m6800_rx_tick, "m6800_rx_tick", false);
             m6800_tx_timer = Timer.timer_alloc_common(m6800_tx_tick, "m6800_tx_tick", false);
         }
@@ -311,7 +304,7 @@ namespace cpu.m6800
         {
             timer_next = (output_compare.d - counter.d < timer_over.d - counter.d) ? output_compare.d : timer_over.d;
         }
-        private void CLEANUP_conters()
+        protected void CLEANUP_conters()
         {
             output_compare.HighWord -= counter.HighWord;
             timer_over.LowWord -= counter.HighWord;
@@ -357,9 +350,13 @@ namespace cpu.m6800
         {
             if ((cc & 0x10) == 0)
             {
-                if (irq_state[0] != LineState.CLEAR_LINE)
+                if (irq_state[0] != (byte)LineState.CLEAR_LINE)
                 {
                     ENTER_INTERRUPT(0xfff8);
+                    if( irq_callback!=null )
+                    {
+				        irq_callback(0);
+                    }
                 }
                 else
                 {
@@ -507,62 +504,62 @@ namespace cpu.m6800
             EA.LowWord = (ushort)(X.LowWord + ReadOpArg(PC.LowWord));
             PC.LowWord++;
         }
-        private void SEC()
+        protected void SEC()
         {
             cc |= 0x01;
         }
-        private void CLC()
+        protected void CLC()
         {
             cc &= 0xfe;
         }
-        private void SEZ()
+        protected void SEZ()
         {
             cc |= 0x04;
         }
-        private void CLZ()
+        protected void CLZ()
         {
             cc &= 0xfb;
         }
-        private void SEN()
+        protected void SEN()
         {
             cc |= 0x08;
         }
-        private void CLN()
+        protected void CLN()
         {
             cc &= 0xf7;
         }
-        private void SEV()
+        protected void SEV()
         {
             cc |= 0x02;
         }
-        private void CLV()
+        protected void CLV()
         {
             cc &= 0xfd;
         }
-        private void SEH()
+        protected void SEH()
         {
             cc |= 0x20;
         }
-        private void CLH()
+        protected void CLH()
         {
             cc &= 0xdf;
         }
-        private void SEI()
+        protected void SEI()
         {
             cc |= 0x10;
         }
-        private void CLI()
+        protected void CLI()
         {
             cc &= unchecked((byte)(~0x10));
         }
-        private void INCREMENT_COUNTER(int amount)
+        protected void INCREMENT_COUNTER(int amount)
         {
             pendingCycles -= amount;
             counter.d += (uint)amount;
             if (counter.d >= timer_next)
                 check_timer_event();
         }
-        private void EAT_CYCLES()
+        protected void EAT_CYCLES()
         {
             int cycles_to_eat;
             cycles_to_eat = (int)(timer_next - counter.d);
@@ -861,45 +858,54 @@ namespace cpu.m6800
         {
             if (irqline == INPUT_LINE_NMI)
             {
-                if (nmi_state == state)
+                if (nmi_state == (byte)state)
+                {
                     return;
-                nmi_state = state;
+                }
+                nmi_state = (byte)state;
                 if (state == LineState.CLEAR_LINE)
+                {
                     return;
+                }
                 ENTER_INTERRUPT(0xfffc);
             }
             else
             {
                 int eddge;
-                if (irq_state[irqline] == state)
+                if (irq_state[irqline] == (byte)state)
+                {
                     return;
-                irq_state[irqline] = state;
+                }
+                irq_state[irqline] = (byte)state;
                 switch (irqline)
                 {
                     case M6800_IRQ_LINE:
-                        if (state == LineState.CLEAR_LINE) return;
+                        if (state == LineState.CLEAR_LINE)
+                        {
+                            return;
+                        }
                         break;
                     case M6800_TIN_LINE:
                         eddge = (state == LineState.CLEAR_LINE) ? 2 : 0;
                         if (((tcsr & TCSR_IEDG) ^ (state == LineState.CLEAR_LINE ? TCSR_IEDG : 0)) == 0)
+                        {
                             return;
+                        }
                         /* active edge in */
                         tcsr |= TCSR_ICF;
                         pending_tcsr |= TCSR_ICF;
                         input_capture = counter.LowWord;
                         MODIFIED_tcsr();
                         if ((cc & 0x10) == 0)
+                        {
                             m6800_check_irq2();
+                        }
                         break;
                     default:
                         return;
                 }
                 CHECK_IRQ_LINES(); /* HJB 990417 */
             }
-        }
-        public override void set_input_line_and_vector(int line, LineState state, int vector)
-        {
-            Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
         }
         public override void cpunum_set_input_line_and_vector(int cpunum, int line, LineState state, int vector)
         {
@@ -1214,5 +1220,171 @@ namespace cpu.m6800
                     break;
             }
         }
+        public void SaveStateBinary(BinaryWriter writer)
+        {
+            writer.Write(PPC.LowWord);
+            writer.Write(PC.LowWord);
+            writer.Write(S.LowWord);
+            writer.Write(X.LowWord);
+            writer.Write(D.LowWord);
+            writer.Write(cc);
+            writer.Write(wai_state);
+            writer.Write(nmi_state);
+            writer.Write(irq_state[0]);
+            writer.Write(irq_state[1]);
+            writer.Write(ic_eddge);
+            writer.Write(port1_ddr);
+            writer.Write(port2_ddr);
+            writer.Write(port3_ddr);
+            writer.Write(port4_ddr);
+            writer.Write(port1_data);
+            writer.Write(port2_data);
+            writer.Write(port3_data);
+            writer.Write(port4_data);
+            writer.Write(tcsr);
+            writer.Write(pending_tcsr);
+            writer.Write(irq2);
+            writer.Write(ram_ctrl);
+            writer.Write(counter.d);
+            writer.Write(output_compare.d);
+            writer.Write(input_capture);
+            writer.Write(timer_over.d);
+            writer.Write(clock);
+            writer.Write(trcsr);
+            writer.Write(rmcr);
+            writer.Write(rdr);
+            writer.Write(tdr);
+            writer.Write(rsr);
+            writer.Write(tsr);
+            writer.Write(rxbits);
+            writer.Write(txbits);
+            writer.Write((int)txstate);
+            writer.Write(trcsr_read);
+            writer.Write(tx);
+            writer.Write(TotalExecutedCycles);
+            writer.Write(PendingCycles);
+        }
+        public void LoadStateBinary(BinaryReader reader)
+        {
+            PPC.LowWord = reader.ReadUInt16();
+            PC.LowWord = reader.ReadUInt16();
+            S.LowWord = reader.ReadUInt16();
+            X.LowWord = reader.ReadUInt16();
+            D.LowWord = reader.ReadUInt16();
+            cc = reader.ReadByte();
+            wai_state = reader.ReadByte();
+            nmi_state = reader.ReadByte();
+            irq_state[0] = reader.ReadByte();
+            irq_state[1] = reader.ReadByte();
+            ic_eddge = reader.ReadByte();
+            port1_ddr = reader.ReadByte();
+            port2_ddr = reader.ReadByte();
+            port3_ddr = reader.ReadByte();
+            port4_ddr = reader.ReadByte();
+            port1_data = reader.ReadByte();
+            port2_data = reader.ReadByte();
+            port3_data = reader.ReadByte();
+            port4_data = reader.ReadByte();
+            tcsr = reader.ReadByte();
+            pending_tcsr = reader.ReadByte();
+            irq2 = reader.ReadByte();
+            ram_ctrl = reader.ReadByte();
+            counter.d = reader.ReadUInt32();
+            output_compare.d = reader.ReadUInt32();
+            input_capture = reader.ReadUInt16();
+            timer_over.d = reader.ReadUInt32();
+            clock = reader.ReadInt32();
+            trcsr = reader.ReadByte();
+            rmcr = reader.ReadByte();
+            rdr = reader.ReadByte();
+            tdr = reader.ReadByte();
+            rsr = reader.ReadByte();
+            tsr = reader.ReadByte();
+            rxbits = reader.ReadInt32();
+            txbits = reader.ReadInt32();
+            txstate = (M6800.M6800_TX_STATE)reader.ReadInt32();
+            trcsr_read = reader.ReadInt32();
+            tx = reader.ReadInt32();
+            TotalExecutedCycles = reader.ReadUInt64();
+            PendingCycles = reader.ReadInt32();
+        }
+    }
+    public class M6801 : M6800
+    {
+        public M6801()
+        {
+            m6803_insn = new Action[256]{
+                illegal,nop,    illegal,illegal,lsrd,   asld,   tap,    tpa,
+                inx,    dex,    CLV,    SEV,    CLC,    SEC,    cli,    sei,
+                sba,    cba,    illegal,illegal,illegal,illegal,tab,    tba,
+                illegal,daa,    illegal,aba,    illegal,illegal,illegal,illegal,
+                bra,    brn,    bhi,    bls,    bcc,    bcs,    bne,    beq,
+                bvc,    bvs,    bpl,    bmi,    bge,    blt,    bgt,    ble,
+                tsx,    ins,    pula,   pulb,   des,    txs,    psha,   pshb,
+                pulx,   rts,    abx,    rti,    pshx,   mul,    wai,    swi,
+                nega,   illegal,illegal,coma,   lsra,   illegal,rora,   asra,
+                asla,   rola,   deca,   illegal,inca,   tsta,   illegal,clra,
+                negb,   illegal,illegal,comb,   lsrb,   illegal,rorb,   asrb,
+                aslb,   rolb,   decb,   illegal,incb,   tstb,   illegal,clrb,
+                neg_ix, illegal,illegal,com_ix, lsr_ix, illegal,ror_ix, asr_ix,
+                asl_ix, rol_ix, dec_ix, illegal,inc_ix, tst_ix, jmp_ix, clr_ix,
+                neg_ex, illegal,illegal,com_ex, lsr_ex, illegal,ror_ex, asr_ex,
+                asl_ex, rol_ex, dec_ex, illegal,inc_ex, tst_ex, jmp_ex, clr_ex,
+                suba_im,cmpa_im,sbca_im,subd_im,anda_im,bita_im,lda_im, sta_im,
+                eora_im,adca_im,ora_im, adda_im,cpx_im, bsr,    lds_im, sts_im,
+                suba_di,cmpa_di,sbca_di,subd_di,anda_di,bita_di,lda_di, sta_di,
+                eora_di,adca_di,ora_di, adda_di,cpx_di, jsr_di, lds_di, sts_di,
+                suba_ix,cmpa_ix,sbca_ix,subd_ix,anda_ix,bita_ix,lda_ix, sta_ix,
+                eora_ix,adca_ix,ora_ix, adda_ix,cpx_ix, jsr_ix, lds_ix, sts_ix,
+                suba_ex,cmpa_ex,sbca_ex,subd_ex,anda_ex,bita_ex,lda_ex, sta_ex,
+                eora_ex,adca_ex,ora_ex, adda_ex,cpx_ex, jsr_ex, lds_ex, sts_ex,
+                subb_im,cmpb_im,sbcb_im,addd_im,andb_im,bitb_im,ldb_im, stb_im,
+                eorb_im,adcb_im,orb_im, addb_im,ldd_im, std_im, ldx_im, stx_im,
+                subb_di,cmpb_di,sbcb_di,addd_di,andb_di,bitb_di,ldb_di, stb_di,
+                eorb_di,adcb_di,orb_di, addb_di,ldd_di, std_di, ldx_di, stx_di,
+                subb_ix,cmpb_ix,sbcb_ix,addd_ix,andb_ix,bitb_ix,ldb_ix, stb_ix,
+                eorb_ix,adcb_ix,orb_ix, addb_ix,ldd_ix, std_ix, ldx_ix, stx_ix,
+                subb_ex,cmpb_ex,sbcb_ex,addd_ex,andb_ex,bitb_ex,ldb_ex, stb_ex,
+                eorb_ex,adcb_ex,orb_ex, addb_ex,ldd_ex, std_ex, ldx_ex, stx_ex
+            };
+            clock = 1000000;
+            irq_callback = Cpuint.cpu_3_irq_callback;
+            m6800_rx_timer = Timer.timer_alloc_common(m6800_rx_tick, "m6800_rx_tick", false);
+            m6800_tx_timer = Timer.timer_alloc_common(m6800_tx_tick, "m6800_tx_tick", false);
+        }
+        public override int ExecuteCycles(int cycles)
+        {
+            return m6801_execute(cycles);
+        }
+        public int m6801_execute(int cycles)
+        {
+            byte ireg;
+            pendingCycles = cycles;
+            CLEANUP_conters();
+            INCREMENT_COUNTER(extra_cycles);
+            extra_cycles = 0;
+            do
+            {
+                int prevCycles = pendingCycles;
+                if ((wai_state & M6800_WAI) != 0)
+                {
+                    EAT_CYCLES();
+                }
+                else
+                {
+                    PPC = PC;
+                    //debugger_instruction_hook(Machine, PCD);
+                    ireg = ReadOp(PC.LowWord);
+                    PC.LowWord++;
+                    m6803_insn[ireg]();
+                    INCREMENT_COUNTER(cycles_6803[ireg]);
+                    int delta = prevCycles - pendingCycles;
+                    totalExecutedCycles += (ulong)delta;
+                }
+            } while (pendingCycles > 0);
+            INCREMENT_COUNTER(extra_cycles);
+            extra_cycles = 0;
+            return cycles - pendingCycles;
+        }        
     }
 }

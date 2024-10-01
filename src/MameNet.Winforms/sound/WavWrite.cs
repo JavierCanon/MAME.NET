@@ -48,6 +48,7 @@ namespace mame
             short shPad = 1;　　　　　　　　//Filepadding
             int nFormatChunkLength = 0x10;　//Formatchunklength.
             int nLength = 0;　　　　　　　　//Filelength,minusfirst8bytesofRIFFdescription.Thiswillbefilledinlater.
+            mSampleCount = 0;
             //RIFF
             mWriter.Write(ChunkRiff);
             mWriter.Write(nLength);

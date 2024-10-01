@@ -50,12 +50,14 @@ namespace mame
         {
             if (irq != 0)
             {
+                Cpuint.lvec.Add(new vec(1, Timer.get_current_time()));
                 setvector_param = 1;
                 Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
                 Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
             }
             else
             {
+                Cpuint.lvec.Add(new vec(2, Timer.get_current_time()));
                 setvector_param = 2;
                 Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
                 Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
@@ -63,12 +65,10 @@ namespace mame
         }
         public static void m72_sound_command_w(int offset, ushort data)
         {
-            /*StreamWriter sw1 = new StreamWriter("1.txt", true);
-            sw1.WriteLine(Video.screenstate.frame_number.ToString() + "\t" + data.ToString());
-            sw1.Close();*/
             //if (ACCESSING_BITS_0_7)
             {
                 Sound.soundlatch_w(data);
+                Cpuint.lvec.Add(new vec(3, Timer.get_current_time()));
                 setvector_param = 3;
                 Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
                 Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
@@ -77,12 +77,14 @@ namespace mame
         public static void m72_sound_command_byte_w(int offset, byte data)
         {
             Sound.soundlatch_w(data);
-            setvector_param = 3;
+            Cpuint.lvec.Add(new vec(3, Timer.get_current_time()));
+            setvector_param = 3;            
             Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
             Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);
         }
         public static void m72_sound_irq_ack_w(int offset, byte data)
         {
+            Cpuint.lvec.Add(new vec(4, Timer.get_current_time()));
             setvector_param = 4;
             Timer.emu_timer timer = Timer.timer_alloc_common(setvector_callback, "setvector_callback", true);
             Timer.timer_adjust_periodic(timer, Attotime.ATTOTIME_ZERO, Attotime.ATTOTIME_NEVER);

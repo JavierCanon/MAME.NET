@@ -24,8 +24,7 @@ namespace cpu.z80
                 if (halted)
                 {
                     halted = false;
-                    ++RegR;
-                    totalExecutedCycles += 4; pendingCycles -= 4;
+                    RegPC.Word++;
                 }                
                 totalExecutedCycles += 11; pendingCycles -= 11;
                 nonMaskableInterruptPending = false;
@@ -40,7 +39,11 @@ namespace cpu.z80
             {
                 if (interrupt && iff1 && Interruptable) //Z80.irq_state iff1 !Z80.after_ei
                 {
-                    Halted = false;
+                    if (halted)
+                    {
+                        Halted = false;
+                        RegPC.Word++;
+                    }
                     iff1 = iff2 = false;
                     int irq_vector = IRQCallback();
                     switch (interruptMode)
@@ -83,11 +86,10 @@ namespace cpu.z80
                     Interruptable = true;
 
                     ++RegR;
-                    
+
                     PPC = RegPC.Word;
                     OP = ReadOp(PPC);
                     RegPC.Word++;
-
                     debugger_start_cpu_hook_callback();
                     switch (OP)//ReadMemory(RegPC.Word++))
                     {
@@ -415,7 +417,7 @@ namespace cpu.z80
                             RegFlag5 = (TUS & 0x2000) != 0;
                             totalExecutedCycles += 11; pendingCycles -= 11;
                             break;
-                        case 0x3A: // LD A, (nn)                            
+                        case 0x3A: // LD A, (nn)
                             TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                             RegAF.High = ReadMemory(TUS);
                             RegWZ.Word = (ushort)(TUS + 1);
@@ -979,9 +981,9 @@ namespace cpu.z80
                             RegWZ.Word = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                             if (!RegFlagZ)
                             {
+                                totalExecutedCycles += 17; pendingCycles -= 17;
                                 WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                 RegPC.Word = RegWZ.Word;
-                                totalExecutedCycles += 17; pendingCycles -= 17;
                             }
                             else
                             {
@@ -1055,22 +1057,22 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x04: // RLC H
+                                    totalExecutedCycles += 8; pendingCycles -= 8;
                                     TUS = TableRotShift[1, 0, RegAF.Low + 256 * RegHL.High];
                                     RegHL.High = (byte)(TUS >> 8);
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x05: // RLC L
+                                    totalExecutedCycles += 8; pendingCycles -= 8;
                                     TUS = TableRotShift[1, 0, RegAF.Low + 256 * RegHL.Low];
                                     RegHL.Low = (byte)(TUS >> 8);
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x06: // RLC (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x07: // RLC A
                                     TUS = TableRotShift[1, 0, RegAF.Low + 256 * RegAF.High];
@@ -1115,10 +1117,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x0E: // RRC (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x0F: // RRC A
                                     TUS = TableRotShift[1, 1, RegAF.Low + 256 * RegAF.High];
@@ -1163,10 +1165,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x16: // RL (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x17: // RL A
                                     TUS = TableRotShift[1, 2, RegAF.Low + 256 * RegAF.High];
@@ -1211,10 +1213,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x1E: // RR (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x1F: // RR A
                                     TUS = TableRotShift[1, 3, RegAF.Low + 256 * RegAF.High];
@@ -1259,10 +1261,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x26: // SLA (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x27: // SLA A
                                     TUS = TableRotShift[1, 4, RegAF.Low + 256 * RegAF.High];
@@ -1307,10 +1309,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x2E: // SRA (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x2F: // SRA A
                                     TUS = TableRotShift[1, 5, RegAF.Low + 256 * RegAF.High];
@@ -1355,10 +1357,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x36: // SL1 (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x37: // SL1 A
                                     TUS = TableRotShift[1, 6, RegAF.Low + 256 * RegAF.High];
@@ -1403,10 +1405,10 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x3E: // SRL (HL)
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegHL.Word)];
                                     WriteMemory(RegHL.Word, (byte)(TUS >> 8));
                                     RegAF.Low = (byte)TUS;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x3F: // SRL A
                                     TUS = TableRotShift[1, 7, RegAF.Low + 256 * RegAF.High];
@@ -2079,8 +2081,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x86: // RES 0, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x01)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x01)));
                                     break;
                                 case 0x87: // RES 0, A
                                     RegAF.High &= unchecked((byte)~0x01);
@@ -2111,8 +2113,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x8E: // RES 1, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x02)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x02)));
                                     break;
                                 case 0x8F: // RES 1, A
                                     RegAF.High &= unchecked((byte)~0x02);
@@ -2143,8 +2145,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x96: // RES 2, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x04)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x04)));
                                     break;
                                 case 0x97: // RES 2, A
                                     RegAF.High &= unchecked((byte)~0x04);
@@ -2175,8 +2177,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x9E: // RES 3, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x08)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x08)));
                                     break;
                                 case 0x9F: // RES 3, A
                                     RegAF.High &= unchecked((byte)~0x08);
@@ -2207,8 +2209,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xA6: // RES 4, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x10)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x10)));
                                     break;
                                 case 0xA7: // RES 4, A
                                     RegAF.High &= unchecked((byte)~0x10);
@@ -2239,8 +2241,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xAE: // RES 5, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x20)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x20)));
                                     break;
                                 case 0xAF: // RES 5, A
                                     RegAF.High &= unchecked((byte)~0x20);
@@ -2271,8 +2273,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xB6: // RES 6, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x40)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x40)));
                                     break;
                                 case 0xB7: // RES 6, A
                                     RegAF.High &= unchecked((byte)~0x40);
@@ -2303,8 +2305,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xBE: // RES 7, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x80)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) & unchecked((byte)~0x80)));
                                     break;
                                 case 0xBF: // RES 7, A
                                     RegAF.High &= unchecked((byte)~0x80);
@@ -2335,8 +2337,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xC6: // SET 0, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x01)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x01)));
                                     break;
                                 case 0xC7: // SET 0, A
                                     RegAF.High |= unchecked((byte)0x01);
@@ -2367,8 +2369,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xCE: // SET 1, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x02)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x02)));
                                     break;
                                 case 0xCF: // SET 1, A
                                     RegAF.High |= unchecked((byte)0x02);
@@ -2399,8 +2401,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xD6: // SET 2, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x04)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x04)));
                                     break;
                                 case 0xD7: // SET 2, A
                                     RegAF.High |= unchecked((byte)0x04);
@@ -2431,8 +2433,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xDE: // SET 3, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x08)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x08)));
                                     break;
                                 case 0xDF: // SET 3, A
                                     RegAF.High |= unchecked((byte)0x08);
@@ -2463,8 +2465,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xE6: // SET 4, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x10)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x10)));
                                     break;
                                 case 0xE7: // SET 4, A
                                     RegAF.High |= unchecked((byte)0x10);
@@ -2495,8 +2497,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xEE: // SET 5, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x20)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x20)));
                                     break;
                                 case 0xEF: // SET 5, A
                                     RegAF.High |= unchecked((byte)0x20);
@@ -2527,8 +2529,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xF6: // SET 6, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x40)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x40)));
                                     break;
                                 case 0xF7: // SET 6, A
                                     RegAF.High |= unchecked((byte)0x40);
@@ -2559,8 +2561,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0xFE: // SET 7, (HL)
-                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x80)));
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(RegHL.Word, (byte)(ReadMemory(RegHL.Word) | unchecked((byte)0x80)));
                                     break;
                                 case 0xFF: // SET 7, A
                                     RegAF.High |= unchecked((byte)0x80);
@@ -2620,8 +2622,8 @@ namespace cpu.z80
                             }
                             totalExecutedCycles += 10; pendingCycles -= 10;
                             break;
-                        case 0xD3: // OUT n, A                            
-                            TUS=(ushort)(ReadOpArg(RegPC.Word++) | (RegAF.High << 8));                            
+                        case 0xD3: // OUT n, A
+                            TUS = (ushort)(ReadOpArg(RegPC.Word++) | (RegAF.High << 8));
                             WriteHardware(TUS, RegAF.High);
                             RegWZ.Low = (byte)(((TUS & 0xFF) + 1) & 0xFF);
                             RegWZ.High = RegAF.High;
@@ -2710,8 +2712,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0x02: // LD (BC), A
-                                    WriteMemory(RegBC.Word, RegAF.High);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    WriteMemory(RegBC.Word, RegAF.High);
                                     break;
                                 case 0x03: // INC BC
                                     ++RegBC.Word;
@@ -2790,8 +2792,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0x12: // LD (DE), A
-                                    WriteMemory(RegDE.Word, RegAF.High);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    WriteMemory(RegDE.Word, RegAF.High);
                                     break;
                                 case 0x13: // INC DE
                                     ++RegDE.Word;
@@ -2871,11 +2873,11 @@ namespace cpu.z80
                                     totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x22: // LD (nn), IX
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegIX.Low);
                                     WriteMemory(TUS, RegIX.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x23: // INC IX
                                     ++RegIX.Word;
@@ -2964,30 +2966,30 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0x32: // LD (nn), A
-                                    WriteMemory((ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256), RegAF.High);
                                     totalExecutedCycles += 13; pendingCycles -= 13;
+                                    WriteMemory((ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256), RegAF.High);
                                     break;
                                 case 0x33: // INC SP
                                     ++RegSP.Word;
                                     totalExecutedCycles += 6; pendingCycles -= 6;
                                     break;
                                 case 0x34: // INC (IX+d)
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     TB = ReadMemory(RegWZ.Word); RegAF.Low = (byte)(TableInc[++TB] | (RegAF.Low & 1)); WriteMemory(RegWZ.Word, TB);
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0x35: // DEC (IX+d)
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     TB = ReadMemory(RegWZ.Word); RegAF.Low = (byte)(TableDec[--TB] | (RegAF.Low & 1)); WriteMemory(RegWZ.Word, TB);
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0x36: // LD (IX+d), n
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, ReadOpArg(RegPC.Word++));
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x37: // SCF
                                     RegFlagH = false; RegFlagN = false; RegFlagC = true; RegFlag3 = (RegAF.High & 0x08) != 0; RegFlag5 = (RegAF.High & 0x20) != 0;
@@ -3240,50 +3242,50 @@ namespace cpu.z80
                                     totalExecutedCycles += 9; pendingCycles -= 9;
                                     break;
                                 case 0x70: // LD (IX+d), B
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegBC.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x71: // LD (IX+d), C
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegBC.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x72: // LD (IX+d), D
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegDE.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x73: // LD (IX+d), E
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegDE.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x74: // LD (IX+d), H
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegHL.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x75: // LD (IX+d), L
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegHL.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x76: // HALT
                                     Halt();
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0x77: // LD (IX+d), A
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegAF.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x78: // LD A, B
                                     RegAF.High = RegBC.High;
@@ -3621,9 +3623,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagZ)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -3631,17 +3633,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xC5: // PUSH BC
-                                    WriteMemory(--RegSP.Word, RegBC.High); WriteMemory(--RegSP.Word, RegBC.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegBC.High); WriteMemory(--RegSP.Word, RegBC.Low);
                                     break;
                                 case 0xC6: // ADD A, n
                                     RegAF.Word = TableALU[0, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xC7: // RST $00
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x00;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xC8: // RET Z
                                     if (RegFlagZ)
@@ -3672,445 +3674,445 @@ namespace cpu.z80
                                     RegWZ.Word = (ushort)(RegIX.Word + Displacement);
                                     switch (ReadOpArg(RegPC.Word++))
                                     {
-                                        case 0x00: // RLC (IX+d)→B                                            
+                                        case 0x00: // RLC (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
-                                        case 0x01: // RLC (IX+d)→C                                            
+                                        case 0x01: // RLC (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
-                                        case 0x02: // RLC (IX+d)→D                                            
+                                        case 0x02: // RLC (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x03: // RLC (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x04: // RLC (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x05: // RLC (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x06: // RLC (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x07: // RLC (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x08: // RRC (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x09: // RRC (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0A: // RRC (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0B: // RRC (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0C: // RRC (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0D: // RRC (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0E: // RRC (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0F: // RRC (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x10: // RL (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x11: // RL (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x12: // RL (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x13: // RL (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x14: // RL (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x15: // RL (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x16: // RL (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x17: // RL (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x18: // RR (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x19: // RR (IX+d)→C
-                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];                                            
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
+                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1A: // RR (IX+d)→D
-                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];                                            
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
+                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1B: // RR (IX+d)→E
-                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];                                            
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
+                                            TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1C: // RR (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1D: // RR (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1E: // RR (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1F: // RR (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x20: // SLA (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x21: // SLA (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x22: // SLA (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x23: // SLA (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x24: // SLA (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x25: // SLA (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x26: // SLA (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x27: // SLA (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x28: // SRA (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x29: // SRA (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2A: // SRA (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2B: // SRA (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2C: // SRA (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2D: // SRA (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2E: // SRA (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2F: // SRA (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x30: // SL1 (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x31: // SL1 (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x32: // SL1 (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x33: // SL1 (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x34: // SL1 (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x35: // SL1 (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x36: // SL1 (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x37: // SL1 (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x38: // SRL (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x39: // SRL (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegBC.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3A: // SRL (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3B: // SRL (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegDE.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3C: // SRL (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3D: // SRL (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegHL.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3E: // SRL (IX+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3F: // SRL (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
                                             RegAF.High = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x40: // BIT 0, (IX+d)
                                         case 0x41: // BIT 0, (IX+d)
@@ -4120,6 +4122,7 @@ namespace cpu.z80
                                         case 0x45: // BIT 0, (IX+d)
                                         case 0x46: // BIT 0, (IX+d)
                                         case 0x47: // BIT 0, (IX+d)
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TBOOL = (ReadMemory(RegWZ.Word) & 0x01) == 0;
                                             RegFlagN = false;
                                             RegFlagP = TBOOL;
@@ -4128,7 +4131,6 @@ namespace cpu.z80
                                             RegFlag5 = ((RegWZ.Word >> 8) & 0x20) != 0;
                                             RegFlagZ = TBOOL;
                                             RegFlagS = false;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x48: // BIT 1, (IX+d)
                                         case 0x49: // BIT 1, (IX+d)
@@ -4138,6 +4140,7 @@ namespace cpu.z80
                                         case 0x4D: // BIT 1, (IX+d)
                                         case 0x4E: // BIT 1, (IX+d)
                                         case 0x4F: // BIT 1, (IX+d)
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TBOOL = (ReadMemory(RegWZ.Word) & 0x02) == 0;
                                             RegFlagN = false;
                                             RegFlagP = TBOOL;
@@ -4146,7 +4149,6 @@ namespace cpu.z80
                                             RegFlag5 = ((RegWZ.Word >> 8) & 0x20) != 0;
                                             RegFlagZ = TBOOL;
                                             RegFlagS = false;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x50: // BIT 2, (IX+d)
                                         case 0x51: // BIT 2, (IX+d)
@@ -4156,6 +4158,7 @@ namespace cpu.z80
                                         case 0x55: // BIT 2, (IX+d)
                                         case 0x56: // BIT 2, (IX+d)
                                         case 0x57: // BIT 2, (IX+d)
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TBOOL = (ReadMemory(RegWZ.Word) & 0x04) == 0;
                                             RegFlagN = false;
                                             RegFlagP = TBOOL;
@@ -4164,7 +4167,6 @@ namespace cpu.z80
                                             RegFlag5 = ((RegWZ.Word >> 8) & 0x20) != 0;
                                             RegFlagZ = TBOOL;
                                             RegFlagS = false;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x58: // BIT 3, (IX+d)
                                         case 0x59: // BIT 3, (IX+d)
@@ -4174,6 +4176,7 @@ namespace cpu.z80
                                         case 0x5D: // BIT 3, (IX+d)
                                         case 0x5E: // BIT 3, (IX+d)
                                         case 0x5F: // BIT 3, (IX+d)
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TBOOL = (ReadMemory(RegWZ.Word) & 0x08) == 0;
                                             RegFlagN = false;
                                             RegFlagP = TBOOL;
@@ -4182,7 +4185,6 @@ namespace cpu.z80
                                             RegFlag5 = ((RegWZ.Word >> 8) & 0x20) != 0;
                                             RegFlagZ = TBOOL;
                                             RegFlagS = false;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x60: // BIT 4, (IX+d)
                                         case 0x61: // BIT 4, (IX+d)
@@ -4257,628 +4259,628 @@ namespace cpu.z80
                                             totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x80: // RES 0, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x81: // RES 0, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x82: // RES 0, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x83: // RES 0, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x84: // RES 0, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x85: // RES 0, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x86: // RES 0, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x87: // RES 0, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x88: // RES 1, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x89: // RES 1, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x8A: // RES 1, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x8B: // RES 1, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x8C: // RES 1, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x8D: // RES 1, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x8E: // RES 1, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8F: // RES 1, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x90: // RES 2, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x91: // RES 2, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x92: // RES 2, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x93: // RES 2, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x94: // RES 2, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x95: // RES 2, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x96: // RES 2, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x97: // RES 2, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x98: // RES 3, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x99: // RES 3, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x9A: // RES 3, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x9B: // RES 3, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x9C: // RES 3, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x9D: // RES 3, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x9E: // RES 3, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9F: // RES 3, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA0: // RES 4, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA1: // RES 4, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA2: // RES 4, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA3: // RES 4, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA4: // RES 4, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA5: // RES 4, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA6: // RES 4, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA7: // RES 4, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA8: // RES 5, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xA9: // RES 5, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xAA: // RES 5, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xAB: // RES 5, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xAC: // RES 5, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xAD: // RES 5, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xAE: // RES 5, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAF: // RES 5, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB0: // RES 6, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB1: // RES 6, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB2: // RES 6, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB3: // RES 6, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB4: // RES 6, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB5: // RES 6, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB6: // RES 6, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB7: // RES 6, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB8: // RES 7, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xB9: // RES 7, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xBA: // RES 7, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xBB: // RES 7, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xBC: // RES 7, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xBD: // RES 7, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xBE: // RES 7, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBF: // RES 7, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC0: // SET 0, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC1: // SET 0, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC2: // SET 0, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC3: // SET 0, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC4: // SET 0, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC5: // SET 0, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC6: // SET 0, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC7: // SET 0, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC8: // SET 1, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xC9: // SET 1, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xCA: // SET 1, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xCB: // SET 1, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xCC: // SET 1, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xCD: // SET 1, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xCE: // SET 1, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCF: // SET 1, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD0: // SET 2, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD1: // SET 2, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD2: // SET 2, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD3: // SET 2, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD4: // SET 2, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD5: // SET 2, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD6: // SET 2, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD7: // SET 2, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD8: // SET 3, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xD9: // SET 3, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xDA: // SET 3, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xDB: // SET 3, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xDC: // SET 3, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xDD: // SET 3, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xDE: // SET 3, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDF: // SET 3, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE0: // SET 4, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE1: // SET 4, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE2: // SET 4, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE3: // SET 4, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE4: // SET 4, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE5: // SET 4, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE6: // SET 4, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE7: // SET 4, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE8: // SET 5, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xE9: // SET 5, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xEA: // SET 5, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xEB: // SET 5, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xEC: // SET 5, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xED: // SET 5, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xEE: // SET 5, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEF: // SET 5, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF0: // SET 6, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF1: // SET 6, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF2: // SET 6, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF3: // SET 6, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF4: // SET 6, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF5: // SET 6, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF6: // SET 6, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF7: // SET 6, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF8: // SET 7, (IX+d)→B
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegBC.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xF9: // SET 7, (IX+d)→C
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegBC.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegBC.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xFA: // SET 7, (IX+d)→D
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegDE.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xFB: // SET 7, (IX+d)→E
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegDE.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegDE.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xFC: // SET 7, (IX+d)→H
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegHL.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xFD: // SET 7, (IX+d)→L
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegHL.Low = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegHL.Low);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0xFE: // SET 7, (IX+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFF: // SET 7, (IX+d)→A
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             RegAF.High = (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80));
                                             WriteMemory(RegWZ.Word, RegAF.High);
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                     }
                                     break;
@@ -4886,9 +4888,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagZ)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -4896,25 +4898,25 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xCD: // CALL nn
+                                    totalExecutedCycles += 17; pendingCycles -= 17;
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = TUS;
-                                    totalExecutedCycles += 17; pendingCycles -= 17;
                                     break;
                                 case 0xCE: // ADC A, n
-                                    RegAF.Word = TableALU[1, RegAF.High, ReadMemory(RegPC.Word++), RegFlagC ? 1 : 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegAF.Word = TableALU[1, RegAF.High, ReadMemory(RegPC.Word++), RegFlagC ? 1 : 0];
                                     break;
                                 case 0xCF: // RST $08
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x08;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xD0: // RET NC
                                     if (!RegFlagC)
                                     {
-                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                         totalExecutedCycles += 11; pendingCycles -= 11;
+                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     }
                                     else
                                     {
@@ -4941,9 +4943,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -4951,23 +4953,23 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xD5: // PUSH DE
-                                    WriteMemory(--RegSP.Word, RegDE.High); WriteMemory(--RegSP.Word, RegDE.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegDE.High); WriteMemory(--RegSP.Word, RegDE.Low);
                                     break;
                                 case 0xD6: // SUB n
-                                    RegAF.Word = TableALU[2, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegAF.Word = TableALU[2, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     break;
                                 case 0xD7: // RST $10
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x10;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xD8: // RET C
                                     if (RegFlagC)
                                     {
-                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                         totalExecutedCycles += 11; pendingCycles -= 11;
+                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     }
                                     else
                                     {
@@ -4975,10 +4977,10 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xD9: // EXX
+                                    totalExecutedCycles += 4; pendingCycles -= 4;
                                     TUS = RegBC.Word; RegBC.Word = RegAltBC.Word; RegAltBC.Word = TUS;
                                     TUS = RegDE.Word; RegDE.Word = RegAltDE.Word; RegAltDE.Word = TUS;
                                     TUS = RegHL.Word; RegHL.Word = RegAltHL.Word; RegAltHL.Word = TUS;
-                                    totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0xDA: // JP C, nn
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
@@ -4992,15 +4994,15 @@ namespace cpu.z80
                                     totalExecutedCycles += 11; pendingCycles -= 11;
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) | (RegAF.High << 8));
                                     RegAF.High = ReadHardware(TUS);
-                                    RegWZ.Word = (ushort)(TUS + 1);                                    
+                                    RegWZ.Word = (ushort)(TUS + 1);
                                     break;
                                 case 0xDC: // CALL C, nn
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -5016,9 +5018,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xDF: // RST $18
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x18;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xE0: // RET PO
                                     if (!RegFlagP)
@@ -5044,19 +5046,19 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0xE3: // EX (SP), IX
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     TUS = RegSP.Word; TBL = ReadMemory(TUS++); TBH = ReadMemory(TUS--);
                                     WriteMemory(TUS++, RegIX.Low); WriteMemory(TUS, RegIX.High);
                                     RegIX.Low = TBL; RegIX.High = TBH;
                                     RegWZ.Word = RegIX.Word;
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0xE4: // CALL C, nn
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -5064,23 +5066,23 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xE5: // PUSH IX
-                                    WriteMemory(--RegSP.Word, RegIX.High); WriteMemory(--RegSP.Word, RegIX.Low);
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(--RegSP.Word, RegIX.High); WriteMemory(--RegSP.Word, RegIX.Low);
                                     break;
                                 case 0xE6: // AND n
-                                    RegAF.Word = TableALU[4, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegAF.Word = TableALU[4, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     break;
                                 case 0xE7: // RST $20
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x20;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xE8: // RET PE
                                     if (RegFlagP)
                                     {
-                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                         totalExecutedCycles += 11; pendingCycles -= 11;
+                                        RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     }
                                     else
                                     {
@@ -5107,9 +5109,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagP)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -5321,7 +5323,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegBC.High & 0x08) != 0;
                                             RegFlagP = TableParity[RegBC.High];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x41: // OUT C, B
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5343,10 +5345,10 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x43: // LD (nn), BC
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegBC.Low);
                                             WriteMemory(TUS, RegBC.High);
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x44: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -5374,7 +5376,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegBC.Low & 0x08) != 0;
                                             RegFlagP = TableParity[RegBC.Low];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x49: // OUT C, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5425,7 +5427,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegDE.High & 0x08) != 0;
                                             RegFlagP = TableParity[RegDE.High];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x51: // OUT C, D
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5447,10 +5449,10 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x53: // LD (nn), DE
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegDE.Low);
                                             WriteMemory(TUS, RegDE.High);
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x54: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -5485,7 +5487,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegDE.Low & 0x08) != 0;
                                             RegFlagP = TableParity[RegDE.Low];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x59: // OUT C, E
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5543,7 +5545,7 @@ namespace cpu.z80
                                             RegFlagP = TableParity[RegHL.High];
                                             RegFlagN = false;
                                             RegFlag3 = (RegHL.High & 0x08) != 0;
-                                            RegFlag5 = (RegHL.High & 0x20) != 0;                                            
+                                            RegFlag5 = (RegHL.High & 0x20) != 0;
                                             break;
                                         case 0x61: // OUT C, H
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5565,10 +5567,10 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x63: // LD (nn), HL
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegHL.Low);
                                             WriteMemory(TUS, RegHL.High);
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0x64: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -5584,6 +5586,7 @@ namespace cpu.z80
                                             totalExecutedCycles += 8; pendingCycles -= 8;
                                             break;
                                         case 0x67: // RRD
+                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                             WriteMemory(RegHL.Word, (byte)((TB2 >> 4) + (TB1 << 4)));
                                             RegAF.High = (byte)((TB1 & 0xF0) + (TB2 & 0x0F));
@@ -5594,7 +5597,6 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             break;
                                         case 0x68: // IN L, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5605,7 +5607,7 @@ namespace cpu.z80
                                             RegFlagP = TableParity[RegHL.Low];
                                             RegFlagN = false;
                                             RegFlag3 = (RegHL.Low & 0x08) != 0;
-                                            RegFlag5 = (RegHL.Low & 0x20) != 0;                                            
+                                            RegFlag5 = (RegHL.Low & 0x20) != 0;
                                             break;
                                         case 0x69: // OUT C, L
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5644,6 +5646,7 @@ namespace cpu.z80
                                             totalExecutedCycles += 8; pendingCycles -= 8;
                                             break;
                                         case 0x6F: // RLD
+                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                             WriteMemory(RegHL.Word, (byte)((TB1 & 0x0F) + (TB2 << 4)));
                                             RegAF.High = (byte)((TB1 & 0xF0) + (TB2 >> 4));
@@ -5654,7 +5657,6 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             break;
                                         case 0x70: // IN 0, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5665,7 +5667,7 @@ namespace cpu.z80
                                             RegFlagP = TableParity[TB];
                                             RegFlagN = false;
                                             RegFlag3 = (TB & 0x08) != 0;
-                                            RegFlag5 = (TB & 0x20) != 0;                                            
+                                            RegFlag5 = (TB & 0x20) != 0;
                                             break;
                                         case 0x71: // OUT C, 0
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5687,10 +5689,10 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x73: // LD (nn), SP
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegSP.Low);
                                             WriteMemory(TUS, RegSP.High);
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x74: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -5718,7 +5720,7 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            RegWZ.Word = (ushort)(RegBC.Word + 1);                                            
+                                            RegWZ.Word = (ushort)(RegBC.Word + 1);
                                             break;
                                         case 0x79: // OUT C, A
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -5856,13 +5858,13 @@ namespace cpu.z80
                                             totalExecutedCycles += 4; pendingCycles -= 4;
                                             break;
                                         case 0xA0: // LDI
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             WriteMemory(RegDE.Word++, TB1 = ReadMemory(RegHL.Word++));
                                             TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                             --RegBC.Word;
                                             RegFlagP = RegBC.Word != 0;
                                             RegFlagH = false;
                                             RegFlagN = false;
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0xA1: // CPI
                                             TB1 = ReadMemory(RegHL.Word++); TB2 = (byte)(RegAF.High - TB1);
@@ -5891,7 +5893,7 @@ namespace cpu.z80
                                             {
                                                 RegFlagH = RegFlagC = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xA3: // OUTI
                                             totalExecutedCycles += 16; pendingCycles -= 16;
@@ -5931,13 +5933,13 @@ namespace cpu.z80
                                             totalExecutedCycles += 4; pendingCycles -= 4;
                                             break;
                                         case 0xA8: // LDD
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             WriteMemory(RegDE.Word--, TB1 = ReadMemory(RegHL.Word--));
                                             TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                             --RegBC.Word;
                                             RegFlagP = RegBC.Word != 0;
                                             RegFlagH = false;
                                             RegFlagN = false;
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0xA9: // CPD
                                             TB1 = ReadMemory(RegHL.Word--); TB2 = (byte)(RegAF.High - TB1);
@@ -5967,7 +5969,7 @@ namespace cpu.z80
                                             {
                                                 RegFlagH = RegFlagC = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xAB: // OUTD
                                             totalExecutedCycles += 16; pendingCycles -= 16;
@@ -6397,9 +6399,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xEF: // RST $28
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x28;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xF0: // RET P
                                     if (!RegFlagS)
@@ -6432,9 +6434,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagS)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -6442,17 +6444,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xF5: // PUSH AF
-                                    WriteMemory(--RegSP.Word, RegAF.High); WriteMemory(--RegSP.Word, RegAF.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegAF.High); WriteMemory(--RegSP.Word, RegAF.Low);
                                     break;
                                 case 0xF6: // OR n
                                     RegAF.Word = TableALU[6, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xF7: // RST $30
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x30;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xF8: // RET M
                                     if (RegFlagS)
@@ -6486,9 +6488,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagS)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -6504,9 +6506,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xFF: // RST $38
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x38;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                             }
                             break;
@@ -6822,13 +6824,14 @@ namespace cpu.z80
                                     RegFlagH = false;
                                     RegFlag3 = (RegBC.High & 0x08) != 0;
                                     RegFlagP = TableParity[RegBC.High];
-                                    RegFlagN = false;                                    
+                                    RegFlagN = false;
                                     break;
                                 case 0x41: // OUT C, B
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, RegBC.High);
                                     break;
                                 case 0x42: // SBC HL, BC
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegBC.Word; TIR = TI1 - TI2;
                                     if (RegFlagC) { --TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -6842,24 +6845,23 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x43: // LD (nn), BC
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegBC.Low);
                                     WriteMemory(TUS, RegBC.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x44: // NEG
-                                    RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
+                                    RegAF.Word = TableNeg[RegAF.Word];
                                     break;
                                 case 0x45: // RETN
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x46: // IM $0
                                     interruptMode = 0;
@@ -6878,13 +6880,14 @@ namespace cpu.z80
                                     RegFlagH = false;
                                     RegFlag3 = (RegBC.Low & 0x08) != 0;
                                     RegFlagP = TableParity[RegBC.Low];
-                                    RegFlagN = false;                                    
+                                    RegFlagN = false;
                                     break;
                                 case 0x49: // OUT C, C
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, RegBC.Low);
                                     break;
                                 case 0x4A: // ADC HL, BC
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegBC.Word; TIR = TI1 + TI2;
                                     if (RegFlagC) { ++TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -6898,23 +6901,22 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x4B: // LD BC, (nn)
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     RegBC.Low = ReadMemory(TUS++); RegBC.High = ReadMemory(TUS);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x4C: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x4D: // RETI
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x4E: // IM $0
                                     interruptMode = 0;
@@ -6934,13 +6936,14 @@ namespace cpu.z80
                                     RegFlagH = false;
                                     RegFlag3 = (RegDE.High & 0x08) != 0;
                                     RegFlagP = TableParity[RegDE.High];
-                                    RegFlagN = false;                                    
+                                    RegFlagN = false;
                                     break;
                                 case 0x51: // OUT C, D
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, RegDE.High);
                                     break;
                                 case 0x52: // SBC HL, DE
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegDE.Word; TIR = TI1 - TI2;
                                     if (RegFlagC) { --TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -6954,14 +6957,13 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x53: // LD (nn), DE
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegDE.Low);
                                     WriteMemory(TUS, RegDE.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x54: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
@@ -6997,7 +6999,7 @@ namespace cpu.z80
                                     RegFlagH = false;
                                     RegFlag3 = (RegDE.Low & 0x08) != 0;
                                     RegFlagP = TableParity[RegDE.Low];
-                                    RegFlagN = false;                                    
+                                    RegFlagN = false;
                                     break;
                                 case 0x59: // OUT C, E
                                     totalExecutedCycles += 12; pendingCycles -= 12;
@@ -7020,26 +7022,27 @@ namespace cpu.z80
                                     totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x5B: // LD DE, (nn)
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     RegDE.Low = ReadMemory(TUS++); RegDE.High = ReadMemory(TUS);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x5C: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x5D: // RETI
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x5E: // IM $2
                                     interruptMode = 2;
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x5F: // LD A, R
+                                    totalExecutedCycles += 9; pendingCycles -= 9;
                                     RegAF.High = (byte)((RegR & 0x7F) | RegR2);
                                     RegFlagS = (RegR2 == 0x80);
                                     RegFlagZ = (byte)((RegR & 0x7F) | RegR2) == 0;
@@ -7048,7 +7051,6 @@ namespace cpu.z80
                                     RegFlagN = false;
                                     RegFlag3 = ((RegR & 0x08) != 0);
                                     RegFlagP = IFF2;
-                                    totalExecutedCycles += 9; pendingCycles -= 9;
                                     break;
                                 case 0x60: // IN H, C
                                     totalExecutedCycles += 12; pendingCycles -= 12;
@@ -7059,13 +7061,14 @@ namespace cpu.z80
                                     RegFlagP = TableParity[RegHL.High];
                                     RegFlagN = false;
                                     RegFlag3 = (RegHL.High & 0x08) != 0;
-                                    RegFlag5 = (RegHL.High & 0x20) != 0;                                    
+                                    RegFlag5 = (RegHL.High & 0x20) != 0;
                                     break;
                                 case 0x61: // OUT C, H
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, RegHL.High);
                                     break;
                                 case 0x62: // SBC HL, HL
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegHL.Word; TIR = TI1 - TI2;
                                     if (RegFlagC) { --TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -7079,30 +7082,30 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x63: // LD (nn), HL
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegHL.Low);
                                     WriteMemory(TUS, RegHL.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0x64: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x65: // RETN
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x66: // IM $0
                                     interruptMode = 0;
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x67: // RRD
+                                    totalExecutedCycles += 18; pendingCycles -= 18;
                                     TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                     RegWZ.Word = (ushort)(RegHL.Word + 1);
                                     WriteMemory(RegHL.Word, (byte)((TB2 >> 4) + (TB1 << 4)));
@@ -7114,7 +7117,6 @@ namespace cpu.z80
                                     RegFlagN = false;
                                     RegFlag3 = (RegAF.High & 0x08) != 0;
                                     RegFlag5 = (RegAF.High & 0x20) != 0;
-                                    totalExecutedCycles += 18; pendingCycles -= 18;
                                     break;
                                 case 0x68: // IN L, C
                                     totalExecutedCycles += 12; pendingCycles -= 12;
@@ -7125,13 +7127,14 @@ namespace cpu.z80
                                     RegFlagP = TableParity[RegHL.Low];
                                     RegFlagN = false;
                                     RegFlag3 = (RegHL.Low & 0x08) != 0;
-                                    RegFlag5 = (RegHL.Low & 0x20) != 0;                                    
+                                    RegFlag5 = (RegHL.Low & 0x20) != 0;
                                     break;
                                 case 0x69: // OUT C, L
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, RegHL.Low);
                                     break;
                                 case 0x6A: // ADC HL, HL
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegHL.Word; TIR = TI1 + TI2;
                                     if (RegFlagC) { ++TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -7145,29 +7148,29 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x6B: // LD HL, (nn)
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     RegHL.Low = ReadMemory(TUS++); RegHL.High = ReadMemory(TUS);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0x6C: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x6D: // RETI
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x6E: // IM $0
                                     interruptMode = 0;
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x6F: // RLD
+                                    totalExecutedCycles += 18; pendingCycles -= 18;
                                     TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                     RegWZ.Word = (ushort)(RegHL.Word + 1);
                                     WriteMemory(RegHL.Word, (byte)((TB1 & 0x0F) + (TB2 << 4)));
@@ -7179,7 +7182,6 @@ namespace cpu.z80
                                     RegFlagN = false;
                                     RegFlag3 = (RegAF.High & 0x08) != 0;
                                     RegFlag5 = (RegAF.High & 0x20) != 0;
-                                    totalExecutedCycles += 18; pendingCycles -= 18;
                                     break;
                                 case 0x70: // IN 0, C
                                     totalExecutedCycles += 12; pendingCycles -= 12;
@@ -7190,13 +7192,14 @@ namespace cpu.z80
                                     RegFlagP = TableParity[TB];
                                     RegFlagN = false;
                                     RegFlag3 = (TB & 0x08) != 0;
-                                    RegFlag5 = (TB & 0x20) != 0;                                    
+                                    RegFlag5 = (TB & 0x20) != 0;
                                     break;
                                 case 0x71: // OUT C, 0
                                     totalExecutedCycles += 12; pendingCycles -= 12;
                                     WriteHardware(RegBC.Word, 0);
                                     break;
                                 case 0x72: // SBC HL, SP
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegSP.Word; TIR = TI1 - TI2;
                                     if (RegFlagC) { --TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -7210,24 +7213,23 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x73: // LD (nn), SP
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegSP.Low);
                                     WriteMemory(TUS, RegSP.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x74: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x75: // RETN
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x76: // IM $1
                                     interruptMode = 1;
@@ -7238,7 +7240,7 @@ namespace cpu.z80
                                     break;
                                 case 0x78: // IN A, C
                                     totalExecutedCycles += 12; pendingCycles -= 12;
-                                    RegAF.High = ReadHardware(RegBC.Word);                                    
+                                    RegAF.High = ReadHardware(RegBC.Word);
                                     RegFlagS = RegAF.High > 127;
                                     RegFlagZ = RegAF.High == 0;
                                     RegFlagH = false;
@@ -7246,7 +7248,7 @@ namespace cpu.z80
                                     RegFlagN = false;
                                     RegFlag3 = (RegAF.High & 0x08) != 0;
                                     RegFlag5 = (RegAF.High & 0x20) != 0;
-                                    RegWZ.Word = (ushort)(RegBC.Word + 1);                                    
+                                    RegWZ.Word = (ushort)(RegBC.Word + 1);
                                     break;
                                 case 0x79: // OUT C, A
                                     totalExecutedCycles += 12; pendingCycles -= 12;
@@ -7254,6 +7256,7 @@ namespace cpu.z80
                                     RegWZ.Word = (ushort)(RegBC.Word + 1);
                                     break;
                                 case 0x7A: // ADC HL, SP
+                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     TI1 = (short)RegHL.Word; TI2 = (short)RegSP.Word; TIR = TI1 + TI2;
                                     if (RegFlagC) { ++TIR; ++TI2; }
                                     TUS = (ushort)TIR;
@@ -7267,23 +7270,22 @@ namespace cpu.z80
                                     RegHL.Word = TUS;
                                     RegFlag3 = (TUS & 0x0800) != 0;
                                     RegFlag5 = (TUS & 0x2000) != 0;
-                                    totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x7B: // LD SP, (nn)
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     RegSP.Low = ReadMemory(TUS++); RegSP.High = ReadMemory(TUS);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x7C: // NEG
                                     RegAF.Word = TableNeg[RegAF.Word];
                                     totalExecutedCycles += 8; pendingCycles -= 8;
                                     break;
                                 case 0x7D: // RETI
+                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     RegPC.Low = ReadMemory(RegSP.Word++); RegPC.High = ReadMemory(RegSP.Word++);
                                     RegWZ.Word = RegPC.Word;
                                     IFF1 = IFF2;
-                                    totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x7E: // IM $2
                                     interruptMode = 2;
@@ -7389,15 +7391,16 @@ namespace cpu.z80
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0xA0: // LDI
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     WriteMemory(RegDE.Word++, TB1 = ReadMemory(RegHL.Word++));
                                     TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                     --RegBC.Word;
                                     RegFlagP = RegBC.Word != 0;
                                     RegFlagH = false;
                                     RegFlagN = false;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0xA1: // CPI
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     TB1 = ReadMemory(RegHL.Word++); TB2 = (byte)(RegAF.High - TB1);
                                     RegWZ.Word++;
                                     RegFlagN = true;
@@ -7407,11 +7410,10 @@ namespace cpu.z80
                                     TB1 = (byte)(RegAF.High - TB1 - (RegFlagH ? 1 : 0)); RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                     --RegBC.Word;
                                     RegFlagP = RegBC.Word != 0;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0xA2: // INI
                                     totalExecutedCycles += 16; pendingCycles -= 16;
-                                    TB=ReadHardware(RegBC.Word);
+                                    TB = ReadHardware(RegBC.Word);
                                     RegWZ.Word = (ushort)(RegBC.Word + 1);
                                     --RegBC.High;
                                     WriteMemory(RegHL.Word++, TB);
@@ -7425,7 +7427,7 @@ namespace cpu.z80
                                     {
                                         RegFlagH = RegFlagC = true;
                                     }
-                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                    
+                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                     break;
                                 case 0xA3: // OUTI
                                     totalExecutedCycles += 16; pendingCycles -= 16;
@@ -7465,15 +7467,16 @@ namespace cpu.z80
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0xA8: // LDD
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     WriteMemory(RegDE.Word--, TB1 = ReadMemory(RegHL.Word--));
                                     TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                     --RegBC.Word;
                                     RegFlagP = RegBC.Word != 0;
                                     RegFlagH = false;
                                     RegFlagN = false;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0xA9: // CPD
+                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     TB1 = ReadMemory(RegHL.Word--); TB2 = (byte)(RegAF.High - TB1);
                                     RegWZ.Word--;
                                     RegFlagN = true;
@@ -7483,11 +7486,10 @@ namespace cpu.z80
                                     TB1 = (byte)(RegAF.High - TB1 - (RegFlagH ? 1 : 0)); RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                     --RegBC.Word;
                                     RegFlagP = RegBC.Word != 0;
-                                    totalExecutedCycles += 16; pendingCycles -= 16;
                                     break;
                                 case 0xAA: // IND
                                     totalExecutedCycles += 16; pendingCycles -= 16;
-                                    TB=ReadHardware(RegBC.Word);
+                                    TB = ReadHardware(RegBC.Word);
                                     RegWZ.Word = (ushort)(RegBC.Word - 1);
                                     --RegBC.High;
                                     WriteMemory(RegHL.Word--, TB);
@@ -7501,23 +7503,23 @@ namespace cpu.z80
                                     {
                                         RegFlagH = RegFlagC = true;
                                     }
-                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                    
+                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                     break;
                                 case 0xAB: // OUTD
                                     totalExecutedCycles += 16; pendingCycles -= 16;
-                                    TB=ReadMemory(RegHL.Word--);
+                                    TB = ReadMemory(RegHL.Word--);
                                     WriteHardware(RegBC.Word, TB);
                                     --RegBC.High;
                                     RegWZ.Word = (ushort)(RegBC.Word - 1);
-                                    TUS=(ushort)(RegHL.Low+TB);
+                                    TUS = (ushort)(RegHL.Low + TB);
                                     RegFlagZ = RegBC.High == 0;
                                     if ((TB & 0x80) != 0)
                                     {
                                         RegFlagN = true;
                                     }
-                                    if((TUS&0x100)!=0)
+                                    if ((TUS & 0x100) != 0)
                                     {
-                                        RegFlagH=RegFlagC=true;
+                                        RegFlagH = RegFlagC = true;
                                     }
                                     RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                     break;
@@ -7618,7 +7620,7 @@ namespace cpu.z80
                                         RegFlagC = true;
                                         RegFlagH = true;
                                     }
-                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High]; 
+                                    RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                     if (RegBC.High != 0)
                                     {
                                         RegPC.Word -= 2;
@@ -7701,7 +7703,7 @@ namespace cpu.z80
                                     break;
                                 case 0xBB: // OTDR
                                     totalExecutedCycles += 16; pendingCycles -= 16;
-                                    TB=ReadMemory(RegHL.Word--);
+                                    TB = ReadMemory(RegHL.Word--);
                                     WriteHardware(RegBC.Word, TB);
                                     --RegBC.High;
                                     RegWZ.Word = (ushort)(RegBC.Word - 1);
@@ -8041,12 +8043,12 @@ namespace cpu.z80
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0x01: // LD BC, nn
-                                    RegBC.Word = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     totalExecutedCycles += 10; pendingCycles -= 10;
+                                    RegBC.Word = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     break;
                                 case 0x02: // LD (BC), A
-                                    WriteMemory(RegBC.Word, RegAF.High);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    WriteMemory(RegBC.Word, RegAF.High);
                                     break;
                                 case 0x03: // INC BC
                                     ++RegBC.Word;
@@ -8085,8 +8087,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 15; pendingCycles -= 15;
                                     break;
                                 case 0x0A: // LD A, (BC)
-                                    RegAF.High = ReadMemory(RegBC.Word);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegAF.High = ReadMemory(RegBC.Word);
                                     break;
                                 case 0x0B: // DEC BC
                                     --RegBC.Word;
@@ -8101,8 +8103,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0x0E: // LD C, n
-                                    RegBC.Low = ReadMemory(RegPC.Word++);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegBC.Low = ReadMemory(RegPC.Word++);
                                     break;
                                 case 0x0F: // RRCA
                                     RegAF.Word = TableRotShift[0, 1, RegAF.Word];
@@ -8121,12 +8123,12 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0x11: // LD DE, nn
-                                    RegDE.Word = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     totalExecutedCycles += 10; pendingCycles -= 10;
+                                    RegDE.Word = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     break;
                                 case 0x12: // LD (DE), A
-                                    WriteMemory(RegDE.Word, RegAF.High);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    WriteMemory(RegDE.Word, RegAF.High);
                                     break;
                                 case 0x13: // INC DE
                                     ++RegDE.Word;
@@ -8141,8 +8143,8 @@ namespace cpu.z80
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0x16: // LD D, n
-                                    RegDE.High = ReadMemory(RegPC.Word++);
                                     totalExecutedCycles += 7; pendingCycles -= 7;
+                                    RegDE.High = ReadMemory(RegPC.Word++);
                                     break;
                                 case 0x17: // RLA
                                     RegAF.Word = TableRotShift[0, 2, RegAF.Word];
@@ -8206,11 +8208,11 @@ namespace cpu.z80
                                     totalExecutedCycles += 14; pendingCycles -= 14;
                                     break;
                                 case 0x22: // LD (nn), IY
+                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) + ReadOpArg(RegPC.Word++) * 256);
                                     WriteMemory(TUS++, RegIY.Low);
                                     WriteMemory(TUS, RegIY.High);
                                     RegWZ.Word = TUS;
-                                    totalExecutedCycles += 20; pendingCycles -= 20;
                                     break;
                                 case 0x23: // INC IY
                                     ++RegIY.Word;
@@ -8299,30 +8301,30 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0x32: // LD (nn), A
-                                    WriteMemory((ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256), RegAF.High);
                                     totalExecutedCycles += 13; pendingCycles -= 13;
+                                    WriteMemory((ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256), RegAF.High);
                                     break;
                                 case 0x33: // INC SP
                                     ++RegSP.Word;
                                     totalExecutedCycles += 6; pendingCycles -= 6;
                                     break;
                                 case 0x34: // INC (IY+d)
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     TB = ReadMemory(RegWZ.Word); RegAF.Low = (byte)(TableInc[++TB] | (RegAF.Low & 1)); WriteMemory(RegWZ.Word, TB);
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0x35: // DEC (IY+d)
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     TB = ReadMemory(RegWZ.Word); RegAF.Low = (byte)(TableDec[--TB] | (RegAF.Low & 1)); WriteMemory(RegWZ.Word, TB);
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0x36: // LD (IY+d), n
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, ReadOpArg(RegPC.Word++));
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x37: // SCF
                                     RegFlagH = false; RegFlagN = false; RegFlagC = true; RegFlag3 = (RegAF.High & 0x08) != 0; RegFlag5 = (RegAF.High & 0x20) != 0;
@@ -8575,50 +8577,50 @@ namespace cpu.z80
                                     totalExecutedCycles += 9; pendingCycles -= 9;
                                     break;
                                 case 0x70: // LD (IY+d), B
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegBC.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x71: // LD (IY+d), C
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegBC.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x72: // LD (IY+d), D
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegDE.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x73: // LD (IY+d), E
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegDE.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x74: // LD (IY+d), H
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegHL.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x75: // LD (IY+d), L
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegHL.Low);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x76: // HALT
                                     Halt();
                                     totalExecutedCycles += 4; pendingCycles -= 4;
                                     break;
                                 case 0x77: // LD (IY+d), A
+                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     Displacement = (sbyte)ReadOpArg(RegPC.Word++);
                                     RegWZ.Word = (ushort)(RegIY.Word + Displacement);
                                     WriteMemory(RegWZ.Word, RegAF.High);
-                                    totalExecutedCycles += 19; pendingCycles -= 19;
                                     break;
                                 case 0x78: // LD A, B
                                     RegAF.High = RegBC.High;
@@ -8956,9 +8958,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagZ)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -8966,17 +8968,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xC5: // PUSH BC
-                                    WriteMemory(--RegSP.Word, RegBC.High); WriteMemory(--RegSP.Word, RegBC.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegBC.High); WriteMemory(--RegSP.Word, RegBC.Low);
                                     break;
                                 case 0xC6: // ADD A, n
                                     RegAF.Word = TableALU[0, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xC7: // RST $00
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x00;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xC8: // RET Z
                                     if (RegFlagZ)
@@ -9008,70 +9010,70 @@ namespace cpu.z80
                                     switch (ReadOpArg(RegPC.Word++))
                                     {
                                         case 0x00: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x01: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x02: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x03: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x04: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x05: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x06: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x07: // RLC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 0, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x08: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x09: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0A: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0B: // RRC (IY+d)
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
@@ -9080,316 +9082,316 @@ namespace cpu.z80
                                             totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0C: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0D: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0E: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x0F: // RRC (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 1, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x10: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x11: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x12: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x13: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x14: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x15: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x16: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x17: // RL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 2, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x18: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x19: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1A: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1B: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1C: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1D: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1E: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x1F: // RR (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 3, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x20: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x21: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x22: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x23: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x24: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x25: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x26: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x27: // SLA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 4, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x28: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x29: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2A: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2B: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2C: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2D: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2E: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x2F: // SRA (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 5, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x30: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x31: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x32: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x33: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x34: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x35: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x36: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x37: // SL1 (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 6, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x38: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x39: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3A: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3B: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3C: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3D: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3E: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x3F: // SRL (IY+d)
+                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             TUS = TableRotShift[1, 7, RegAF.Low + 256 * ReadMemory(RegWZ.Word)];
                                             WriteMemory(RegWZ.Word, (byte)(TUS >> 8));
                                             RegAF.Low = (byte)TUS;
-                                            totalExecutedCycles += 23; pendingCycles -= 23;
                                             break;
                                         case 0x40: // BIT 0, (IY+d)
                                         case 0x41: // BIT 0, (IY+d)
@@ -9536,516 +9538,516 @@ namespace cpu.z80
                                             totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x80: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x81: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x82: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x83: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x84: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x85: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x86: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x87: // RES 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x01)));
                                             break;
                                         case 0x88: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x89: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8A: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8B: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8C: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8D: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8E: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x8F: // RES 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x02)));
                                             break;
                                         case 0x90: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x91: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x92: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x93: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x94: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x95: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x96: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x97: // RES 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x04)));
                                             break;
                                         case 0x98: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x99: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9A: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9B: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9C: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9D: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9E: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0x9F: // RES 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x08)));
                                             break;
                                         case 0xA0: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA1: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA2: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA3: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA4: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA5: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA6: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA7: // RES 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x10)));
                                             break;
                                         case 0xA8: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xA9: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAA: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAB: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAC: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAD: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAE: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xAF: // RES 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x20)));
                                             break;
                                         case 0xB0: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB1: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB2: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB3: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB4: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB5: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB6: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB7: // RES 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x40)));
                                             break;
                                         case 0xB8: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xB9: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBA: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBB: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBC: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBD: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBE: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xBF: // RES 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) & unchecked((byte)~0x80)));
                                             break;
                                         case 0xC0: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC1: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC2: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC3: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC4: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC5: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC6: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC7: // SET 0, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x01)));
                                             break;
                                         case 0xC8: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xC9: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCA: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCB: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCC: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCD: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCE: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xCF: // SET 1, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x02)));
                                             break;
                                         case 0xD0: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD1: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD2: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD3: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD4: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD5: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD6: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD7: // SET 2, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x04)));
                                             break;
                                         case 0xD8: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xD9: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDA: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDB: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDC: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDD: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDE: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xDF: // SET 3, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x08)));
                                             break;
                                         case 0xE0: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE1: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE2: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE3: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE4: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE5: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE6: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE7: // SET 4, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x10)));
                                             break;
                                         case 0xE8: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xE9: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEA: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEB: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEC: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xED: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEE: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xEF: // SET 5, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x20)));
                                             break;
                                         case 0xF0: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF1: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF2: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF3: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF4: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF5: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF6: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF7: // SET 6, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x40)));
                                             break;
                                         case 0xF8: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xF9: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFA: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFB: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFC: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFD: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFE: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                         case 0xFF: // SET 7, (IY+d)
-                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             totalExecutedCycles += 23; pendingCycles -= 23;
+                                            WriteMemory(RegWZ.Word, (byte)(ReadMemory(RegWZ.Word) | unchecked((byte)0x80)));
                                             break;
                                     }
                                     break;
@@ -10053,9 +10055,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagZ)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -10063,19 +10065,19 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xCD: // CALL nn
+                                    totalExecutedCycles += 17; pendingCycles -= 17;
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = TUS;
-                                    totalExecutedCycles += 17; pendingCycles -= 17;
                                     break;
                                 case 0xCE: // ADC A, n
                                     RegAF.Word = TableALU[1, RegAF.High, ReadMemory(RegPC.Word++), RegFlagC ? 1 : 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xCF: // RST $08
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x08;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xD0: // RET NC
                                     if (!RegFlagC)
@@ -10102,15 +10104,15 @@ namespace cpu.z80
                                     break;
                                 case 0xD3: // OUT n, A
                                     totalExecutedCycles += 11; pendingCycles -= 11;
-                                    WriteHardware(ReadMemory(RegPC.Word++), RegAF.High);                                    
+                                    WriteHardware(ReadMemory(RegPC.Word++), RegAF.High);
                                     break;
                                 case 0xD4: // CALL NC, nn
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -10118,17 +10120,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xD5: // PUSH DE
-                                    WriteMemory(--RegSP.Word, RegDE.High); WriteMemory(--RegSP.Word, RegDE.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegDE.High); WriteMemory(--RegSP.Word, RegDE.Low);
                                     break;
                                 case 0xD6: // SUB n
                                     RegAF.Word = TableALU[2, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xD7: // RST $10
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x10;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xD8: // RET C
                                     if (RegFlagC)
@@ -10155,7 +10157,7 @@ namespace cpu.z80
                                     }
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
-                                case 0xDB: // IN A, n                                    
+                                case 0xDB: // IN A, n
                                     TUS = (ushort)(ReadOpArg(RegPC.Word++) | (RegAF.High << 8));
                                     RegAF.High = ReadHardware(TUS);
                                     RegWZ.Word = (ushort)(TUS + 1);
@@ -10165,9 +10167,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -10183,9 +10185,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xDF: // RST $18
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x18;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xE0: // RET PO
                                     if (!RegFlagP)
@@ -10211,19 +10213,19 @@ namespace cpu.z80
                                     totalExecutedCycles += 10; pendingCycles -= 10;
                                     break;
                                 case 0xE3: // EX (SP), IY
+                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     TUS = RegSP.Word; TBL = ReadMemory(TUS++); TBH = ReadMemory(TUS--);
                                     WriteMemory(TUS++, RegIY.Low); WriteMemory(TUS, RegIY.High);
                                     RegIY.Low = TBL; RegIY.High = TBH;
                                     RegWZ.Word = RegIY.Word;
-                                    totalExecutedCycles += 23; pendingCycles -= 23;
                                     break;
                                 case 0xE4: // CALL C, nn
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagC)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -10231,17 +10233,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xE5: // PUSH IY
-                                    WriteMemory(--RegSP.Word, RegIY.High); WriteMemory(--RegSP.Word, RegIY.Low);
                                     totalExecutedCycles += 15; pendingCycles -= 15;
+                                    WriteMemory(--RegSP.Word, RegIY.High); WriteMemory(--RegSP.Word, RegIY.Low);
                                     break;
                                 case 0xE6: // AND n
                                     RegAF.Word = TableALU[4, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xE7: // RST $20
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x20;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xE8: // RET PE
                                     if (RegFlagP)
@@ -10274,9 +10276,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagP)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -10479,7 +10481,7 @@ namespace cpu.z80
                                         case 0x3F: // NOP
                                             totalExecutedCycles += 4; pendingCycles -= 4;
                                             break;
-                                        case 0x40: // IN B, C                                            
+                                        case 0x40: // IN B, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
                                             RegBC.High = ReadHardware(RegBC.Word);
                                             RegFlagS = RegBC.High > 127;
@@ -10488,7 +10490,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegBC.High & 0x08) != 0;
                                             RegFlagP = TableParity[RegBC.High];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x41: // OUT C, B
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10510,11 +10512,11 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x43: // LD (nn), BC
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegBC.Low);
                                             WriteMemory(TUS, RegBC.High);
                                             RegWZ.Word = TUS;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x44: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -10543,7 +10545,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegBC.Low & 0x08) != 0;
                                             RegFlagP = TableParity[RegBC.Low];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x49: // OUT C, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10595,7 +10597,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegDE.High & 0x08) != 0;
                                             RegFlagP = TableParity[RegDE.High];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x51: // OUT C, D
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10618,11 +10620,11 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x53: // LD (nn), DE
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegDE.Low);
                                             WriteMemory(TUS, RegDE.High);
                                             RegWZ.Word = TUS;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x54: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -10657,7 +10659,7 @@ namespace cpu.z80
                                             RegFlagH = false;
                                             RegFlag3 = (RegDE.Low & 0x08) != 0;
                                             RegFlagP = TableParity[RegDE.Low];
-                                            RegFlagN = false;                                            
+                                            RegFlagN = false;
                                             break;
                                         case 0x59: // OUT C, E
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10715,11 +10717,11 @@ namespace cpu.z80
                                             RegFlagP = TableParity[RegHL.High];
                                             RegFlagN = false;
                                             RegFlag3 = (RegHL.High & 0x08) != 0;
-                                            RegFlag5 = (RegHL.High & 0x20) != 0;                                            
+                                            RegFlag5 = (RegHL.High & 0x20) != 0;
                                             break;
                                         case 0x61: // OUT C, H
                                             totalExecutedCycles += 12; pendingCycles -= 12;
-                                            WriteHardware(RegBC.Low, RegHL.High);                                            
+                                            WriteHardware(RegBC.Low, RegHL.High);
                                             break;
                                         case 0x62: // SBC HL, HL
                                             TI1 = (short)RegHL.Word; TI2 = (short)RegHL.Word; TIR = TI1 - TI2;
@@ -10737,10 +10739,10 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x63: // LD (nn), HL
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegHL.Low);
                                             WriteMemory(TUS, RegHL.High);
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0x64: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -10756,6 +10758,7 @@ namespace cpu.z80
                                             totalExecutedCycles += 8; pendingCycles -= 8;
                                             break;
                                         case 0x67: // RRD
+                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                             WriteMemory(RegHL.Word, (byte)((TB2 >> 4) + (TB1 << 4)));
                                             RegAF.High = (byte)((TB1 & 0xF0) + (TB2 & 0x0F));
@@ -10766,7 +10769,6 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             break;
                                         case 0x68: // IN L, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10777,11 +10779,11 @@ namespace cpu.z80
                                             RegFlagP = TableParity[RegHL.Low];
                                             RegFlagN = false;
                                             RegFlag3 = (RegHL.Low & 0x08) != 0;
-                                            RegFlag5 = (RegHL.Low & 0x20) != 0;                                            
+                                            RegFlag5 = (RegHL.Low & 0x20) != 0;
                                             break;
                                         case 0x69: // OUT C, L
                                             totalExecutedCycles += 12; pendingCycles -= 12;
-                                            WriteHardware(RegBC.Low, RegHL.Low);                                            
+                                            WriteHardware(RegBC.Low, RegHL.Low);
                                             break;
                                         case 0x6A: // ADC HL, HL
                                             TI1 = (short)RegHL.Word; TI2 = (short)RegHL.Word; TIR = TI1 + TI2;
@@ -10816,6 +10818,7 @@ namespace cpu.z80
                                             totalExecutedCycles += 8; pendingCycles -= 8;
                                             break;
                                         case 0x6F: // RLD
+                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             TB1 = RegAF.High; TB2 = ReadMemory(RegHL.Word);
                                             WriteMemory(RegHL.Word, (byte)((TB1 & 0x0F) + (TB2 << 4)));
                                             RegAF.High = (byte)((TB1 & 0xF0) + (TB2 >> 4));
@@ -10826,7 +10829,6 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            totalExecutedCycles += 18; pendingCycles -= 18;
                                             break;
                                         case 0x70: // IN 0, C
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -10837,11 +10839,11 @@ namespace cpu.z80
                                             RegFlagP = TableParity[TB];
                                             RegFlagN = false;
                                             RegFlag3 = (TB & 0x08) != 0;
-                                            RegFlag5 = (TB & 0x20) != 0;                                            
+                                            RegFlag5 = (TB & 0x20) != 0;
                                             break;
                                         case 0x71: // OUT C, 0
                                             totalExecutedCycles += 12; pendingCycles -= 12;
-                                            WriteHardware(RegBC.Low, 0);                                            
+                                            WriteHardware(RegBC.Low, 0);
                                             break;
                                         case 0x72: // SBC HL, SP
                                             TI1 = (short)RegHL.Word; TI2 = (short)RegSP.Word; TIR = TI1 - TI2;
@@ -10860,11 +10862,11 @@ namespace cpu.z80
                                             totalExecutedCycles += 15; pendingCycles -= 15;
                                             break;
                                         case 0x73: // LD (nn), SP
+                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                             WriteMemory(TUS++, RegSP.Low);
                                             WriteMemory(TUS, RegSP.High);
                                             RegWZ.Word = TUS;
-                                            totalExecutedCycles += 20; pendingCycles -= 20;
                                             break;
                                         case 0x74: // NEG
                                             RegAF.Word = TableNeg[RegAF.Word];
@@ -10893,7 +10895,7 @@ namespace cpu.z80
                                             RegFlagN = false;
                                             RegFlag3 = (RegAF.High & 0x08) != 0;
                                             RegFlag5 = (RegAF.High & 0x20) != 0;
-                                            RegWZ.Word = (ushort)(RegBC.Word + 1);                                            
+                                            RegWZ.Word = (ushort)(RegBC.Word + 1);
                                             break;
                                         case 0x79: // OUT C, A
                                             totalExecutedCycles += 12; pendingCycles -= 12;
@@ -11035,13 +11037,13 @@ namespace cpu.z80
                                             totalExecutedCycles += 4; pendingCycles -= 4;
                                             break;
                                         case 0xA0: // LDI
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             WriteMemory(RegDE.Word++, TB1 = ReadMemory(RegHL.Word++));
                                             TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                             --RegBC.Word;
                                             RegFlagP = RegBC.Word != 0;
                                             RegFlagH = false;
                                             RegFlagN = false;
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0xA1: // CPI
                                             TB1 = ReadMemory(RegHL.Word++); TB2 = (byte)(RegAF.High - TB1);
@@ -11070,7 +11072,7 @@ namespace cpu.z80
                                             {
                                                 RegFlagH = RegFlagC = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xA3: // OUTI
                                             totalExecutedCycles += 16; pendingCycles -= 16;
@@ -11095,7 +11097,7 @@ namespace cpu.z80
                                                 RegFlagC = true;
                                                 RegFlagH = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xA4: // NOP
                                             totalExecutedCycles += 4; pendingCycles -= 4;
@@ -11110,13 +11112,13 @@ namespace cpu.z80
                                             totalExecutedCycles += 4; pendingCycles -= 4;
                                             break;
                                         case 0xA8: // LDD
+                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             WriteMemory(RegDE.Word--, TB1 = ReadMemory(RegHL.Word--));
                                             TB1 += RegAF.High; RegFlag5 = (TB1 & 0x02) != 0; RegFlag3 = (TB1 & 0x08) != 0;
                                             --RegBC.Word;
                                             RegFlagP = RegBC.Word != 0;
                                             RegFlagH = false;
                                             RegFlagN = false;
-                                            totalExecutedCycles += 16; pendingCycles -= 16;
                                             break;
                                         case 0xA9: // CPD
                                             TB1 = ReadMemory(RegHL.Word--); TB2 = (byte)(RegAF.High - TB1);
@@ -11145,7 +11147,7 @@ namespace cpu.z80
                                             {
                                                 RegFlagH = RegFlagC = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xAB: // OUTD
                                             totalExecutedCycles += 16; pendingCycles -= 16;
@@ -11163,7 +11165,7 @@ namespace cpu.z80
                                             {
                                                 RegFlagH = RegFlagC = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];                                            
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             break;
                                         case 0xAC: // NOP
                                             totalExecutedCycles += 4; pendingCycles -= 4;
@@ -11262,7 +11264,7 @@ namespace cpu.z80
                                                 RegFlagC = true;
                                                 RegFlagH = true;
                                             }
-                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High]; 
+                                            RegFlagP = TableParity[(TUS & 0x07) ^ RegBC.High];
                                             if (RegBC.High != 0)
                                             {
                                                 RegPC.Word -= 2;
@@ -11577,9 +11579,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xEF: // RST $28
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x28;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xF0: // RET P
                                     if (!RegFlagS)
@@ -11612,9 +11614,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (!RegFlagS)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -11622,17 +11624,17 @@ namespace cpu.z80
                                     }
                                     break;
                                 case 0xF5: // PUSH AF
-                                    WriteMemory(--RegSP.Word, RegAF.High); WriteMemory(--RegSP.Word, RegAF.Low);
                                     totalExecutedCycles += 11; pendingCycles -= 11;
+                                    WriteMemory(--RegSP.Word, RegAF.High); WriteMemory(--RegSP.Word, RegAF.Low);
                                     break;
                                 case 0xF6: // OR n
                                     RegAF.Word = TableALU[6, RegAF.High, ReadMemory(RegPC.Word++), 0];
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xF7: // RST $30
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x30;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                                 case 0xF8: // RET M
                                     if (RegFlagS)
@@ -11666,9 +11668,9 @@ namespace cpu.z80
                                     TUS = (ushort)(ReadMemory(RegPC.Word++) + ReadMemory(RegPC.Word++) * 256);
                                     if (RegFlagS)
                                     {
+                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                         WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                         RegPC.Word = TUS;
-                                        totalExecutedCycles += 17; pendingCycles -= 17;
                                     }
                                     else
                                     {
@@ -11684,9 +11686,9 @@ namespace cpu.z80
                                     totalExecutedCycles += 7; pendingCycles -= 7;
                                     break;
                                 case 0xFF: // RST $38
+                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     WriteMemory(--RegSP.Word, RegPC.High); WriteMemory(--RegSP.Word, RegPC.Low);
                                     RegPC.Word = 0x38;
-                                    totalExecutedCycles += 11; pendingCycles -= 11;
                                     break;
                             }
                             break;

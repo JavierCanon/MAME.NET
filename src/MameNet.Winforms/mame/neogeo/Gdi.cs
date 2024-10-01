@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.IO;
 
 namespace mame
 {
@@ -20,9 +21,9 @@ namespace mame
         }
         public static Bitmap GetSprite()
         {
-            int i,x,x2, y, rows, zoom_x, zoom_y, scanline, attr_and_code_offs, code, gfx_offset;
+            int i, x, x2, y, rows, zoom_x, zoom_y, scanline, attr_and_code_offs, code, gfx_offset;
             int sprite_y, tile, zoom_x_table_offset, line_pens_offset, sprite_line, zoom_line, x_inc;
-            ushort y_control, zoom_control,attr,x_2,code_2;
+            ushort y_control, zoom_control, attr, x_2, code_2;
             byte sprite_y_and_tile;
             bool invert;
             Machine.FORM.neogeoform.tbResult.Clear();
@@ -45,10 +46,6 @@ namespace mame
                     zoom_control = Neogeo.neogeo_videoram[0x8000 | sprite_number];
                     x_2 = Neogeo.neogeo_videoram[0x8400 | sprite_number];
                     code_2 = Neogeo.neogeo_videoram[sprite_number << 6];
-                    if (sprite_number==0x03|| sprite_number == 0xfa||sprite_number==0x113||sprite_number==0x117||sprite_number==0x12b)
-                    {
-                        int i1 = 1;
-                    }
                     if ((y_control & 0x40) != 0)
                     {
                         x = (x + zoom_x + 1) & 0x01ff;
@@ -61,9 +58,9 @@ namespace mame
                         zoom_y = zoom_control & 0xff;
                         zoom_x = (zoom_control >> 8) & 0x0f;
                         rows = y_control & 0x3f;
-                    }                    
-                    Machine.FORM.neogeoform.tbResult.AppendText(sprite_number.ToString("X3") + " "+x_2.ToString("X4")+" " + y_control.ToString("X4") + " " +code_2.ToString("X4")+" "+ zoom_control.ToString("X4") + "\r\n");
-                    if (((x >= 0x140) && (x <= 0x1f0))||rows==0)
+                    }
+                    Machine.FORM.neogeoform.tbResult.AppendText(sprite_number.ToString("X3") + " " + x_2.ToString("X4") + " " + y_control.ToString("X4") + " " + code_2.ToString("X4") + " " + zoom_control.ToString("X4") + "\r\n");
+                    if (((x >= 0x140) && (x <= 0x1f0)) || rows == 0)
                         continue;
                     if (x == 0)
                     {
@@ -167,29 +164,29 @@ namespace mame
             {
                 byte* ptr = (byte*)(bmData.Scan0);
                 byte* ptr2 = (byte*)0;
-                if (Neogeo.fixed_layer_source != 0)
+                if (fixed_layer_source != 0)
                 {
-                    gfx_base = Neogeo.fixedrom;
-                    addr_mask = Neogeo.fixedrom.Length - 1;
+                    gfx_base = fixedrom;
+                    addr_mask = fixedrom.Length - 1;
                 }
                 else
                 {
-                    gfx_base = Neogeo.fixedbiosrom;
-                    addr_mask = Neogeo.fixedbiosrom.Length - 1;
+                    gfx_base = fixedbiosrom;
+                    addr_mask = fixedbiosrom.Length - 1;
                 }
-                banked = (Neogeo.fixed_layer_source != 0) && (addr_mask > 0x1ffff);
+                banked = (fixed_layer_source != 0) && (addr_mask > 0x1ffff);
                 garouoffsets = new int[32];
-                banked = (Neogeo.fixed_layer_source != 0) && (addr_mask > 0x1ffff);
-                if (banked && Neogeo.neogeo_fixed_layer_bank_type == 1)
+                banked = (fixed_layer_source != 0) && (addr_mask > 0x1ffff);
+                if (banked && neogeo_fixed_layer_bank_type == 1)
                 {
                     int garoubank = 0;
                     int k = 0;
                     y = 0;
                     while (y < 32)
                     {
-                        if (Neogeo.neogeo_videoram[0x7500 + k] == 0x0200 && (Neogeo.neogeo_videoram[0x7580 + k] & 0xff00) == 0xff00)
+                        if (neogeo_videoram[0x7500 + k] == 0x0200 && (neogeo_videoram[0x7580 + k] & 0xff00) == 0xff00)
                         {
-                            garoubank = Neogeo.neogeo_videoram[0x7580 + k] & 3;
+                            garoubank = neogeo_videoram[0x7580 + k] & 3;
                             garouoffsets[y++] = garoubank;
                         }
                         garouoffsets[y++] = garoubank;
@@ -200,17 +197,17 @@ namespace mame
                 {
                     for (x = 0; x < 40; x++)
                     {
-                        code_and_palette = Neogeo.neogeo_videoram[0x7000 | (y + x * 0x20)];
+                        code_and_palette = neogeo_videoram[0x7000 | (y + x * 0x20)];
                         code = code_and_palette & 0x0fff;
                         if (banked)
                         {
-                            switch (Neogeo.neogeo_fixed_layer_bank_type)
+                            switch (neogeo_fixed_layer_bank_type)
                             {
                                 case 1:
                                     code += 0x1000 * (garouoffsets[(y - 2) & 31] ^ 3);
                                     break;
                                 case 2:
-                                    code += 0x1000 * (((Neogeo.neogeo_videoram[0x7500 + ((y - 1) & 31) + 32 * (x / 6)] >> (5 - (x % 6)) * 2) & 3) ^ 3);
+                                    code += 0x1000 * (((neogeo_videoram[0x7500 + ((y - 1) & 31) + 32 * (x / 6)] >> (5 - (x % 6)) * 2) & 3) ^ 3);
                                     break;
                             }
                         }
@@ -228,9 +225,9 @@ namespace mame
                                 if ((data & 0x0f) != 0)
                                 {
                                     ptr2 = ptr + (((y * 8) + i) * 384 + 30 + x * 8 + j) * 4;
-                                    *ptr2 = (byte)(Neogeo.pens[char_pens_offset + (data & 0x0f)] & 0xff);
-                                    *(ptr2 + 1) = (byte)((Neogeo.pens[char_pens_offset + (data & 0x0f)] & 0xff00) >> 8);
-                                    *(ptr2 + 2) = (byte)((Neogeo.pens[char_pens_offset + (data & 0x0f)] & 0xff0000) >> 16);
+                                    *ptr2 = (byte)(pens[char_pens_offset + (data & 0x0f)] & 0xff);
+                                    *(ptr2 + 1) = (byte)((pens[char_pens_offset + (data & 0x0f)] & 0xff00) >> 8);
+                                    *(ptr2 + 2) = (byte)((pens[char_pens_offset + (data & 0x0f)] & 0xff0000) >> 16);
                                     *(ptr2 + 3) = 0xff;
                                 }
                             }
@@ -317,9 +314,9 @@ namespace mame
                     {
                         col = i / 16;
                         ptr2 = ptr + (j * n1 + i) * 4;
-                        *ptr2 = (byte)(Neogeo.pens[line_pens_offset + Neogeo.sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff);
-                        *(ptr2 + 1) = (byte)((Neogeo.pens[line_pens_offset + Neogeo.sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff00) >> 8);
-                        *(ptr2 + 2) = (byte)((Neogeo.pens[line_pens_offset + Neogeo.sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff0000) >> 16);
+                        *ptr2 = (byte)(pens[line_pens_offset + sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff);
+                        *(ptr2 + 1) = (byte)((pens[line_pens_offset + sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff00) >> 8);
+                        *(ptr2 + 2) = (byte)((pens[line_pens_offset + sprite_gfx[gfx_offset + 0x200 * col + j * 16 + i % 16]] & 0xff0000) >> 16);
                         *(ptr2 + 3) = 0xff;
                     }
                 }

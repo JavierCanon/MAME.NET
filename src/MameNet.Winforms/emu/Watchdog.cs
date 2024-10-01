@@ -18,18 +18,22 @@ namespace mame
                 case "CPS-1":
                 case "CPS-1(QSound)":
                 case "CPS2":
-                    watchdog_time = Attotime.ATTOTIME_ZERO;
-                    break;
-                case "Neo Geo":
-                    watchdog_time = new Atime(0, (long)128762e12);
-                    break;
+                case "Data East":
+                case "Tehkan":
                 case "Namco System 1":
                 case "IGS011":
                 case "PGM":
                 case "M72":
                 case "M92":
+                case "Taito":
+                case "Taito B":
+                case "Konami 68000":
+                case "Capcom":
                     watchdog_time = Attotime.ATTOTIME_ZERO;
                     break;
+                case "Neo Geo":
+                    watchdog_time = new Atime(0, (long)128762e12);
+                    break;                
             }
         }
         public static void watchdog_internal_reset()

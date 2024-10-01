@@ -61,28 +61,6 @@ namespace cpu.nec
                 }
             }
         }
-        public override void set_input_line_and_vector(int line, LineState state, int vector)
-        {
-            if (line >= 0 && line < 35)
-            {
-                Cpuint.lirq.Add(new irq(0, line, state, vector, Timer.get_current_time()));
-                int event_index = Cpuint.input_event_index[0,line]++;
-                if (event_index >= 35)
-                {
-                    Cpuint.input_event_index[0, line]--;
-                    //Cpuint.cpunum_empty_event_queue(machine, NULL, cpunum | (line << 8));
-                    event_index = Cpuint.input_event_index[0,line]++;
-                }
-                if (event_index < 35)
-                {
-                    //Cpuint.input_event_queue[cpunum][line][event_index] = input_event;
-                    //if (event_index == 0)
-                    {
-                        Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
-                    }
-                }
-            }
-        }
         public override void cpunum_set_input_line_and_vector(int cpunum, int line, LineState state, int vector)
         {
             if (line >= 0 && line < 35)
@@ -1330,6 +1308,7 @@ namespace cpu.nec
             pendingCycles = cycles;
             while (pendingCycles > 0)
             {
+                int prevCycles = pendingCycles;
                 if (I.pending_irq != 0 && I.no_interrupt == 0)
                 {
                     if ((I.pending_irq & NMI_IRQ) != 0)
@@ -1347,6 +1326,8 @@ namespace cpu.nec
                 }
                 iNOP = fetchop();
                 nec_instruction[iNOP]();
+                int delta = prevCycles - pendingCycles;
+                totalExecutedCycles += (ulong)delta;
             }
             return cycles - pendingCycles;
         }

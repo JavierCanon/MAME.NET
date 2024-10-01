@@ -14,7 +14,6 @@ using System.Runtime.InteropServices;
 using Microsoft.DirectX.DirectSound;
 using DSDevice = Microsoft.DirectX.DirectSound.Device;
 using mame;
-using cpu.nec;
 
 namespace ui
 {
@@ -24,37 +23,30 @@ namespace ui
         private loadForm loadform;
         public cheatForm cheatform;
         private cheatsearchForm cheatsearchform;
-        private ipsForm ipsform;        
+        private ipsForm ipsform;
         public m68000Form m68000form;
         public z80Form z80form;
         public m6809Form m6809form;
         public cpsForm cpsform;
+        public dataeastForm dataeastform;
+        public tehkanForm tehkanform;
         public neogeoForm neogeoform;
+        public igs011Form igs011form;
         public namcos1Form namcos1form;
         public pgmForm pgmform;
         public m72Form m72form;
         public m92Form m92form;
+        public taitoForm taitoform;
+        public taitobForm taitobform;
+        public konami68000Form konami68000form;
+        public capcomForm capcomform;
         public string sSelect;
         private DSDevice dev;
         private BufferDescription desc1;
         public static Thread t1;
         public string handle1;
-        [DllImport("user32.dll", EntryPoint = "ShowCursor", CharSet = CharSet.Auto)]
-        public static extern int ShowCursor(bool bShow);
-        internal static void ShowCursor()
-        {
-            while (ShowCursor(true) < 0)
-            {
-                ShowCursor(true);
-            }
-        }
-        internal static void HideCursor()
-        {
-            while (ShowCursor(false) >= 0)
-            {
-                ShowCursor(false);
-            }
-        }
+        [DllImport("user32.dll", EntryPoint = "GetDesktopWindow", CharSet = CharSet.Auto, SetLastError = true)]
+        public static extern IntPtr GetDesktopWindow();
         public mainForm()
         {
             InitializeComponent();
@@ -68,8 +60,10 @@ namespace ui
             this.Text = Version.build_version;
             resetToolStripMenuItem.Enabled = false;
             gameStripMenuItem.Enabled = false;
-            Mame.sHandle1 = this.Handle.ToString();
-            RomInfo.Rom=new RomInfo();
+            Mame.handle1 = this.Handle;
+            Mame.handle3 = this.pictureBox1.Handle;
+            Mame.handle4 = GetDesktopWindow();
+            RomInfo.Rom = new RomInfo();
             dev = new DSDevice();
             dev.SetCooperativeLevel(this, CooperativeLevel.Normal);
             desc1 = new BufferDescription();
@@ -78,6 +72,7 @@ namespace ui
             desc1.ControlVolume = true;
             desc1.GlobalFocus = true;
             Keyboard.InitializeInput(this);
+            Mouse.InitialMouse(this);
             Sound.buf2 = new SecondaryBuffer(desc1, dev);
             InitLoadForm();
             InitCheatForm();
@@ -87,11 +82,19 @@ namespace ui
             InitZ80Form();
             InitM6809Form();
             InitCpsForm();
+            InitDataeastForm();
+            InitTehkanForm();
             InitNeogeoForm();
+            InitSunA8Form();
             InitNamcos1Form();
+            InitIGS011Form();
             InitPgmForm();
             InitM72Form();
             InitM92Form();
+            InitTaitoForm();
+            InitTaitobForm();
+            InitKonami68000Form();
+            InitCapcomForm();
         }
         public void LoadRom()
         {
@@ -108,11 +111,19 @@ namespace ui
             Machine.lsParents = RomInfo.GetParents(Machine.sName);
             int i;
             cpsToolStripMenuItem.Enabled = false;
+            dataeastToolStripMenuItem.Enabled = false;
+            tehkanToolStripMenuItem.Enabled = false;
             neogeoToolStripMenuItem.Enabled = false;
+            suna8ToolStripMenuItem.Enabled = false;
             namcos1ToolStripMenuItem.Enabled = false;
+            igs011ToolStripMenuItem.Enabled = false;
             pgmToolStripMenuItem.Enabled = false;
             m72ToolStripMenuItem.Enabled = false;
             m92ToolStripMenuItem.Enabled = false;
+            taitoToolStripMenuItem.Enabled = false;
+            taitobToolStripMenuItem.Enabled = false;
+            konami68000ToolStripMenuItem.Enabled = false;
+            capcomToolStripMenuItem.Enabled = false;
             switch (Machine.sBoard)
             {
                 case "CPS-1":
@@ -130,11 +141,47 @@ namespace ui
                     itemSize[1].Text = "512x256";
                     itemSize[2].Text = "384x224";
                     resetToolStripMenuItem.DropDownItems.Clear();
-                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);                    
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
                     itemSelect();
                     cpsToolStripMenuItem.Enabled = true;
                     CPS.CPSInit();
                     CPS.GDIInit();
+                    break;
+                case "Data East":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    itemSize[0].Text = "256x224";
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    dataeastToolStripMenuItem.Enabled = true;
+                    Dataeast.DataeastInit();
+                    Dataeast.GDIInit();
+                    break;
+                case "Tehkan":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    itemSize[0].Text = "256x224";
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    tehkanToolStripMenuItem.Enabled = true;
+                    Tehkan.PbactionInit();
+                    Tehkan.GDIInit();
                     break;
                 case "Neo Geo":
                     Video.nMode = 1;
@@ -147,12 +194,30 @@ namespace ui
                     }
                     itemSize[0].Text = "320x224";
                     resetToolStripMenuItem.DropDownItems.Clear();
-                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);                    
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
                     Video.iMode = 0;
                     itemSelect();
                     neogeoToolStripMenuItem.Enabled = true;
                     Neogeo.NeogeoInit();
                     Neogeo.GDIInit();
+                    break;
+                case "SunA8":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    itemSize[0].Text = "256x224";
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    suna8ToolStripMenuItem.Enabled = true;
+                    SunA8.SunA8Init();
+                    SunA8.GDIInit();
                     break;
                 case "Namco System 1":
                     Video.nMode = 1;
@@ -186,8 +251,9 @@ namespace ui
                     resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
                     Video.iMode = 0;
                     itemSelect();
-                    IGS011.GDIInit();
+                    igs011ToolStripMenuItem.Enabled = true;
                     IGS011.IGS011Init();
+                    IGS011.GDIInit();
                     break;
                 case "PGM":
                     Video.nMode = 1;
@@ -243,11 +309,140 @@ namespace ui
                     M92.M92Init();
                     M92.GDIInit();
                     break;
+                case "Taito":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    switch (Machine.sName)
+                    {
+                        case "tokio":
+                        case "tokioo":
+                        case "tokiou":
+                        case "tokiob":
+                        case "bublbobl":
+                        case "bublbobl1":
+                        case "bublboblr":
+                        case "bublboblr1":
+                        case "boblbobl":
+                        case "sboblbobl":
+                        case "sboblbobla":
+                        case "sboblboblb":
+                        case "sboblbobld":
+                        case "sboblboblc":
+                        case "bub68705":
+                        case "dland":
+                        case "bbredux":
+                        case "bublboblb":
+                        case "bublcave":
+                        case "boblcave":
+                        case "bublcave11":
+                        case "bublcave10":
+                            itemSize[0].Text = "256x224";
+                            break;
+                        case "opwolf":
+                        case "opwolfa":
+                        case "opwolfj":
+                        case "opwolfu":
+                        case "opwolfb":
+                        case "opwolfp":
+                            itemSize[0].Text = "320x240";
+                            break;
+                    }
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    taitoToolStripMenuItem.Enabled = true;
+                    Taito.TaitoInit();
+                    Taito.GDIInit();
+                    break;
+                case "Taito B":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    itemSize[0].Text = "320x224";
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    taitobToolStripMenuItem.Enabled = true;
+                    Taitob.TaitobInit();
+                    Taitob.GDIInit();
+                    break;
+                case "Konami 68000":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    itemSize[0].Text = "288*224";
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    konami68000ToolStripMenuItem.Enabled = true;
+                    Konami68000.Konami68000Init();
+                    Konami68000.GDIInit();
+                    break;
+                case "Capcom":
+                    Video.nMode = 1;
+                    itemSize = new ToolStripMenuItem[Video.nMode];
+                    for (i = 0; i < Video.nMode; i++)
+                    {
+                        itemSize[i] = new ToolStripMenuItem();
+                        itemSize[i].Size = new Size(152, 22);
+                        itemSize[i].Click += new EventHandler(itemsizeToolStripMenuItem_Click);
+                    }
+                    switch (Machine.sName)
+                    {
+                        case "gng":
+                        case "gnga":
+                        case "gngbl":
+                        case "gngprot":
+                        case "gngblita":
+                        case "gngc":
+                        case "gngt":
+                        case "makaimur":
+                        case "makaimurc":
+                        case "makaimurg":
+                        case "diamond":
+                            itemSize[0].Text = "256*224";
+                            break;
+                        case "sf":
+                        case "sfua":
+                        case "sfj":
+                        case "sfjan":
+                        case "sfan":
+                        case "sfp":
+                            itemSize[0].Text = "384*224";
+                            break;
+                    }
+                    resetToolStripMenuItem.DropDownItems.Clear();
+                    resetToolStripMenuItem.DropDownItems.AddRange(itemSize);
+                    Video.iMode = 0;
+                    itemSelect();
+                    capcomToolStripMenuItem.Enabled = true;
+                    Capcom.CapcomInit();
+                    Capcom.GDIInit();
+                    break;
             }
             if (Machine.bRom)
-            {                
+            {
                 this.Text = "MAME.NET: " + Machine.sDescription + " [" + Machine.sName + "]";
-                Mame.init_machine();
+                Mame.init_machine(this);
                 Generic.nvram_load();
             }
             else
@@ -255,29 +450,15 @@ namespace ui
                 MessageBox.Show("error rom");
             }
         }
-        public void HandleMouse()
-        {
-            switch (Machine.sName)
-            {
-                case "drgnwrld":
-                    if (UI.single_step || Mame.paused)
-                    {
-                        Screen[] screen = Screen.AllScreens;
-                        this.Cursor = new Cursor(Cursor.Current.Handle);
-                        Cursor.Clip = screen[0].Bounds;
-                        ShowCursor();
-                    }
-                    else
-                    {
-                        Cursor.Clip = new Rectangle(new Point(this.Location.X + 7 + this.pictureBox1.Location.X, this.Location.Y + 29 + this.pictureBox1.Location.Y), this.pictureBox1.Size);
-                        HideCursor();
-                    }
-                    break;
-            }
-        }
         private void InitCheatForm()
         {
             cheatform = new cheatForm(this);
+
+            if (!System.IO.Directory.Exists("cht")) {
+                System.IO.Directory.CreateDirectory("cht");
+
+            }
+
             foreach (string sFile in Directory.GetFiles("cht"))
             {
                 if (Path.GetExtension(sFile).ToLower() == ".cht")
@@ -293,6 +474,13 @@ namespace ui
         private void InitIpsForm()
         {
             ipsform = new ipsForm(this);
+
+            if (!System.IO.Directory.Exists("ips"))
+            {
+                System.IO.Directory.CreateDirectory("ips");
+
+            }
+
             foreach (string sFile in Directory.GetFiles("ips"))
             {
                 if (Path.GetExtension(sFile).ToLower() == ".cht")
@@ -325,13 +513,29 @@ namespace ui
         {
             cpsform = new cpsForm(this);
         }
+        private void InitDataeastForm()
+        {
+            dataeastform = new dataeastForm(this);
+        }
+        private void InitTehkanForm()
+        {
+            tehkanform = new tehkanForm(this);
+        }
         private void InitNeogeoForm()
         {
             neogeoform = new neogeoForm(this);
         }
+        private void InitSunA8Form()
+        {
+
+        }
         private void InitNamcos1Form()
         {
             namcos1form = new namcos1Form(this);
+        }
+        private void InitIGS011Form()
+        {
+            igs011form = new igs011Form(this);
         }
         private void InitPgmForm()
         {
@@ -344,6 +548,22 @@ namespace ui
         private void InitM92Form()
         {
             m92form = new m92Form(this);
+        }
+        private void InitTaitoForm()
+        {
+            taitoform = new taitoForm(this);
+        }
+        private void InitTaitobForm()
+        {
+            taitobform = new taitobForm(this);
+        }
+        private void InitKonami68000Form()
+        {
+            konami68000form = new konami68000Form(this);
+        }
+        private void InitCapcomForm()
+        {
+            capcomform = new capcomForm(this);
         }
         private void InitLoadForm()
         {
@@ -398,12 +618,14 @@ namespace ui
                 RomInfo.romList.Add(rom);
                 loadform.listView1.Items.Add(new ListViewItem(new string[] { rom.Description, rom.Year, rom.Name, rom.Parent, rom.Direction, rom.Manufacturer, rom.Board }));
                 //sw1.WriteLine(rom.Name + "\t" + rom.Board + "\t" + rom.Parent + "\t" + rom.Direction + "\t" + rom.Description + "\t" + rom.Year + "\t" + rom.Manufacturer);
+                //sw1.WriteLine(rom.Description + " [" + rom.Name + "]");
+                //sw1.WriteLine(rom.Name);
             }
             //sw1.Close();
         }
         private WaveFormat CreateWaveFormat()
         {
-            WaveFormat format = new Microsoft.DirectX.DirectSound.WaveFormat();
+            Microsoft.DirectX.DirectSound.WaveFormat format = new Microsoft.DirectX.DirectSound.WaveFormat();
             format.AverageBytesPerSecond = 192000;
             format.BitsPerSample = 16;
             format.BlockAlign = 4;//(short)(format.Channels * (format.BitsPerSample / 8));
@@ -433,20 +655,11 @@ namespace ui
         }
         private void loadToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            //Mame.exit_pending = true;
-            //if (TrackInfo.CurTrack != null)
-            {
-                //CPS1.StopDelegate(RomInfo.IStop);
-            }
             if (Machine.bRom)
             {
                 UI.cpurun();
                 Mame.mame_pause(true);
             }
-            //bRunning = false;
-            //pState = PlayState.PLAY_STOPPED;
-            //OnPlaying(pState);
-            //OnRunning(false);
             foreach (ListViewItem lvi in loadform.listView1.Items)
             {
                 if (sSelect == lvi.SubItems[2].Text)
@@ -457,7 +670,6 @@ namespace ui
                     break;
                 }
             }
-            //StopTimer();
             loadform.ShowDialog();
         }
         private void resetToolStripMenuItem_Click(object sender, EventArgs e)
@@ -484,13 +696,29 @@ namespace ui
         {
             cpsform.Show();
         }
+        private void dataeastToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            dataeastform.Show();
+        }
+        private void tehkanToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            tehkanform.Show();
+        }
         private void neogeoToolStripMenuItem_Click(object sender, EventArgs e)
         {
             neogeoform.Show();
         }
+        private void suna8ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+
+        }
         private void namcos1ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             namcos1form.Show();
+        }
+        private void igs011ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            igs011form.Show();
         }
         private void pgmToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -503,6 +731,22 @@ namespace ui
         private void m92ToolStripMenuItem_Click(object sender, EventArgs e)
         {
             m92form.Show();
+        }
+        private void taitoToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            taitoform.Show();
+        }
+        private void taitobToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            taitobform.Show();
+        }
+        private void konami68000ToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            konami68000form.Show();
+        }
+        private void capcomToolStripMenuItem_Click(object sender, EventArgs e)
+        {
+            capcomform.Show();
         }
         private void m68000ToolStripMenuItem_Click(object sender, EventArgs e)
         {
@@ -624,12 +868,39 @@ namespace ui
                         Video.height = 224;
                     }
                     break;
+                case "Data East":
+                    if (Video.iMode == 0)
+                    {
+                        Video.offsetx = 0;
+                        Video.offsety = 16;
+                        Video.width = 256;
+                        Video.height = 224;
+                    }
+                    break;
+                case "Tehkan":
+                    if (Video.iMode == 0)
+                    {
+                        Video.offsetx = 0;
+                        Video.offsety = 16;
+                        Video.width = 256;
+                        Video.height = 224;
+                    }
+                    break;
                 case "Neo Geo":
                     if (Video.iMode == 0)
                     {
                         Video.offsetx = 30;
                         Video.offsety = 16;
                         Video.width = 320;
+                        Video.height = 224;
+                    }
+                    break;
+                case "SunA8":
+                    if (Video.iMode == 0)
+                    {
+                        Video.offsetx = 0;
+                        Video.offsety = 16;
+                        Video.width = 256;
                         Video.height = 224;
                     }
                     break;
@@ -678,6 +949,171 @@ namespace ui
                         Video.height = 240;
                     }
                     break;
+                case "Taito":
+                    if (Video.iMode == 0)
+                    {
+                        switch (Machine.sName)
+                        {
+                            case "tokio":
+                            case "tokioo":
+                            case "tokiou":
+                            case "tokiob":
+                            case "bublbobl":
+                            case "bublbobl1":
+                            case "bublboblr":
+                            case "bublboblr1":
+                            case "boblbobl":
+                            case "sboblbobl":
+                            case "sboblbobla":
+                            case "sboblboblb":
+                            case "sboblbobld":
+                            case "sboblboblc":
+                            case "bub68705":
+                            case "dland":
+                            case "bbredux":
+                            case "bublboblb":
+                            case "bublcave":
+                            case "boblcave":
+                            case "bublcave11":
+                            case "bublcave10":
+                                Video.offsetx = 0;
+                                Video.offsety = 16;
+                                Video.width = 256;
+                                Video.height = 224;
+                                break;
+                            case "opwolf":
+                            case "opwolfa":
+                            case "opwolfj":
+                            case "opwolfu":
+                            case "opwolfb":
+                            case "opwolfp":
+                                Video.offsetx = 0;
+                                Video.offsety = 8;
+                                Video.width = 320;
+                                Video.height = 240;
+                                break;
+                        }
+                    }
+                    break;
+                case "Taito B":
+                    if (Video.iMode == 0)
+                    {
+                        Video.offsetx = 0;
+                        Video.offsety = 16;
+                        Video.width = 320;
+                        Video.height = 224;
+                    }
+                    break;
+                case "Konami 68000":
+                    if (Video.iMode == 0)
+                    {
+                        switch (Machine.sName)
+                        {
+                            case "cuebrick":
+                            case "mia":
+                            case "mia2":
+                            case "tmnt2":
+                            case "tmnt2a":
+                            case "tmht22pe":
+                            case "tmht24pe":
+                            case "tmnt22pu":
+                            case "qgakumon":
+                                Video.offsetx = 104;
+                                Video.offsety = 16;
+                                Video.width = 304;
+                                Video.height = 224;
+                                break;
+                            case "tmnt":
+                            case "tmntu":
+                            case "tmntua":
+                            case "tmntub":
+                            case "tmht":
+                            case "tmhta":
+                            case "tmhtb":
+                            case "tmntj":
+                            case "tmnta":
+                            case "tmht2p":
+                            case "tmht2pa":
+                            case "tmnt2pj":
+                            case "tmnt2po":
+                            case "lgtnfght":
+                            case "lgtnfghta":
+                            case "lgtnfghtu":
+                            case "trigon":
+                            case "blswhstl":
+                            case "blswhstla":
+                            case "detatwin":
+                                Video.offsetx = 96;
+                                Video.offsety = 16;
+                                Video.width = 320;
+                                Video.height = 224;
+                                break;
+                            case "punkshot":
+                            case "punkshot2":
+                            case "punkshotj":
+                            case "glfgreat":
+                            case "glfgreatj":
+                            case "ssriders":
+                            case "ssriderseaa":
+                            case "ssridersebd":
+                            case "ssridersebc":
+                            case "ssridersuda":
+                            case "ssridersuac":
+                            case "ssridersuab":
+                            case "ssridersubc":
+                            case "ssridersadd":
+                            case "ssridersabd":
+                            case "ssridersjad":
+                            case "ssridersjac":
+                            case "ssridersjbd":
+                            case "thndrx2":
+                            case "thndrx2a":
+                            case "thndrx2j":
+                            case "prmrsocr":
+                            case "prmrsocrj":
+                                Video.offsetx = 112;
+                                Video.offsety = 16;
+                                Video.width = 288;
+                                Video.height = 224;
+                                break;
+                        }
+                    }
+                    break;
+                case "Capcom":
+                    if (Video.iMode == 0)
+                    {
+                        switch (Machine.sName)
+                        {
+                            case "gng":
+                            case "gnga":
+                            case "gngbl":
+                            case "gngprot":
+                            case "gngblita":
+                            case "gngc":
+                            case "gngt":
+                            case "makaimur":
+                            case "makaimurc":
+                            case "makaimurg":
+                            case "diamond":
+                                Video.offsetx = 0;
+                                Video.offsety = 16;
+                                Video.width = 256;
+                                Video.height = 224;
+                                break;
+                            case "sf":
+                            case "sfua":
+                            case "sfj":
+                            case "sfjan":
+                            case "sfan":
+                            case "sfp":
+                                Video.offsetx = 64;
+                                Video.offsety = 16;
+                                Video.width = 384;
+                                Video.height = 224;
+                                break;
+                        }
+                    }
+                    break;
             }
             switch (Machine.sDirection)
             {
@@ -693,6 +1129,6 @@ namespace ui
                     break;
             }
             ResizeMain();
-        }           
+        }
     }
 }

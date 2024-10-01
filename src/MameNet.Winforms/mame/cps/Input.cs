@@ -889,6 +889,233 @@ namespace mame
                 short2 |= 0x0002;
             }
         }
+        public static void loop_inputports_cps2_pzloop2()
+        {
+            if (Keyboard.IsPressed(Key.D5))
+            {
+                short2 &= ~0x1000;
+            }
+            else
+            {
+                short2 |= 0x1000;
+            }
+            if (Keyboard.IsPressed(Key.D6))
+            {
+                short2 &= ~0x2000;
+            }
+            else
+            {
+                short2 |= 0x2000;
+            }
+            if (Keyboard.IsPressed(Key.D1))
+            {
+                short2 &= ~0x0100;
+            }
+            else
+            {
+                short2 |= 0x0100;
+            }
+            if (Keyboard.IsPressed(Key.D2))
+            {
+                short2 &= ~0x0200;
+            }
+            else
+            {
+                short2 |= 0x0200;
+            }
+            if (Keyboard.IsPressed(Key.D))
+            {
+                short0 &= ~0x0001;
+            }
+            else
+            {
+                short0 |= 0x0001;
+            }
+            if (Keyboard.IsPressed(Key.A))
+            {
+                short0 &= ~0x0002;
+            }
+            else
+            {
+                short0 |= 0x0002;
+            }
+            if (Keyboard.IsPressed(Key.S))
+            {
+                short0 &= ~0x0004;
+            }
+            else
+            {
+                short0 |= 0x0004;
+            }
+            if (Keyboard.IsPressed(Key.W))
+            {
+                short0 &= ~0x0008;
+            }
+            else
+            {
+                short0 |= 0x0008;
+            }
+            if ((short0 & 0x0003) == 0)
+            {
+                short0 |= 0x0003;
+            }
+            if ((short0 & 0x000c) == 0)
+            {
+                short0 |= 0x000c;
+            }
+            if (Keyboard.IsPressed(Key.J))
+            {
+                short0 &= ~0x0010;
+            }
+            else
+            {
+                short0 |= 0x0010;
+            }
+            if (Keyboard.IsPressed(Key.K))
+            {
+                short0 &= ~0x0020;
+            }
+            else
+            {
+                short0 |= 0x0020;
+            }
+            if (Keyboard.IsPressed(Key.L))
+            {
+                short0 &= ~0x0040;
+            }
+            else
+            {
+                short0 |= 0x0040;
+            }
+            if (Keyboard.IsPressed(Key.U))
+            {
+                short1 &= ~0x0001;
+            }
+            else
+            {
+                short1 |= 0x0001;
+            }
+            if (Keyboard.IsPressed(Key.I))
+            {
+                short1 &= ~0x0002;
+            }
+            else
+            {
+                short1 |= 0x0002;
+            }
+            if (Keyboard.IsPressed(Key.O))
+            {
+                short1 &= ~0x0004;
+            }
+            else
+            {
+                short1 |= 0x0004;
+            }
+            if (Keyboard.IsPressed(Key.Right))
+            {
+                short0 &= ~0x0100;
+            }
+            else
+            {
+                short0 |= 0x0100;
+            }
+            if (Keyboard.IsPressed(Key.Left))
+            {
+                short0 &= ~0x0200;
+            }
+            else
+            {
+                short0 |= 0x0200;
+            }
+            if (Keyboard.IsPressed(Key.Down))
+            {
+                short0 &= ~0x0400;
+            }
+            else
+            {
+                short0 |= 0x0400;
+            }
+            if (Keyboard.IsPressed(Key.Up))
+            {
+                short0 &= ~0x0800;
+            }
+            else
+            {
+                short0 |= 0x0800;
+            }
+            if ((short0 & 0x0300) == 0)
+            {
+                short0 |= 0x0300;
+            }
+            if ((short0 & 0x0c00) == 0)
+            {
+                short0 |= 0x0c00;
+            }
+            if (Keyboard.IsPressed(Key.NumPad1))
+            {
+                short0 &= ~0x1000;
+            }
+            else
+            {
+                short0 |= 0x1000;
+            }
+            if (Keyboard.IsPressed(Key.NumPad2))
+            {
+                short0 &= ~0x2000;
+            }
+            else
+            {
+                short0 |= 0x2000;
+            }
+            if (Keyboard.IsPressed(Key.NumPad3))
+            {
+                short0 &= ~0x4000;
+            }
+            else
+            {
+                short0 |= 0x4000;
+            }
+            if (Keyboard.IsPressed(Key.NumPad4))
+            {
+                short1 &= ~0x0010;
+            }
+            else
+            {
+                short1 |= 0x0010;
+            }
+            if (Keyboard.IsPressed(Key.NumPad5))
+            {
+                short1 &= ~0x0020;
+            }
+            else
+            {
+                short1 |= 0x0020;
+            }
+            if (Keyboard.IsPressed(Key.NumPad6))
+            {
+                short2 &= ~0x4000;
+            }
+            else
+            {
+                short2 |= 0x4000;
+            }
+            if (Keyboard.IsPressed(Key.R))
+            {
+                short2 &= ~0x0004;
+            }
+            else
+            {
+                short2 |= 0x0004;
+            }
+            if (Keyboard.IsPressed(Key.T))
+            {
+                short2 &= ~0x0002;
+            }
+            else
+            {
+                short2 |= 0x0002;
+            }
+        }
         public static void loop_inputports_cps2_ecofghtr()
         {
             if (Keyboard.IsPressed(Key.D5))
@@ -1212,7 +1439,6 @@ namespace mame
                 catch
                 {
                     Mame.playState = Mame.PlayState.PLAY_REPLAYEND;
-                    //Mame.mame_pause(true);
                 }
                 Inptport.bReplayRead = false;
             }
@@ -1243,7 +1469,6 @@ namespace mame
                 catch
                 {
                     Mame.playState = Mame.PlayState.PLAY_REPLAYEND;
-                    //Mame.mame_pause(true);
                 }
                 Inptport.bReplayRead = false;
             }

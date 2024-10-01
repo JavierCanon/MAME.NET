@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace mame
 {
@@ -58,6 +59,14 @@ namespace mame
             dac1.SignedVolTable = new short[256];
             DAC_build_voltable();
             dac1.output = 0;
+        }
+        public static void SaveStateBinary(BinaryWriter writer)
+        {
+            writer.Write(DAC.dac1.output);
+        }
+        public static void LoadStateBinary(BinaryReader reader)
+        {
+            dac1.output = reader.ReadInt16();
         }
     }
 }

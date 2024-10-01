@@ -40,7 +40,12 @@ namespace ui
                 case "CPS-1":
                 case "CPS-1(QSound)":
                 case "CPS2":
+                case "Data East":
+                case "Tehkan":
                 case "Neo Geo":
+                case "Taito B":
+                case "Konami 68000":
+                case "Capcom":
                     CheatReadByte = (int i1) => { return Memory.mainram[i1]; };
                     CheatWriteByte = (int i1, byte b1) => { Memory.mainram[i1] = b1; };
                     break;
@@ -60,7 +65,7 @@ namespace ui
                 case "M92":
                     CheatReadByte = (int i1) => { return Nec.nn1[0].ReadByte(i1); };
                     CheatWriteByte = (int i1, byte b1) => { Nec.nn1[0].WriteByte(i1, b1); };
-                    break;
+                    break;                
             }
         }
         private void cbCht_SelectedIndexChanged(object sender, EventArgs e)

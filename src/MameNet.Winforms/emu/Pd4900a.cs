@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace mame
 {
@@ -314,6 +315,50 @@ namespace mame
         public static void pd4990a_control_16_w(byte data)
         {
             pd4990a_serial_control((byte)(data & 0x7));
+        }
+        public static void SaveStateBinary(BinaryWriter writer)
+        {
+            writer.Write(pd4990a.seconds);
+            writer.Write(pd4990a.minutes);
+            writer.Write(pd4990a.hours);
+            writer.Write(pd4990a.days);
+            writer.Write(pd4990a.month);
+            writer.Write(pd4990a.year);
+            writer.Write(pd4990a.weekday);
+            writer.Write(shiftlo);
+            writer.Write(shifthi);
+            writer.Write(retraces);
+            writer.Write(testwaits);
+            writer.Write(maxwaits);
+            writer.Write(testbit);
+            writer.Write(outputbit);
+            writer.Write(bitno);
+            writer.Write(reading);
+            writer.Write(writting);
+            writer.Write(clock_line);
+            writer.Write(command_line);
+        }
+        public static void LoadStateBinary(BinaryReader reader)
+        {
+            pd4990a.seconds = reader.ReadInt32();
+            pd4990a.minutes = reader.ReadInt32();
+            pd4990a.hours = reader.ReadInt32();
+            pd4990a.days = reader.ReadInt32();
+            pd4990a.month = reader.ReadInt32();
+            pd4990a.year = reader.ReadInt32();
+            pd4990a.weekday = reader.ReadInt32();
+            shiftlo = reader.ReadUInt32();
+            shifthi = reader.ReadUInt32();
+            retraces = reader.ReadInt32();
+            testwaits = reader.ReadInt32();
+            maxwaits = reader.ReadInt32();
+            testbit = reader.ReadInt32();
+            outputbit = reader.ReadInt32();
+            bitno = reader.ReadInt32();
+            reading = reader.ReadByte();
+            writting = reader.ReadByte();
+            clock_line = reader.ReadInt32();
+            command_line = reader.ReadInt32();
         }
     }
 }

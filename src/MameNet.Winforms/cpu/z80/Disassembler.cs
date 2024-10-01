@@ -615,69 +615,69 @@ namespace cpu.z80
             string s1 = "", s2;
             int i, length = 0, offset = 0;
             string sDisassemble;
-            byte1 = Z80A.z1.ReadOp(ushort1);
+            byte1 = Z80A.zz1[0].ReadOp(ushort1);
             if (byte1 != 0xCB && byte1 != 0xED && byte1 != 0xDD && byte1 != 0xFD)
             {
-                opcode2 = new byte[] { byte1, Z80A.z1.ReadOpArg((ushort)(ushort1 + 1)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 2)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)) };
+                opcode2 = new byte[] { byte1, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 1)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)) };
                 length = Disassembler.opcodeSizes[0, byte1];
                 offset = 1;
             }
             else if (byte1 == 0xCB)
             {
-                opcode2 = new byte[] { byte1, Z80A.z1.ReadOp((ushort)(ushort1 + 1)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 2)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)) };
+                opcode2 = new byte[] { byte1, Z80A.zz1[0].ReadOp((ushort)(ushort1 + 1)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)) };
                 length = Disassembler.opcodeSizes[1, byte1];
                 offset = 2;
             }
             else if (byte1 == 0xED)
             {
-                opcode2 = new byte[] { byte1, Z80A.z1.ReadOp((ushort)(ushort1 + 1)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 2)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)) };
+                opcode2 = new byte[] { byte1, Z80A.zz1[0].ReadOp((ushort)(ushort1 + 1)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)) };
                 length = Disassembler.opcodeSizes[2, byte1];
                 offset = 2;
             }
             else if (byte1 == 0xDD)
             {
-                byte2 = Z80A.z1.ReadOp((ushort)(ushort1 + 1));
+                byte2 = Z80A.zz1[0].ReadOp((ushort)(ushort1 + 1));
                 if (byte2 != 0xCB && byte2 != 0xED)
                 {
-                    opcode2 = new byte[] { byte1, byte2, Z80A.z1.ReadOpArg((ushort)(ushort1 + 2)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)) };
+                    opcode2 = new byte[] { byte1, byte2, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)) };
                     length = Disassembler.opcodeSizes[3, byte2];
                     offset = 2;
                 }
                 else if (byte2 == 0xCB)
                 {
-                    byte3 = Z80A.z1.ReadOpArg((ushort)(ushort1 + 2));
-                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 5)) };
+                    byte3 = Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2));
+                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 5)) };
                     length = Disassembler.opcodeSizes[5, byte3];
                     offset = 2;
                 }
                 else if (byte2 == 0xED)
                 {
-                    byte3 = Z80A.z1.ReadOp((ushort)(ushort1 + 2));
-                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 5)) };
+                    byte3 = Z80A.zz1[0].ReadOp((ushort)(ushort1 + 2));
+                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 5)) };
                     length = Disassembler.opcodeSizes[7, byte3];
                     offset = 2;
                 }
             }
             else if (byte1 == 0xFD)
             {
-                byte2 = Z80A.z1.ReadOp((ushort)(ushort1 + 1));
+                byte2 = Z80A.zz1[0].ReadOp((ushort)(ushort1 + 1));
                 if (byte2 != 0xCB && byte2 != 0xED)
                 {
-                    opcode2 = new byte[] { byte1, byte2, Z80A.z1.ReadOpArg((ushort)(ushort1 + 2)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)) };
+                    opcode2 = new byte[] { byte1, byte2, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)) };
                     length = Disassembler.opcodeSizes[4, byte2];
                     offset = 2;
                 }
                 else if (byte2 == 0xCB)
                 {
-                    byte3 = Z80A.z1.ReadOpArg((ushort)(ushort1 + 2));
-                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 5)) };
+                    byte3 = Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 2));
+                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 5)) };
                     length = Disassembler.opcodeSizes[6, byte3];
                     offset = 2;
                 }
                 else if (byte2 == 0xED)
                 {
-                    byte3 = Z80A.z1.ReadOp((ushort)(ushort1 + 2));
-                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.z1.ReadOpArg((ushort)(ushort1 + 3)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 4)), Z80A.z1.ReadOpArg((ushort)(ushort1 + 5)) };
+                    byte3 = Z80A.zz1[0].ReadOp((ushort)(ushort1 + 2));
+                    opcode2 = new byte[] { byte1, byte2, byte3, Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 3)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 4)), Z80A.zz1[0].ReadOpArg((ushort)(ushort1 + 5)) };
                     length = Disassembler.opcodeSizes[8, byte3];
                     offset = 2;
                 }

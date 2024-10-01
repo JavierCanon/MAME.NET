@@ -36,7 +36,7 @@ namespace mame
             ttmap[5].tilemap_set_scrolldy(0x10, 0x110);
             for (i = 0; i < 0x2000; i++)
             {
-                Palette.palette_entry_set_color(i, Palette.make_rgb(0, 0, 0));
+                Palette.palette_entry_set_color1(i, Palette.make_rgb(0, 0, 0));
             }
             copy_sprites = 0;
         }
@@ -90,7 +90,7 @@ namespace mame
                 r = namcos1_paletteram[offset];
                 g = namcos1_paletteram[offset + 0x0800];
                 b = namcos1_paletteram[offset + 0x1000];
-                Palette.palette_entry_set_color(color, Palette.make_rgb(r, g, b));
+                Palette.palette_entry_set_color1(color, Palette.make_rgb(r, g, b));
             }
             else
             {
@@ -100,7 +100,9 @@ namespace mame
                 {
                     offset = (offset & 0x0f) | i;
                     for (j = 0; j < 0x80; j++, offset += 0x10)
+                    {
                         namcos1_paletteram[offset] = data;
+                    }
                 }
             }
         }
@@ -117,15 +119,17 @@ namespace mame
             {
                 namcos1_spriteram[offset] = data;
                 if (offset == 0x0ff2)
+                {
                     copy_sprites = 1;
+                }
             }
             else
+            {
                 namcos1_playfield_control[offset & 0x1f] = data;
+            }
         }
         public static void draw_sprites(int iBitmap, RECT cliprect)
         {
-            //gfx_element* gfx = machine->gfx[1];
-            //gfx_element mygfx = *gfx;
             int source_offset;
             int sprite_xoffs = namcos1_spriteram[0x800 + 0x07f5] + ((namcos1_spriteram[0x800 + 0x07f4] & 1) << 8);
             int sprite_yoffs = namcos1_spriteram[0x800 + 0x07f7];
@@ -159,9 +163,6 @@ namespace mame
                     flipy ^= 1;
                 }
                 sy++;
-                //mygfx.width = sizex;
-                //mygfx.height = sizey;
-                //mygfx.gfxdata = gfx->gfxdata + tx + ty * gfx->line_modulo;
                 Drawgfx.common_drawgfx_na(sizex,sizey,tx,ty,sprite,color,flipx,flipy,sx & 0x1ff,((sy + 16) & 0xff) - 16,cliprect);
             }
         }

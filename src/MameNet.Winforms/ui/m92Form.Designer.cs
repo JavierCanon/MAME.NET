@@ -32,7 +32,6 @@
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.tsslLocation = new System.Windows.Forms.ToolStripStatusLabel();
             this.btnDraw = new System.Windows.Forms.Button();
-            this.btnDraw2 = new System.Windows.Forms.Button();
             this.cb00 = new System.Windows.Forms.CheckBox();
             this.cb01 = new System.Windows.Forms.CheckBox();
             this.cb10 = new System.Windows.Forms.CheckBox();
@@ -73,23 +72,13 @@
             // 
             // btnDraw
             // 
-            this.btnDraw.Location = new System.Drawing.Point(12, 262);
+            this.btnDraw.Location = new System.Drawing.Point(12, 235);
             this.btnDraw.Name = "btnDraw";
             this.btnDraw.Size = new System.Drawing.Size(70, 21);
             this.btnDraw.TabIndex = 2;
             this.btnDraw.Text = "draw";
             this.btnDraw.UseVisualStyleBackColor = true;
             this.btnDraw.Click += new System.EventHandler(this.btnDraw_Click);
-            // 
-            // btnDraw2
-            // 
-            this.btnDraw2.Location = new System.Drawing.Point(12, 289);
-            this.btnDraw2.Name = "btnDraw2";
-            this.btnDraw2.Size = new System.Drawing.Size(70, 21);
-            this.btnDraw2.TabIndex = 2;
-            this.btnDraw2.Text = "draw2";
-            this.btnDraw2.UseVisualStyleBackColor = true;
-            this.btnDraw2.Click += new System.EventHandler(this.btnDraw2_Click);
             // 
             // cb00
             // 
@@ -153,7 +142,7 @@
             // 
             // tbInput
             // 
-            this.tbInput.Location = new System.Drawing.Point(12, 226);
+            this.tbInput.Location = new System.Drawing.Point(12, 208);
             this.tbInput.Name = "tbInput";
             this.tbInput.Size = new System.Drawing.Size(100, 21);
             this.tbInput.TabIndex = 4;
@@ -191,7 +180,6 @@
             this.Controls.Add(this.cb10);
             this.Controls.Add(this.cb01);
             this.Controls.Add(this.cb00);
-            this.Controls.Add(this.btnDraw2);
             this.Controls.Add(this.btnDraw);
             this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.pictureBox1);
@@ -213,7 +201,6 @@
         private System.Windows.Forms.StatusStrip statusStrip1;
         private System.Windows.Forms.ToolStripStatusLabel tsslLocation;
         private System.Windows.Forms.Button btnDraw;
-        private System.Windows.Forms.Button btnDraw2;
         private System.Windows.Forms.CheckBox cb00;
         private System.Windows.Forms.CheckBox cb01;
         private System.Windows.Forms.CheckBox cb10;

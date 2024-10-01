@@ -14,9 +14,6 @@ namespace mame
         private static ushort[] uuB200;
         public static int scrollx1, scrolly1, scrollx2, scrolly2;
         public static int video_off, spriteram_size, majtitle_rowscroll;
-        
-        
-
         public static ushort m72_palette1_r(int offset)
         {
             offset &= ~0x100;
@@ -29,7 +26,7 @@ namespace mame
         }
         public static void changecolor(int color, int r, int g, int b)
         {
-            Palette.palette_entry_set_color(color, Palette.make_rgb(Palette.pal5bit((byte)r), Palette.pal5bit((byte)g), Palette.pal5bit((byte)b)));
+            Palette.palette_entry_set_color1(color, Palette.make_rgb(Palette.pal5bit((byte)r), Palette.pal5bit((byte)g), Palette.pal5bit((byte)b)));
         }
         public static void m72_palette1_w(int offset, ushort data)
         {
@@ -228,7 +225,6 @@ namespace mame
             if (video_off!=0)
             {
                 Array.Copy(uuB200, Video.bitmapbase[Video.curbitmap], 0x40000);
-                //Array.Copy(uuB200, 0, Video.bitmapbase[Video.curbitmap], 0x200 * Video.new_clip.min_y, 0x200 * (Video.new_clip.max_y - Video.new_clip.min_y));
                 return;
             }
             fg_tilemap.tilemap_set_scrollx(0, scrollx1);
@@ -243,6 +239,18 @@ namespace mame
         }
         public static void video_eof_m72()
         {
+
+        }
+        public static void video_start_m82()
+        {
+            int i;
+            uuB200 = new ushort[0x400 * 0x200];
+            Video.new_clip = new RECT();
+            spriteram_size = 0x400;
+            for (i = 0; i < 0x80000; i++)
+            {
+                uuB200[i] = 0x200;
+            }
 
         }
     }

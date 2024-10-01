@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace mame
 {
@@ -111,7 +112,7 @@ namespace mame
             }
             else if (address >= 0xffff0 && address + 1 <= 0xfffff)
             {
-                result = (ushort)(Memory.mainrom[address] + Memory.audiorom[address + 1] * 0x100);
+                result = (ushort)(Memory.mainrom[address] + Memory.mainrom[address + 1] * 0x100);
             }
             return result;
         }
@@ -227,7 +228,7 @@ namespace mame
             return result;
         }
         public static void NWriteIOByte_m72(int address, byte value)
-        {
+        {            
             if (address >= 0x00 && address <= 0x01)
             {
                 m72_sound_command_w(0, value);
@@ -437,19 +438,11 @@ namespace mame
             if (address >= 0x80000 && address + 1 <= 0x83fff)
             {
                 int offset = (address - 0x80000) / 2;
-                if ((address % 2) == 1)
-                {
-                    int i1 = 1;
-                }
                 m72_videoram1_w(offset, value);
             }
             else if (address >= 0x84000 && address + 1 <= 0x87fff)
             {
                 int offset = (address - 0x84000) / 2;
-                if ((address % 2) == 1)
-                {
-                    int i1 = 1;
-                }
                 m72_videoram2_w(offset, value);
             }
             else if (address >= 0xa0000 && address+1 <= 0xa0bff)
@@ -480,7 +473,7 @@ namespace mame
                 Memory.mainram[address - 0xe0000] = (byte)value;
                 Memory.mainram[address - 0xe0000 + 1] = (byte)(value >> 8);
             }
-        }        
+        }
         public static void NWriteIOByte_kengo(int address, byte value)
         {
             if (address >= 0x00 && address <= 0x01)

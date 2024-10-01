@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 using System.Runtime.InteropServices;
 
 namespace mame
@@ -13,6 +14,7 @@ namespace mame
         public static ushort[] neogeo_videoram;
         public static ushort[,] palettes;
         public static int[] pens;
+        private static int neogeo_scanline_param;
         private static byte palette_bank;
         private static byte screen_dark;
         private static ushort videoram_read_buffer;
@@ -24,7 +26,7 @@ namespace mame
         public static byte auto_animation_disabled;
         public static int auto_animation_counter;
         private static int auto_animation_frame_counter;
-        public static Timer.emu_timer auto_animation_timer;
+        public static Timer.emu_timer auto_animation_timer, sprite_line_timer;
         private static double[] rgb_weights_normal;
         private static double[] rgb_weights_normal_bit15;
         private static double[] rgb_weights_dark;
@@ -127,7 +129,15 @@ namespace mame
                 auto_animation_frame_counter = auto_animation_frame_counter - 1;
             }
             Timer.timer_adjust_periodic(auto_animation_timer, Video.video_screen_get_time_until_pos(0, 0), Attotime.ATTOTIME_NEVER);
-        }        
+        }
+        private static void create_auto_animation_timer()
+        {
+            auto_animation_timer = Timer.timer_alloc_common(auto_animation_timer_callback, "auto_animation_timer_callback", false);
+        }
+        private static void start_auto_animation_timer()
+        {
+            Timer.timer_adjust_periodic(auto_animation_timer, Video.video_screen_get_time_until_pos(0, 0), Attotime.ATTOTIME_NEVER);
+        }
         private static int rows_to_height(int rows)
         {
             if ((rows == 0) || (rows > 0x20))
@@ -140,10 +150,11 @@ namespace mame
             return (((max_y >= y) && (scanline >= y) && (scanline <= max_y)) ||
                     ((max_y < y) && ((scanline >= y) || (scanline <= max_y))));
         }
-        private static void draw_sprites(int iBitmap)
+        private static void draw_sprites(int iBitmap, int scanline)
         {
-            int scanline,x, y, rows, zoom_x, zoom_y, sprite_number, sprite_y, tile, attr_and_code_offs, code, zoom_x_table_offset, gfx_offset, line_pens_offset, x_inc,sprite_line,zoom_line;
-            ushort y_control,zoom_control,attr;            
+            int x_2, code_2;
+            int x, y, rows, zoom_x, zoom_y, sprite_list_offset, sprite_index, max_sprite_index, sprite_number, sprite_y, tile, attr_and_code_offs, code, zoom_x_table_offset, gfx_offset, line_pens_offset, x_inc, sprite_line, zoom_line;
+            ushort y_control, zoom_control, attr;
             byte sprite_y_and_tile;
             bool invert;
             y = 0;
@@ -151,10 +162,32 @@ namespace mame
             rows = 0;
             zoom_y = 0;
             zoom_x = 0;
-            for (sprite_number = 0; sprite_number < 381; sprite_number++)
+            if ((scanline & 0x01) != 0)
             {
+                sprite_list_offset = 0x8680;
+            }
+            else
+            {
+                sprite_list_offset = 0x8600;
+            }
+            for (max_sprite_index = 95; max_sprite_index >= 0; max_sprite_index--)
+            {
+                if (neogeo_videoram[sprite_list_offset + max_sprite_index] != 0)
+                {
+                    break;
+                }
+            }           
+            if (max_sprite_index != 95)
+            {
+                max_sprite_index = max_sprite_index + 1;
+            }
+            for (sprite_index = 0; sprite_index < max_sprite_index; sprite_index++)
+            {
+                sprite_number = neogeo_videoram[sprite_list_offset + sprite_index] & 0x1ff;
                 y_control = neogeo_videoram[0x8200 | sprite_number];
                 zoom_control = neogeo_videoram[0x8000 | sprite_number];
+                x_2 = neogeo_videoram[0x8400 | sprite_number];
+                code_2 = neogeo_videoram[sprite_number << 6];
                 if ((y_control & 0x40) != 0)
                 {
                     x = (x + zoom_x + 1) & 0x01ff;
@@ -168,67 +201,97 @@ namespace mame
                     zoom_x = (zoom_control >> 8) & 0x0f;
                     rows = y_control & 0x3f;
                 }
-                if (((x >= 0x140) && (x <= 0x1f0)) || rows==0)
-                    continue;                
-                for (scanline = 0; scanline < 264; scanline++)
+                if ((x >= 0x140) && (x <= 0x1f0))
                 {
-                    if (sprite_on_scanline(scanline, y, rows))
+                    continue;
+                }
+                if (sprite_on_scanline(scanline, y, rows))
+                {
+                    sprite_line = (scanline - y) & 0x1ff;
+                    zoom_line = sprite_line & 0xff;
+                    invert = ((sprite_line & 0x100) != 0) ? true : false;
+                    if (invert)
                     {
-                        sprite_line = (scanline - y) & 0x1ff;
-                        zoom_line = sprite_line & 0xff;
-                        invert = ((sprite_line & 0x100) != 0) ? true : false;
-                        if (invert)
-                            zoom_line ^= 0xff;
-                        if (rows > 0x20)
+                        zoom_line ^= 0xff;
+                    }
+                    if (rows > 0x20)
+                    {
+                        zoom_line = zoom_line % ((zoom_y + 1) << 1);
+                        if (zoom_line > zoom_y)
                         {
-                            zoom_line = zoom_line % ((zoom_y + 1) << 1);
-                            if (zoom_line > zoom_y)
+                            zoom_line = ((zoom_y + 1) << 1) - 1 - zoom_line;
+                            invert = !invert;
+                        }
+                    }
+                    sprite_y_and_tile = zoomyrom[(zoom_y << 8) | zoom_line];
+                    sprite_y = sprite_y_and_tile & 0x0f;
+                    tile = sprite_y_and_tile >> 4;
+                    if (invert)
+                    {
+                        sprite_y ^= 0x0f;
+                        tile ^= 0x1f;
+                    }
+                    attr_and_code_offs = (sprite_number << 6) | (tile << 1);
+                    attr = neogeo_videoram[attr_and_code_offs + 1];
+                    code = ((attr << 12) & 0x70000) | neogeo_videoram[attr_and_code_offs];
+                    if (auto_animation_disabled == 0)
+                    {
+                        if ((attr & 0x0008) != 0)
+                        {
+                            code = (code & ~0x07) | (auto_animation_counter & 0x07);
+                        }
+                        else if ((attr & 0x0004) != 0)
+                        {
+                            code = (code & ~0x03) | (auto_animation_counter & 0x03);
+                        }
+                    }
+                    if ((attr & 0x0002) != 0)
+                    {
+                        sprite_y ^= 0x0f;
+                    }
+                    zoom_x_table_offset = 0;
+                    gfx_offset = (int)(((code << 8) | (sprite_y << 4)) & sprite_gfx_address_mask);
+                    line_pens_offset = attr >> 8 << 4;
+                    if ((attr & 0x0001) != 0)
+                    {
+                        gfx_offset = gfx_offset + 0x0f;
+                        x_inc = -1;
+                    }
+                    else
+                    {
+                        x_inc = 1;
+                    }
+                    int pixel_addr_offsetx, pixel_addr_offsety;
+                    if (x <= 0x01f0)
+                    {
+                        int i;
+                        pixel_addr_offsetx = x + NEOGEO_HBEND;
+                        pixel_addr_offsety = scanline;
+                        for (i = 0; i < 0x10; i++)
+                        {
+                            if (zoom_x_tables[zoom_x, zoom_x_table_offset] != 0)
                             {
-                                zoom_line = ((zoom_y + 1) << 1) - 1 - zoom_line;
-                                invert = !invert;
+                                if (sprite_gfx[gfx_offset] != 0)
+                                {
+                                    Video.bitmapbaseN[iBitmap][pixel_addr_offsety * 384 + pixel_addr_offsetx] = pens[line_pens_offset + sprite_gfx[gfx_offset]];
+                                }
+                                pixel_addr_offsetx++;
                             }
+                            zoom_x_table_offset++;
+                            gfx_offset += x_inc;
                         }
-                        sprite_y_and_tile = zoomyrom[(zoom_y << 8) | zoom_line];
-                        sprite_y = sprite_y_and_tile & 0x0f;
-                        tile = sprite_y_and_tile >> 4;
-                        if (invert)
+                    }
+                    else
+                    {
+                        int i;
+                        int x_save = x;
+                        pixel_addr_offsetx = NEOGEO_HBEND;
+                        pixel_addr_offsety = scanline;
+                        for (i = 0; i < 0x10; i++)
                         {
-                            sprite_y ^= 0x0f;
-                            tile ^= 0x1f;
-                        }
-                        attr_and_code_offs = (sprite_number << 6) | (tile << 1);
-                        attr = neogeo_videoram[attr_and_code_offs + 1];
-                        code = ((attr << 12) & 0x70000) | neogeo_videoram[attr_and_code_offs];
-                        if (auto_animation_disabled == 0)
-                        {
-                            if ((attr & 0x0008) != 0)
-                                code = (code & ~0x07) | (auto_animation_counter & 0x07);
-                            else if ((attr & 0x0004) != 0)
-                                code = (code & ~0x03) | (auto_animation_counter & 0x03);
-                        }
-                        if ((attr & 0x0002) != 0)
-                            sprite_y ^= 0x0f;
-                        zoom_x_table_offset = 0;
-                        gfx_offset = (int)(((code << 8) | (sprite_y << 4)) & sprite_gfx_address_mask);
-                        line_pens_offset = attr >> 8 << 4;
-                        if ((attr & 0x0001) != 0)
-                        {
-                            gfx_offset = gfx_offset + 0x0f;
-                            x_inc = -1;
-                        }
-                        else
-                        {
-                            x_inc = 1;
-                        }
-                        int pixel_addr_offsetx, pixel_addr_offsety;
-                        if (x <= 0x01f0)
-                        {
-                            int i;
-                            pixel_addr_offsetx = x + NEOGEO_HBEND;
-                            pixel_addr_offsety = scanline;
-                            for (i = 0; i < 0x10; i++)
+                            if (zoom_x_tables[zoom_x, zoom_x_table_offset] != 0)
                             {
-                                if (zoom_x_tables[zoom_x, zoom_x_table_offset] != 0)
+                                if (x >= 0x200)
                                 {
                                     if (sprite_gfx[gfx_offset] != 0)
                                     {
@@ -236,40 +299,83 @@ namespace mame
                                     }
                                     pixel_addr_offsetx++;
                                 }
-                                zoom_x_table_offset++;
-                                gfx_offset += x_inc;
+                                x++;
                             }
+                            zoom_x_table_offset++;
+                            gfx_offset += x_inc;
                         }
-                        else
-                        {
-                            int i;
-                            int x_save = x;
-                            pixel_addr_offsetx = NEOGEO_HBEND;
-                            pixel_addr_offsety = scanline;
-                            for (i = 0; i < 0x10; i++)
-                            {
-                                if (zoom_x_tables[zoom_x, zoom_x_table_offset] != 0)
-                                {
-                                    if (x >= 0x200)
-                                    {
-                                        if (sprite_gfx[gfx_offset] != 0)
-                                        {
-                                            Video.bitmapbaseN[iBitmap][pixel_addr_offsety * 384 + pixel_addr_offsetx] = pens[line_pens_offset + sprite_gfx[gfx_offset]];
-                                        }
-                                        pixel_addr_offsetx++;
-                                    }
-                                    x++;
-                                }
-                                zoom_x_table_offset++;
-                                gfx_offset += x_inc;
-                            }
-                            x = x_save;
-                        }
+                        x = x_save;
                     }
                 }
             }
         }
-        private static void draw_fixed_layer(int iBitmap)
+        private static void parse_sprites(int scanline)
+        {
+            ushort sprite_number, y_control;
+            int y = 0;
+            int rows = 0;
+            int sprite_list_offset;
+            int active_sprite_count = 0;
+            if ((scanline & 0x01) != 0)
+            {
+                sprite_list_offset = 0x8680;
+            }
+            else
+            {
+                sprite_list_offset = 0x8600;
+            }
+            for (sprite_number = 0; sprite_number < 381; sprite_number++)
+            {
+                y_control = neogeo_videoram[0x8200 | sprite_number];
+                if ((~y_control & 0x40) != 0)
+                {
+                    y = 0x200 - (y_control >> 7);
+                    rows = y_control & 0x3f;
+                }
+                if (rows == 0)
+                {
+                    continue;
+                }
+                if (!sprite_on_scanline(scanline, y, rows))
+                {
+                    continue;
+                }
+                neogeo_videoram[sprite_list_offset] = sprite_number;
+                sprite_list_offset++;
+                active_sprite_count++;
+                if (active_sprite_count == 96)
+                {
+                    break;
+                }
+            }
+            for (; active_sprite_count <= 96; active_sprite_count++)
+            {
+                neogeo_videoram[sprite_list_offset] = 0;
+                sprite_list_offset++;
+            }
+        }
+        public static void sprite_line_timer_callback()
+        {
+            int scanline = neogeo_scanline_param;
+            if (scanline != 0)
+            {
+                Video.video_screen_update_partial(scanline - 1);
+            }
+            parse_sprites(scanline);
+            scanline = (scanline + 1) % 264;
+            neogeo_scanline_param = scanline;
+            Timer.timer_adjust_periodic(sprite_line_timer, Video.video_screen_get_time_until_pos(scanline, 0), Attotime.ATTOTIME_NEVER);
+        }
+        private static void create_sprite_line_timer()
+        {
+            sprite_line_timer = Timer.timer_alloc_common(sprite_line_timer_callback, "sprite_line_timer_callback", false);
+        }
+        private static void start_sprite_line_timer()
+        {
+            neogeo_scanline_param = 0;
+            Timer.timer_adjust_periodic(sprite_line_timer, Video.video_screen_get_time_until_pos(0, 0),Attotime.ATTOTIME_NEVER);
+        }
+        private static void draw_fixed_layer(int iBitmap,int scanline)
         {
             int i,j,x,y;
             int[] garouoffsets=new int[32], pix_offsets = new int[] { 0x10, 0x18, 0x00, 0x08 };
@@ -290,6 +396,7 @@ namespace mame
                 gfx_base = fixedbiosrom;
                 addr_mask = fixedbiosrom.Length - 1;
             }
+            int video_data_offset = 0x7000 | (scanline >> 3);
             banked = (fixed_layer_source != 0) && (addr_mask > 0x1ffff);
             if (banked && neogeo_fixed_layer_bank_type == 1)
             {
@@ -307,42 +414,42 @@ namespace mame
                     k += 2;
                 }
             }
-            for (y = 0; y < 33; y++)
+            for (x = 0; x < 40; x++)
             {
-                for (x = 0; x < 40; x++)
+                code_and_palette = neogeo_videoram[video_data_offset];
+                code = code_and_palette & 0x0fff;
+                if (banked)
                 {
-                    code_and_palette = neogeo_videoram[0x7000 | (y + x * 0x20)];
-                    code = code_and_palette & 0x0fff;
-                    if (banked)
+                    y = scanline >> 3;
+                    switch (neogeo_fixed_layer_bank_type)
                     {
-                        switch (neogeo_fixed_layer_bank_type)
-                        {
-                            case 1:
-                                code += 0x1000 * (garouoffsets[(y - 2) & 31] ^ 3);
-                                break;
-                            case 2:
-                                code += 0x1000 * (((neogeo_videoram[0x7500 + ((y - 1) & 31) + 32 * (x / 6)] >> (5 - (x % 6)) * 2) & 3) ^ 3);
-                                break;
-                        }
-                    }
-                    data = 0;
-                    for (i = 0; i < 8; i++)
-                    {
-                        gfx_offset = ((code << 5) | (i)) & addr_mask;
-                        char_pens_offset = code_and_palette >> 12 << 4;
-                        for (j = 0; j < 8; j++)
-                        {
-                            if ((j & 0x01) != 0)
-                                data = (byte)(data >> 4);
-                            else
-                                data = gfx_base[gfx_offset + pix_offsets[j >> 1]];
-                            if ((data & 0x0f) != 0)
-                            {
-                                Video.bitmapbaseN[iBitmap][384 * ((y * 8) + i) + 30 + x * 8 + j] = pens[char_pens_offset + (data & 0x0f)];
-                            }
-                        }
+                        case 1:
+                            code += 0x1000 * (garouoffsets[(y - 2) & 31] ^ 3);
+                            break;
+                        case 2:
+                            code += 0x1000 * (((neogeo_videoram[0x7500 + ((y - 1) & 31) + 32 * (x / 6)] >> (5 - (x % 6)) * 2) & 3) ^ 3);
+                            break;
                     }
                 }
+                data = 0;
+                gfx_offset = ((code << 5) | (scanline & 0x07)) & addr_mask;
+                char_pens_offset = code_and_palette >> 12 << 4;
+                for (i = 0; i < 8; i++)
+                {
+                    if ((i & 0x01) != 0)
+                    {
+                        data = (byte)(data >> 4);
+                    }
+                    else
+                    {
+                        data = gfx_base[gfx_offset + pix_offsets[i >> 1]];
+                    }
+                    if ((data & 0x0f) != 0)
+                    {
+                        Video.bitmapbaseN[iBitmap][384 * scanline + 30 + x * 8 + i] = pens[char_pens_offset + (data & 0x0f)];
+                    }
+                }
+                video_data_offset += 0x20;
             }
         }
         private static void optimize_sprite_data()
@@ -392,7 +499,7 @@ namespace mame
                     videoram_read_buffer = neogeo_videoram[videoram_offset];
                     break;
                 case 0x01:                    
-                    if (videoram_offset == 0x8463 && data == 0x0c80)
+                    if (videoram_offset == 0x842d && data == 0x0)
                     {
                         int i1 = 1;
                     }
@@ -478,7 +585,8 @@ namespace mame
             {
                 transarray[i] = trans_color;
             }
-            auto_animation_timer = Timer.timer_alloc_common(auto_animation_timer_callback, "auto_animation_timer_callback", false);
+            create_sprite_line_timer();
+            create_auto_animation_timer();
             optimize_sprite_data();
             videoram_read_buffer = 0;
             videoram_offset = 0;
@@ -490,9 +598,9 @@ namespace mame
         }
         public static void video_update_neogeo()
         {
-            Array.Copy(bgarray, 0, Video.bitmapbaseN[Video.curbitmap], 0, 384 * 264);
-            draw_sprites(Video.curbitmap);
-            draw_fixed_layer(Video.curbitmap);
+            Array.Copy(bgarray, 0, Video.bitmapbaseN[Video.curbitmap], 384 * Video.new_clip.min_y, 384 * (Video.new_clip.max_y - Video.new_clip.min_y + 1));
+            draw_sprites(Video.curbitmap, Video.new_clip.min_y);
+            draw_fixed_layer(Video.curbitmap, Video.new_clip.min_y);
         }
         public static void video_eof_neogeo()
         {

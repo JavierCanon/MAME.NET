@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.IO;
 
 namespace mame
 {
@@ -9,7 +10,8 @@ namespace mame
     {
         public static ushort[] pf_master_control;
         public static int m92_sprite_list;
-        public static byte[] m92_vram_data, m92_spritecontrol;
+        public static ushort[] m92_vram_data;
+        public static ushort[] m92_spritecontrol;
         public static int m92_game_kludge;
         private static ushort[] uuB800;
         public static int m92_palette_bank;
@@ -29,10 +31,32 @@ namespace mame
                 m92_sprite_interrupt();
             }
         }
-        public static void m92_spritecontrol_w(int offset, byte data)
+        public static void m92_spritecontrol_w1(int offset, byte data)
         {
-            m92_spritecontrol[offset] = (byte)data;
-            if (offset * 2 == 2)
+            m92_spritecontrol[offset] = (ushort)((data << 8) | (m92_spritecontrol[offset] & 0xff));
+            /*if (offset == 2)
+            {
+                if ((data & 0xff) == 8)
+                {
+                    m92_sprite_list = (((0x100 - m92_spritecontrol[0]) & 0xff) * 4);
+                }
+                else
+                {
+                    m92_sprite_list = 0x400;
+                }
+            }*/
+            if (offset == 4)
+            {
+                Generic.buffer_spriteram16_w();
+                m92_sprite_buffer_busy = 0;
+                Timer.emu_timer timer = Timer.timer_alloc_common(spritebuffer_callback, "spritebuffer_callback", true);
+                Timer.timer_adjust_periodic(timer, Attotime.attotime_mul(new Atime(0, (long)(1e18 / 26666000)), 0x400), Attotime.ATTOTIME_NEVER);
+            }
+        }
+        public static void m92_spritecontrol_w2(int offset, byte data)
+        {
+            m92_spritecontrol[offset] = (ushort)((m92_spritecontrol[offset] & 0xff00) | data);
+            if (offset == 2)
             {
                 if ((data & 0xff) == 8)
                 {
@@ -43,7 +67,7 @@ namespace mame
                     m92_sprite_list = 0x400;
                 }
             }
-            if (offset * 2 == 4)
+            if (offset == 4)
             {
                 Generic.buffer_spriteram16_w();
                 m92_sprite_buffer_busy = 0;
@@ -53,8 +77,7 @@ namespace mame
         }
         public static void m92_spritecontrol_w(int offset, ushort data)
         {
-            m92_spritecontrol[offset] = (byte)data;
-            m92_spritecontrol[offset + 1] = (byte)(data >> 8);
+            m92_spritecontrol[offset] = data;
             if (offset == 2)
             {
                 if ((data & 0xff) == 8)
@@ -87,8 +110,7 @@ namespace mame
         }
         public static void m92_paletteram_w(int offset, ushort data)
         {
-            Generic.paletteram16[offset + 0x400 * m92_palette_bank] = data;
-            Generic.paletteram16_xBBBBBGGGGGRRRRR_word_w(offset + 0x400 * m92_palette_bank);
+            Generic.paletteram16_xBBBBBGGGGGRRRRR_word_w(offset + 0x400 * m92_palette_bank, data);
         }
         public static void m92_vram_w(int offset)
         {
@@ -107,17 +129,103 @@ namespace mame
                 }
             }
         }
-        public static void m92_pf1_control_w(int offset, ushort data)
+        public static void m92_pf1_control_w1(int offset, byte data)
         {
+            pf_layer[0].control[offset] = (ushort)((data << 8) | (pf_layer[0].control[offset] & 0xff));
+        }
+        public static void m92_pf1_control_w2(int offset, byte data)
+        {
+            pf_layer[0].control[offset] = (ushort)((pf_layer[0].control[offset] & 0xff00) | data);
+        }
+        public static void m92_pf1_control_w(int offset, ushort data)
+        {            
             pf_layer[0].control[offset] = data;
+        }
+        public static void m92_pf2_control_w1(int offset, byte data)
+        {
+            pf_layer[1].control[offset] = (ushort)((data << 8) | (pf_layer[1].control[offset] & 0xff));
+        }
+        public static void m92_pf2_control_w2(int offset, byte data)
+        {
+            pf_layer[1].control[offset] = (ushort)((pf_layer[1].control[offset] & 0xff00) | data);
         }
         public static void m92_pf2_control_w(int offset, ushort data)
         {
             pf_layer[1].control[offset] = data;
         }
+        public static void m92_pf3_control_w1(int offset, byte data)
+        {
+            pf_layer[2].control[offset] = (ushort)((data << 8) | (pf_layer[2].control[offset] & 0xff));
+        }
+        public static void m92_pf3_control_w2(int offset, byte data)
+        {
+            pf_layer[2].control[offset] = (ushort)((pf_layer[2].control[offset] & 0xff00) | data);
+        }
         public static void m92_pf3_control_w(int offset, ushort data)
         {
             pf_layer[2].control[offset] = data;
+        }
+        public static void m92_master_control_w1(int offset, byte data)
+        {
+            ushort old = pf_master_control[offset];
+            pf_master_control[offset] = (ushort)((data << 8) | (pf_master_control[offset] & 0xff));
+            switch (offset)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    pf_layer[offset].vram_base = (ushort)((pf_master_control[offset] & 3) * 0x2000);
+                    if ((pf_master_control[offset] & 0x04) != 0)
+                    {
+                        pf_layer[offset].tmap.enable = false;
+                        pf_layer[offset].wide_tmap.enable = ((~pf_master_control[offset] >> 4) & 1) != 0 ? true : false;
+                    }
+                    else
+                    {
+                        pf_layer[offset].tmap.enable = ((~pf_master_control[offset] >> 4) & 1) != 0 ? true : false;
+                        pf_layer[offset].wide_tmap.enable = false;
+                    }
+                    if (((old ^ pf_master_control[offset]) & 0x07) != 0)
+                    {
+                        pf_layer[offset].tmap.all_tiles_dirty = true;
+                        pf_layer[offset].wide_tmap.all_tiles_dirty = true;
+                    }
+                    break;
+                case 3:
+                    m92_raster_irq_position = pf_master_control[3] - 128;
+                    break;
+            }
+        }
+        public static void m92_master_control_w2(int offset, byte data)
+        {
+            ushort old = pf_master_control[offset];
+            pf_master_control[offset] = (ushort)((pf_master_control[offset] & 0xff00) | data);
+            switch (offset)
+            {
+                case 0:
+                case 1:
+                case 2:
+                    pf_layer[offset].vram_base = (ushort)((pf_master_control[offset] & 3) * 0x2000);
+                    if ((pf_master_control[offset] & 0x04) != 0)
+                    {
+                        pf_layer[offset].tmap.enable = false;
+                        pf_layer[offset].wide_tmap.enable = ((~pf_master_control[offset] >> 4) & 1) != 0 ? true : false;
+                    }
+                    else
+                    {
+                        pf_layer[offset].tmap.enable = ((~pf_master_control[offset] >> 4) & 1) != 0 ? true : false;
+                        pf_layer[offset].wide_tmap.enable = false;
+                    }
+                    if (((old ^ pf_master_control[offset]) & 0x07) != 0)
+                    {
+                        pf_layer[offset].tmap.all_tiles_dirty = true;
+                        pf_layer[offset].wide_tmap.all_tiles_dirty = true;
+                    }
+                    break;
+                case 3:
+                    m92_raster_irq_position = pf_master_control[3] - 128;
+                    break;
+            }
         }
         public static void m92_master_control_w(int offset,ushort data)
         {
@@ -166,7 +274,7 @@ namespace mame
                 pf_layer[laynum].tmap.tilemap_set_scrolldy(-128, -128);
                 pf_layer[laynum].wide_tmap.tilemap_set_scrolldx(2 * laynum - 256, -2 * laynum + 8 - 256);
                 pf_layer[laynum].wide_tmap.tilemap_set_scrolldy(-128, -128);
-            }
+            }            
         }
         public static void draw_sprites(RECT cliprect)
         {
@@ -216,8 +324,9 @@ namespace mame
                         x &= 0x1ff;
                         for (i = 0; i < y_multi; i++)
                         {
-                            /*if (flip_screen_get()) {
-                                pdrawgfx(bitmap,machine->gfx[1],
+                            if (Generic.flip_screen_get()!=0) {
+                                int i1 = 1;
+                                /*pdrawgfx(bitmap,machine->gfx[1],
                                         sprite + s_ptr,
                                         colour,
                                         !fx,!fy,
@@ -229,11 +338,12 @@ namespace mame
                                         colour,
                                         !fx,!fy,
                                         464-x+512,240-(y-i*16),
-                                        cliprect,TRANSPARENCY_PEN,0,pri_back);
+                                        cliprect,TRANSPARENCY_PEN,0,pri_back);*/
+
                             }
                             else
                             {
-                                pdrawgfx(bitmap,machine->gfx[1],
+                                /*pdrawgfx(bitmap,machine->gfx[1],
                                         sprite + s_ptr,
                                         colour,
                                         fx,fy,
@@ -245,10 +355,10 @@ namespace mame
                                         colour,
                                         fx,fy,
                                         x-512,y-i*16,
-                                        cliprect,TRANSPARENCY_PEN,0,pri_back);
-                            }*/
-                            Drawgfx.common_drawgfx_m92(gfx21rom, sprite + s_ptr, colour, fx, fy, x, y - i * 16, cliprect,(uint)(pri_back | (1 << 31)));
-                            Drawgfx.common_drawgfx_m92(gfx21rom, sprite + s_ptr, colour, fx, fy, x-512, y - i * 16, cliprect, (uint)(pri_back | (1 << 31)));
+                                        cliprect,TRANSPARENCY_PEN,0,pri_back);*/
+                                Drawgfx.common_drawgfx_m92(gfx21rom, sprite + s_ptr, colour, fx, fy, x, y - i * 16, cliprect, (uint)(pri_back | (1 << 31)));
+                                Drawgfx.common_drawgfx_m92(gfx21rom, sprite + s_ptr, colour, fx, fy, x - 512, y - i * 16, cliprect, (uint)(pri_back | (1 << 31)));
+                            }
                             if (fy != 0)
                             {
                                 s_ptr++;
@@ -278,13 +388,13 @@ namespace mame
             {
                 if ((pf_master_control[laynum] & 0x40) != 0)
                 {
-                    int scrolldata_offset = 0xf400 + 0x400 * laynum;
+                    int scrolldata_offset = (0xf400 + 0x400 * laynum)/2;
                     pf_layer[laynum].tmap.tilemap_set_scroll_rows(512);
                     pf_layer[laynum].wide_tmap.tilemap_set_scroll_rows(512);
                     for (i = 0; i < 512; i++)
                     {
-                        pf_layer[laynum].tmap.tilemap_set_scrollx(i, m92_vram_data[scrolldata_offset + i * 2] + m92_vram_data[scrolldata_offset + i * 2 + 1] * 0x100);
-                        pf_layer[laynum].wide_tmap.tilemap_set_scrollx(i, m92_vram_data[scrolldata_offset + i * 2] + m92_vram_data[scrolldata_offset + i * 2 + 1] * 0x100);
+                        pf_layer[laynum].tmap.tilemap_set_scrollx(i, m92_vram_data[scrolldata_offset + i]);
+                        pf_layer[laynum].wide_tmap.tilemap_set_scrollx(i, m92_vram_data[scrolldata_offset + i]);
                     }
                 }
                 else
@@ -300,7 +410,7 @@ namespace mame
         }
         public static void m92_screenrefresh(RECT cliprect)
         {
-            Array.Clear(Tilemap.priority_bitmap, 0, 0x40000);
+            Array.Copy(Tilemap.bb00, 0, Tilemap.priority_bitmap, 0x200 * cliprect.min_y, 0x200 * (cliprect.max_y - cliprect.min_y + 1));
             if (((~pf_master_control[2] >> 4) & 1) != 0)
             {
                 pf_layer[2].wide_tmap.tilemap_draw_primask(cliprect, 0x20, 0);
@@ -310,15 +420,15 @@ namespace mame
             }
             else
             {
-                Array.Copy(uuB800, Video.bitmapbase[Video.curbitmap], 0x40000);
+                Array.Copy(uuB800, 0, Video.bitmapbase[Video.curbitmap], 0x200 * cliprect.min_y, 0x200 * (cliprect.max_y - cliprect.min_y + 1));
             }
             pf_layer[1].wide_tmap.tilemap_draw_primask(cliprect, 0x20, 0);
-            pf_layer[1].tmap.tilemap_draw_primask(cliprect,0x20,0);
-            pf_layer[1].wide_tmap.tilemap_draw_primask(cliprect,0x10,1);
-            pf_layer[1].tmap.tilemap_draw_primask(cliprect,0x10,1);
-            pf_layer[0].wide_tmap.tilemap_draw_primask(cliprect,0x20,0);
-            pf_layer[0].tmap.tilemap_draw_primask(cliprect,0x20,0);
-            pf_layer[0].wide_tmap.tilemap_draw_primask(cliprect,0x10,1);
+            pf_layer[1].tmap.tilemap_draw_primask(cliprect, 0x20, 0);
+            pf_layer[1].wide_tmap.tilemap_draw_primask(cliprect, 0x10, 1);
+            pf_layer[1].tmap.tilemap_draw_primask(cliprect, 0x10, 1);
+            pf_layer[0].wide_tmap.tilemap_draw_primask(cliprect, 0x20, 0);
+            pf_layer[0].tmap.tilemap_draw_primask(cliprect, 0x20, 0);
+            pf_layer[0].wide_tmap.tilemap_draw_primask(cliprect, 0x10, 1);
             pf_layer[0].tmap.tilemap_draw_primask(cliprect, 0x10, 1);
             draw_sprites(cliprect);
         }
@@ -326,14 +436,14 @@ namespace mame
         {
             m92_update_scroll_positions();
             m92_screenrefresh(Video.new_clip);
-            /*if ((dsw & 0x100) != 0)
+            if ((dsw & 0x100) != 0)
             {
-                flip_screen_set(0);
+                Generic.flip_screen_set(0);
             }
             else
             {
-                flip_screen_set(1);
-            }*/
+                Generic.flip_screen_set(1);
+            }
         }
         public static void video_eof_m92()
         {

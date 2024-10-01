@@ -191,10 +191,6 @@ namespace cpu.m68000
                     break;
             }
         }
-        public override void set_input_line_and_vector(int line, LineState state, int vector)
-        {
-            Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
-        }
         public override void cpunum_set_input_line_and_vector(int cpunum, int line, LineState state, int vector)
         {
             Timer.timer_set_internal(Cpuint.cpunum_empty_event_queue, "cpunum_empty_event_queue");
@@ -232,7 +228,7 @@ namespace cpu.m68000
                 int_cycles = 0;
                 do
                 {
-                    int prevCycles = pendingCycles;                    
+                    int prevCycles = pendingCycles;
                     PPC = PC;
                     debugger_start_cpu_hook_callback();
                     op = (ushort)ReadOpWord(PC); PC += 2;
@@ -240,7 +236,7 @@ namespace cpu.m68000
                     m68ki_check_interrupts();
                     debugger_stop_cpu_hook_callback();
                     int delta = prevCycles - pendingCycles;
-                    totalExecutedCycles += (ulong)delta;                    
+                    totalExecutedCycles += (ulong)delta;
                 }
                 while (pendingCycles > 0);
                 pendingCycles -= int_cycles;

@@ -52,24 +52,17 @@ namespace mame
             writer.Write(Memory.mainram, 0, 0x4000);
             Nec.nn1[0].SaveStateBinary(writer);
             writer.Write(Memory.audioram, 0, 0x10000);
-            Z80A.z1.SaveStateBinary(writer);
+            Z80A.zz1[0].SaveStateBinary(writer);
             Cpuint.SaveStateBinary(writer);
+            Cpuint.SaveStateBinary_v(writer);
             writer.Write(Timer.global_basetime.seconds);
             writer.Write(Timer.global_basetime.attoseconds);
             Video.SaveStateBinary(writer);
             writer.Write(Sound.last_update_second);
-            for (i = 0; i < 2; i++)
-            {
-                writer.Write(Cpuexec.cpu[i].suspend);
-                writer.Write(Cpuexec.cpu[i].nextsuspend);
-                writer.Write(Cpuexec.cpu[i].eatcycles);
-                writer.Write(Cpuexec.cpu[i].nexteatcycles);
-                writer.Write(Cpuexec.cpu[i].localtime.seconds);
-                writer.Write(Cpuexec.cpu[i].localtime.attoseconds);
-            }
+            Cpuexec.SaveStateBinary(writer);
             Timer.SaveStateBinary(writer);
             YM2151.SaveStateBinary(writer);
-            writer.Write(DAC.dac1.output);
+            DAC.SaveStateBinary(writer);
             writer.Write(Sound.latched_value[0]);
             writer.Write(Sound.utempdata[0]);
             writer.Write(Sound.ym2151stream.output_sampindex);
@@ -120,24 +113,17 @@ namespace mame
             Memory.mainram = reader.ReadBytes(0x4000);
             Nec.nn1[0].LoadStateBinary(reader);
             Memory.audioram = reader.ReadBytes(0x10000);
-            Z80A.z1.LoadStateBinary(reader);
+            Z80A.zz1[0].LoadStateBinary(reader);
             Cpuint.LoadStateBinary(reader);
+            Cpuint.LoadStateBinary_v(reader);
             Timer.global_basetime.seconds = reader.ReadInt32();
             Timer.global_basetime.attoseconds = reader.ReadInt64();
-            Video.LoadStateBinary(reader);            
+            Video.LoadStateBinary(reader);        
             Sound.last_update_second = reader.ReadInt32();
-            for (i = 0; i < 2; i++)
-            {
-                Cpuexec.cpu[i].suspend = reader.ReadByte();
-                Cpuexec.cpu[i].nextsuspend = reader.ReadByte();
-                Cpuexec.cpu[i].eatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].nexteatcycles = reader.ReadByte();
-                Cpuexec.cpu[i].localtime.seconds = reader.ReadInt32();
-                Cpuexec.cpu[i].localtime.attoseconds = reader.ReadInt64();
-            }
+            Cpuexec.LoadStateBinary(reader);
             Timer.LoadStateBinary(reader);
             YM2151.LoadStateBinary(reader);
-            DAC.dac1.output = reader.ReadInt16();
+            DAC.LoadStateBinary(reader);
             Sound.latched_value[0] = reader.ReadUInt16();
             Sound.utempdata[0] = reader.ReadUInt16();
             Sound.ym2151stream.output_sampindex = reader.ReadInt32();

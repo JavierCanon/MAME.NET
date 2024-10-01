@@ -60,7 +60,7 @@ namespace ui
         {
             ApplyRom();
         }
-        private void ApplyRom()
+        public void ApplyRom()
         {
             if (listView1.SelectedItems.Count > 0)
             {
@@ -72,10 +72,7 @@ namespace ui
                 if (Machine.bRom)
                 {
                     m68000Form.iStatus = 0;
-                    m68000Form.iRAddress = 0;
-                    m68000Form.iROp = 0;
                     m68000Form.iValue = 0;
-                    z80Form.iStatus = 0;
                     Mame.exit_pending = false;
                     this._myParentForm.resetToolStripMenuItem.Enabled = true;
                     this._myParentForm.gameStripMenuItem.Enabled = true;
@@ -102,7 +99,6 @@ namespace ui
                 this.listView1.Columns[e.Column].Text = oldStr + Asc;
             }
             listView1.ListViewItemSorter = new ListViewItemComparer(e.Column, sort);
-            //this.listView1.Sort();
             int rowCount = this.listView1.Items.Count;
             if (currentCol != -1)
             {

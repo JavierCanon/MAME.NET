@@ -249,8 +249,6 @@ namespace mame
             flags = (byte)(flipyx & 3);
             palette_base = 0x400 + 0x20 * colour;
             tileflags[row, col] = tile_drawPgmbg(code * 0x400, x0, y0, palette_base, flags);
-            //tileflags[row, col] = tile_apply_bitmaskPgmtx(code << 3, x0, y0, flags);
-            //tileinfo_set( tileinfo, 0,tileno,colour,flipyx&3)
         }
         public byte tile_drawPgmbg(int pendata_offset, int x0, int y0, int palette_base, byte flags)
         {

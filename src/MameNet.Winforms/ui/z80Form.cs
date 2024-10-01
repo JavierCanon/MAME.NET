@@ -62,25 +62,25 @@ namespace ui
         public void GetData()
         {
             string sDisassemble;
-            tbAF.Text = Z80A.z1.RegisterAF.ToString("X4");
-            tbBC.Text = Z80A.z1.RegisterBC.ToString("X4");
-            tbDE.Text = Z80A.z1.RegisterDE.ToString("X4");
-            tbHL.Text = Z80A.z1.RegisterHL.ToString("X4");
-            tbShadowAF.Text = Z80A.z1.RegisterShadowAF.ToString("X4");
-            tbShadowBC.Text = Z80A.z1.RegisterShadowBC.ToString("X4");
-            tbShadowDE.Text = Z80A.z1.RegisterShadowDE.ToString("X4");
-            tbShadowHL.Text = Z80A.z1.RegisterShadowHL.ToString("X4");
-            tbI.Text = Z80A.z1.RegisterI.ToString("X2");
-            tbR.Text = Z80A.z1.RegisterR.ToString("X2");
-            tbIX.Text = Z80A.z1.RegisterIX.ToString("X4");
-            tbIY.Text = Z80A.z1.RegisterIY.ToString("X4");
-            tbSP.Text = Z80A.z1.RegisterSP.ToString("X4");
-            tbRPC.Text = Z80A.z1.RegisterPC.ToString("X4");
-            tbPPC.Text = Z80A.z1.PPC.ToString("X4");
-            tbR2.Text = Z80A.z1.RegisterR2.ToString("X2");
-            tbWZ.Text = Z80A.z1.RegisterWZ.ToString("X4");
-            tbCycles.Text = Z80A.z1.TotalExecutedCycles.ToString("X16");
-            sDisassemble = disassembler.GetDisassembleInfo(Z80A.z1.PPC);
+            tbAF.Text = Z80A.zz1[0].RegisterAF.ToString("X4");
+            tbBC.Text = Z80A.zz1[0].RegisterBC.ToString("X4");
+            tbDE.Text = Z80A.zz1[0].RegisterDE.ToString("X4");
+            tbHL.Text = Z80A.zz1[0].RegisterHL.ToString("X4");
+            tbShadowAF.Text = Z80A.zz1[0].RegisterShadowAF.ToString("X4");
+            tbShadowBC.Text = Z80A.zz1[0].RegisterShadowBC.ToString("X4");
+            tbShadowDE.Text = Z80A.zz1[0].RegisterShadowDE.ToString("X4");
+            tbShadowHL.Text = Z80A.zz1[0].RegisterShadowHL.ToString("X4");
+            tbI.Text = Z80A.zz1[0].RegisterI.ToString("X2");
+            tbR.Text = Z80A.zz1[0].RegisterR.ToString("X2");
+            tbIX.Text = Z80A.zz1[0].RegisterIX.ToString("X4");
+            tbIY.Text = Z80A.zz1[0].RegisterIY.ToString("X4");
+            tbSP.Text = Z80A.zz1[0].RegisterSP.ToString("X4");
+            tbRPC.Text = Z80A.zz1[0].RegisterPC.ToString("X4");
+            tbPPC.Text = Z80A.zz1[0].PPC.ToString("X4");
+            tbR2.Text = Z80A.zz1[0].RegisterR2.ToString("X2");
+            tbWZ.Text = Z80A.zz1[0].RegisterWZ.ToString("X4");
+            tbCycles.Text = Z80A.zz1[0].TotalExecutedCycles.ToString("X16");
+            sDisassemble = disassembler.GetDisassembleInfo(Z80A.zz1[0].PPC);
             tbDisassemble.Text = sDisassemble;
             tbResult.AppendText(sDisassemble + "\r\n");
         }
@@ -148,24 +148,24 @@ namespace ui
         }
         public void z80_start_debug()
         {
-            if (bLogNew && lPPC.IndexOf(Z80A.z1.PPC) < 0)
+            if (bLogNew && lPPC.IndexOf(Z80A.zz1[0].PPC) < 0)
             {
                 z80FState = z80State;
                 z80State = Z80AState.Z80A_STOP;
-                lPPC.Add(Z80A.z1.PPC);
-                tbResult.AppendText(Z80A.z1.PPC.ToString("X4") + ": " + disassembler.GetDisassembleInfo(Z80A.z1.PPC) + "\r\n");
+                lPPC.Add(Z80A.zz1[0].PPC);
+                tbResult.AppendText(Z80A.zz1[0].PPC.ToString("X4") + ": " + disassembler.GetDisassembleInfo(Z80A.zz1[0].PPC) + "\r\n");
                 z80State = z80FState;
             }
             if (z80State == Z80AState.Z80A_STEP2)
             {
-                if (Z80A.z1.PPC == PPCTill)
+                if (Z80A.zz1[0].PPC == PPCTill)
                 {
                     z80State = Z80AState.Z80A_STOP;
                 }
             }
             if (z80State == Z80AState.Z80A_STEP3)
             {
-                if (Z80A.z1.TotalExecutedCycles >= CyclesTill)
+                if (Z80A.zz1[0].TotalExecutedCycles >= CyclesTill)
                 {
                     z80State = Z80AState.Z80A_STOP;
                 }

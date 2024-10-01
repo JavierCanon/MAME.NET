@@ -42,6 +42,7 @@ namespace mame
             int i;
             QChip.sample_rom_length = qsoundrom.Length;
             QChip.channel = new QSOUND_CHANNEL[16];
+            //QChip.frq_ratio = 16.0;
             QChip.pan_table = new int[33];
             for (i = 0; i < 33; i++)
             {

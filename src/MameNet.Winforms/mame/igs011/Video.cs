@@ -16,11 +16,11 @@ namespace mame
         private static blitter_t blitter;
         private static void igs011_priority_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 priority = (ushort)((data << 8) | (priority & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 priority = (ushort)((priority & 0xff00) | data);
             }
@@ -92,11 +92,11 @@ namespace mame
             int layer0 = ((offset & 0x80000) != 0 ? 4 : 0) + ((offset & 2) != 0 ? 0 : 2);
             offset >>= 2;
             offset &= 0x1ffff;
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 layer[layer0][offset] = data;
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 layer[layer0 + 1][offset] = data;
             }
@@ -112,33 +112,33 @@ namespace mame
         private static void igs011_palette(int offset, byte data)
         {
             int rgb;
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
-                paletteram16[offset / 2] = (ushort)((data << 8) | (paletteram16[offset / 2]&0xff));
+                paletteram16[offset / 2] = (ushort)((data << 8) | (paletteram16[offset / 2] & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 paletteram16[offset / 2] = (ushort)((paletteram16[offset / 2] & 0xff00) | data);
             }
             rgb = (paletteram16[(offset / 2) & 0x7ff] & 0xff) | ((paletteram16[(offset / 2) | 0x800] & 0xff) << 8);
-            Palette.palette_entry_set_color((offset / 2) & 0x7ff, (uint)((Palette.pal5bit((byte)(rgb >> 0)) << 16) | (Palette.pal5bit((byte)(rgb >> 5)) << 8) | Palette.pal5bit((byte)(rgb >> 10))));
+            Palette.palette_entry_set_color1((offset / 2) & 0x7ff, (uint)((Palette.pal5bit((byte)(rgb >> 0)) << 16) | (Palette.pal5bit((byte)(rgb >> 5)) << 8) | Palette.pal5bit((byte)(rgb >> 10))));
         }
         private static void igs011_palette(int offset, ushort data)
         {
             int rgb;
             paletteram16[offset] = data;
             rgb = (paletteram16[offset & 0x7ff] & 0xff) | ((paletteram16[offset | 0x800] & 0xff) << 8);
-            Palette.palette_entry_set_color(offset & 0x7ff, (uint)((Palette.pal5bit((byte)(rgb >> 0)) << 16) | (Palette.pal5bit((byte)(rgb >> 5)) << 8) | Palette.pal5bit((byte)(rgb >> 10))));
+            Palette.palette_entry_set_color1(offset & 0x7ff, (uint)((Palette.pal5bit((byte)(rgb >> 0)) << 16) | (Palette.pal5bit((byte)(rgb >> 5)) << 8) | Palette.pal5bit((byte)(rgb >> 10))));
         }
-        private static void igs011_blit_x_w(int offset,byte data)
+        private static void igs011_blit_x_w(int offset, byte data)
         {
-            if((offset&1)==0)
+            if (offset % 2 == 0)
             {
-                blitter.x=(ushort)((data<<8)|(blitter.x&0xff));
+                blitter.x = (ushort)((data << 8) | (blitter.x & 0xff));
             }
-            else if((offset&1)==1)
+            else if (offset % 2 == 1)
             {
-                blitter.x=(ushort)((blitter.x&0xff00)|data);
+                blitter.x = (ushort)((blitter.x & 0xff00) | data);
             }
         }
         private static void igs011_blit_x_w(ushort data)
@@ -147,11 +147,11 @@ namespace mame
         }
         private static void igs011_blit_y_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.y = (ushort)((data << 8) | (blitter.y & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.y = (ushort)((blitter.y & 0xff00) | data);
             }
@@ -162,11 +162,11 @@ namespace mame
         }
         private static void igs011_blit_gfx_lo_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.gfx_lo = (ushort)((data << 8) | (blitter.gfx_lo & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.gfx_lo = (ushort)((blitter.gfx_lo & 0xff00) | data);
             }
@@ -177,11 +177,11 @@ namespace mame
         }
         private static void igs011_blit_gfx_hi_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.gfx_hi = (ushort)((data << 8) | (blitter.gfx_hi & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.gfx_hi = (ushort)((blitter.gfx_hi & 0xff00) | data);
             }
@@ -192,11 +192,11 @@ namespace mame
         }
         private static void igs011_blit_w_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.w = (ushort)((data << 8) | (blitter.w & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.w = (ushort)((blitter.w & 0xff00) | data);
             }
@@ -207,11 +207,11 @@ namespace mame
         }
         private static void igs011_blit_h_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.h = (ushort)((data << 8) | (blitter.h & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.h = (ushort)((blitter.h & 0xff00) | data);
             }
@@ -222,11 +222,11 @@ namespace mame
         }
         private static void igs011_blit_depth_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.depth = (ushort)((data << 8) | (blitter.depth & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.depth = (ushort)((blitter.depth & 0xff00) | data);
             }
@@ -237,11 +237,11 @@ namespace mame
         }
         private static void igs011_blit_pen_w(int offset, byte data)
         {
-            if ((offset & 1) == 0)
+            if (offset % 2 == 0)
             {
                 blitter.pen = (ushort)((data << 8) | (blitter.pen & 0xff));
             }
-            else if ((offset & 1) == 1)
+            else if (offset % 2 == 1)
             {
                 blitter.pen = (ushort)((blitter.pen & 0xff00) | data);
             }
@@ -269,7 +269,9 @@ namespace mame
             flipx = blitter.flags & 0x0020;
             flipy = blitter.flags & 0x0040;
             if ((blitter.flags & 0x0400) == 0)
+            {
                 return;
+            }
             pen_hi = (byte)((lhb2_pen_hi & 0x07) << 5);
             z = blitter.gfx_lo + (blitter.gfx_hi << 16);
             depth4 = !((blitter.flags & 0x7) < (4 - (blitter.depth & 0x7))) || ((z & 0x800000) != 0);
@@ -277,18 +279,26 @@ namespace mame
             if (depth4)
             {
                 z *= 2;
-                if (gfx2rom!=null && (blitter.gfx_hi & 0x80)!=0)
+                if (gfx2rom != null && (blitter.gfx_hi & 0x80) != 0)
+                {
                     trans_pen = 0x1f;
+                }
                 else
+                {
                     trans_pen = 0x0f;
+                }
                 clear_pen =(byte)(blitter.pen | 0xf0);
             }
             else
             {
-                if (gfx2rom!=null)
+                if (gfx2rom != null)
+                {
                     trans_pen = 0x1f;
+                }
                 else
+                {
                     trans_pen = 0xff;
+                }
                 clear_pen = (byte)blitter.pen;
             }
             xstart = (blitter.x & 0x1ff) - (blitter.x & 0x200);
@@ -320,30 +330,44 @@ namespace mame
                     if (clear==0)
                     {
                         if (depth4)
-                            pen =(byte)((gfx1rom[(z / 2) % gfx_size] >> (((z & 1)!=0) ? 4 : 0)) & 0x0f);
+                        {
+                            pen = (byte)((gfx1rom[(z / 2) % gfx_size] >> (((z & 1) != 0) ? 4 : 0)) & 0x0f);
+                        }
                         else
+                        {
                             pen = gfx1rom[z % gfx_size];
+                        }
                         if (gfx2rom!=null)
                         {
                             pen &= 0x0f;
-                            if ((gfx2rom[(z / 8) % gfx2_size] & (1 << (z & 7)))!=0)
+                            if ((gfx2rom[(z / 8) % gfx2_size] & (1 << (z & 7))) != 0)
+                            {
                                 pen |= 0x10;
+                            }
                         }
                     }
                     if (x >= 0 && x <= 0x1ff && y >= 0 && y <= 0xef)
                     {
-                        if (clear!=0)
+                        if (clear != 0)
+                        {
                             layer[blitter.flags & 0x0007][x + y * 512] = clear_pen;
+                        }
                         else if (pen != trans_pen)
+                        {
+                            if ((blitter.flags & 0x0007) == 0 && x == 0xa4 && y == 0x41)
+                            {
+                                int i1 = 1;
+                            }
                             layer[blitter.flags & 0x0007][x + y * 512] = (byte)(pen | pen_hi);
+                        }
                         else if (opaque != 0)
+                        {
                             layer[blitter.flags & 0x0007][x + y * 512] = 0xff;
+                        }
                     }
                     z++;
                 }
             }
         }
-
-
     }
 }

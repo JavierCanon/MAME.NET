@@ -35,6 +35,13 @@ namespace cpu.z80
                 return new RegisterPair(value);
             }
         }
+        public ushort PC
+        {
+            get
+            {
+                return RegPC.Word;
+            }
+        }
 
         private bool RegFlagC
         {

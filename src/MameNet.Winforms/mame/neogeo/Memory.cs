@@ -13,11 +13,9 @@ namespace mame
         public static short short0, short1, short2, short3, short4,short5,short6;
         public static short short0_old, short1_old, short2_old, short3_old, short4_old,short5_old,short6_old;
         public static sbyte MReadOpByte(int address)
-        {            
+        {
             address &= 0xffffff;
             sbyte result = 0;
-            m68000Form.iRAddress = address;
-            m68000Form.iROp = 0x01;
             if (address >= 0x000000 && address <= 0x00007f)
             {
                 if (main_cpu_vector_table_source == 0)
@@ -159,9 +157,14 @@ namespace mame
                 {
                     result = (sbyte)(neogeo_video_register_r((address & 0x07) >> 1) >> 8);
                 }
+                else if ((address & 0x01) == 1)
+                {
+                    int i1 = 1;
+                }
             }
             else if (address >= 0x400000 && address <= 0x7fffff)
             {
+                int i1 = 1;
                 //result = palettes[palette_bank][(address &0x1fff) >> 1];
             }
             else if (address >= 0xc00000 && address <= 0xcfffff)
@@ -195,6 +198,10 @@ namespace mame
             }
             else if (address >= 0x000080 && address + 1 <= 0x0fffff)
             {
+                if (address >= 0x142B9 && address <= 0x142C9)
+                {
+                    //m68000Form.iStatus = 1;
+                }
                 result = (short)(Memory.mainrom[address] * 0x100 + Memory.mainrom[address + 1]);
             }
             else if (address >= 0x100000 && address + 1 <= 0x1fffff)
@@ -232,10 +239,18 @@ namespace mame
             }
             else if (address >= 0x000080 && address + 1 <= 0x0fffff)
             {
+                if (address >= 0x142B9 && address <= 0x142C9)
+                {
+                    //m68000Form.iStatus = 1;
+                }
                 result = (short)(Memory.mainrom[address] * 0x100 + Memory.mainrom[address + 1]);
             }
             else if (address >= 0x100000 && address + 1 <= 0x1fffff)
             {
+                if (address == 0x101410)
+                {
+                    int i1 = 1;
+                }
                 result = (short)(Memory.mainram[address & 0xffff] * 0x100 + Memory.mainram[(address & 0xffff) + 1]);
             }
             else if (address >= 0x200000 && address <= 0x2fffff)
@@ -290,6 +305,10 @@ namespace mame
             {
                 result = (short)(mainram2[address & 0xffff] * 0x100 + mainram2[(address & 0xffff) + 1]);
             }
+            else
+            {
+                int i1 = 1;
+            }
             return result;
         }
         public static int MReadOpLong(int address)
@@ -309,6 +328,10 @@ namespace mame
             }
             else if (address >= 0x000080 && address + 3 <= 0x0fffff)
             {
+                if (address >= 0x1387a && address <= 0x1387a)
+                {
+                    //m68000Form.iStatus = 1;
+                }
                 result = Memory.mainrom[address] * 0x1000000 + Memory.mainrom[address + 1] * 0x10000 + Memory.mainrom[address + 2] * 0x100 + Memory.mainrom[address + 3];
             }
             else if (address >= 0x100000 && address + 3 <= 0x1fffff)
@@ -346,6 +369,10 @@ namespace mame
             }
             else if (address >= 0x000080 && address + 3 <= 0x0fffff)
             {
+                if (address >= 0x1387a && address <= 0x1387a)
+                {
+                    //m68000Form.iStatus = 1;
+                }
                 result = Memory.mainrom[address] * 0x1000000 + Memory.mainrom[address + 1] * 0x10000 + Memory.mainrom[address + 2] * 0x100 + Memory.mainrom[address + 3];
             }
             else if (address >= 0x100000 && address + 3 <= 0x1fffff)
@@ -374,6 +401,7 @@ namespace mame
             }
             else if (address >= 0x3c0000 && address + 3 <= 0x3dffff)
             {
+                int i1 = 1;
                 //result =neogeo_video_register_r((address &0x07) >> 1, mem_mask);
             }
             else if (address >= 0x400000 && address + 3 <= 0x7fffff)
@@ -388,13 +416,25 @@ namespace mame
             {
                 result = mainram2[address & 0xffff] * 0x1000000 + mainram2[(address & 0xffff) + 1] * 0x10000 + mainram2[(address & 0xffff) + 2] * 0x100 + mainram2[(address & 0xffff) + 3];
             }
+            else
+            {
+                int i1 = 1;
+            }
             return result;
         }
         public static void MWriteByte(int address, sbyte value)
         {
             address &= 0xffffff;
+            m68000Form.iWAddress = address;
+            m68000Form.iWOp = 0x01;
             if (address >= 0x100000 && address <= 0x1fffff)
             {
+                if (address == 0x100d0b&&value==0x06)//&&MC68000.m1.TotalExecutedCycles>0x3F6FC8C)
+                {
+                    ulong l1 = MC68000.m1.TotalExecutedCycles;
+                    int i2 = 1;
+                    //m68000Form.iStatus = 1;
+                }
                 Memory.mainram[address & 0xffff] = (byte)value;
             }
             else if (address >= 0x2ffff0 && address <= 0x2fffff)
@@ -405,7 +445,7 @@ namespace mame
             {
                 if ((address & 0x01) == 0)
                 {
-                    
+                    int i1 = 1;
                 }
                 else if ((address & 0x01) == 1)
                 {
@@ -420,7 +460,7 @@ namespace mame
                 }
                 else if ((address & 0x01) == 1)
                 {
-                    
+                    int i1 = 1;
                 }
             }
             else if (address >= 0x380000 && address <= 0x39ffff)
@@ -442,23 +482,34 @@ namespace mame
                 }
                 else if ((address & 0x01) == 1)
                 {
-                    
+                    int i1 = 1;
                 }
             }
             else if (address >= 0x400000 && address <= 0x7fffff)
             {
+                int i1 = 1;
                 //neogeo_paletteram_w((address - 0x400000) >> 1, data, mem_mask);
             }
             else if (address >= 0xd00000 && address <= 0xdfffff)
             {
                 save_ram_w(address & 0xffff, (byte)value);
             }
+            else
+            {
+                int i1 = 1;
+            }
         }
         public static void MWriteWord(int address, short value)
         {
             address &= 0xffffff;
+            m68000Form.iWAddress = address;
+            m68000Form.iWOp = 0x02;
             if (address >= 0x100000 && address + 1 <= 0x1fffff)
             {
+                if (address == 0x1007c4 && value == unchecked((short)0xb102))
+                {
+                    int i1 = 1;
+                }
                 Memory.mainram[address & 0xffff] = (byte)(value >> 8);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)value;
             }
@@ -468,6 +519,7 @@ namespace mame
             }
             else if (address >= 0x300000 && address <= 0x31ffff)
             {
+                int i1 = 1;
                 //watchdog_w();
             }
             else if (address >= 0x320000 && address <= 0x33ffff)
@@ -495,12 +547,22 @@ namespace mame
                 save_ram_w(address & 0xffff, (byte)(value >> 8));
                 save_ram_w((address & 0xffff) + 1, (byte)value);
             }
+            else
+            {
+                int i1 = 1;
+            }
         }
         public static void MWriteLong(int address, int value)
         {
             address &= 0xffffff;
+            m68000Form.iWAddress = address;
+            m68000Form.iWOp = 0x03;
             if (address >= 0x100000 && address + 3 <= 0x1fffff)
             {
+                if (address == 0x1051e4 && value == 0x00130070)
+                {
+                    int i1 = 1;
+                }
                 Memory.mainram[address & 0xffff] = (byte)(value >> 24);
                 Memory.mainram[(address & 0xffff) + 1] = (byte)(value >> 16);
                 Memory.mainram[(address & 0xffff) + 2] = (byte)(value >> 8);
@@ -512,19 +574,23 @@ namespace mame
             }
             else if (address >= 0x300000 && address <= 0x31ffff)
             {
+                int i1 = 1;
                 //watchdog_w();
             }
             else if (address >= 0x320000 && address <= 0x33ffff)
             {
+                int i1 = 1;
                 //audio_command_w
             }
             else if (address >= 0x380000 && address <= 0x39ffff)
             {
+                int i1 = 1;
                 //io_control_w((address & 0x7f) >> 1, value);
             }
             else if (address >= 0x3a0000 && address <= 0x3bffff)
             {
                 //system_control_w((address &0x1f) >> 1, mem_mask);
+                int i1 = 1;
             }
             else if (address >= 0x3c0000 && address + 3 <= 0x3dffff)
             {
@@ -542,6 +608,10 @@ namespace mame
                 save_ram_w((address & 0xffff) + 1, (byte)(value >> 16));
                 save_ram_w((address & 0xffff) + 2, (byte)(value >> 8));
                 save_ram_w((address & 0xffff) + 3, (byte)value);
+            }
+            else
+            {
+                int i1 = 1;
             }
         }        
         public static sbyte MReadByte_fatfury2(int address)
@@ -749,7 +819,7 @@ namespace mame
             address &= 0xffffff;
             if (address >= 0x2ffff0 && address <= 0x2ffff1)
             {
-                
+                int i1 = 1;
             }
             else
             {
@@ -851,7 +921,7 @@ namespace mame
             address &= 0xffffff;
             if (address >= 0x2fffc0 && address <= 0x2fffc1)
             {
-                
+                int i1 = 1;
             }
             else
             {
@@ -886,7 +956,7 @@ namespace mame
             address &= 0xffffff;
             if (address >= 0x2fffc0 && address <= 0x2fffc1)
             {
-                
+                int i1 = 1;
             }
             else
             {
@@ -964,7 +1034,7 @@ namespace mame
             address &= 0xffffff;
             if (address >= 0x2fffe4 && address <= 0x2fffe5)
             {
-                
+                int i1 = 1;
             }
             else
             {
@@ -1653,7 +1723,7 @@ namespace mame
             address &= 0xffffff;
             if (address >= 0x200000 && address + 3 <= 0x23ffff)
             {
-                
+                int i1 = 1;
             }
             else if (address >= 0x240000 && address + 3 <= 0x2fffff)
             {
@@ -1978,7 +2048,7 @@ namespace mame
             }
             else
             {
-                
+                int i1 = 1;
             }
         }
         public static byte ZReadHardware(ushort address)
@@ -1993,7 +2063,7 @@ namespace mame
             }
             else if (add1 >= 0x04 && add1 <= 0x07)
             {
-                result = FM.ym2610_read(add1 - 0x04);
+                result = YM2610.F2610.ym2610_read(add1 - 0x04);
             }
             else if (add1 >= 0x08 && add1 <= 0xfb)
             {
@@ -2010,7 +2080,7 @@ namespace mame
             }
             else
             {
-                
+                int i1 = 1;
             }
             return result;
         }
@@ -2024,23 +2094,23 @@ namespace mame
             }
             else if (add1 >= 0x04 && add1 <= 0x07)
             {
-                FM.ym2610_write(add1 - 0x04, value);
+                YM2610.F2610.ym2610_write(add1 - 0x04, value);
             }
             else if (add1 == 0x08)
             {
-                Neogeo.audio_cpu_enable_nmi_w(0);
+                audio_cpu_enable_nmi_w(0);
             }
             else if (add1 == 0x0c)
             {
-                Neogeo.audio_result_w(value);
+                audio_result_w(value);
             }
             else if (add1 == 0x18)
             {
-                Neogeo.audio_cpu_enable_nmi_w(0x10);
+                audio_cpu_enable_nmi_w(0x10);
             }
             else
             {
-                
+                int i1 = 1;
             }
         }
         public static int ZIRQCallback()
