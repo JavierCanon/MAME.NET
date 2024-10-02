@@ -11,6 +11,80 @@ MAME (Multiple Arcade Machine Emulator) is a free and open source emulator desig
 
 MAME.NET runs at following steps: load the ROMs, initialize the machine, soft reset the machine, and loop "cpuexec_timeslice" operation. The "cpuexec_timeslice" operation means sequentially execute every CPU for a time slice, and execute timer callbacks. Timer callbacks contains: video update, soft reset, CPU interrupt, sound update, watchdog reset and other interrupts. By these steps, MAME.NET emulates the arcade board successfully. MAME.NET has more functions: save and load state, record and replay input, cheat, cheat search, IPS (patch main ROM), board debugger, CPU debugger.
 
+### Project History
+- 1st February, 2019: Finished MAME.NET, supports 792 games (build 20190201)
+- 4th June, 2019: Added M72 and M92 boards, supports 826 games (build 20190604)
+- 19th May, 2020: Added Taito B board, supports 830 games (build 20200519)
+- 3rd December, 2020: Added Konami 68000 board, supports 882 games (build 20201203)
+- 16th June, 2021: Added Capcom board, supports 888 games (build 20210616)
+- 5th August, 2021: Supports 890 games (build 20210805)
+- 27th February, 2022: Added rom hacking: Warriors of Fate, Kassar Sits Continuously
+- 8th February, 2023: Added Taido board, supports 912 games (build 20230208)
+- 24th April, 2023: Added mouse support, supports 918 games (build 20230424)
+- 14th August, 2023: Added 11 Capcom games, supports 929 games (build 20230814)
+- 19th February, 2024: Added 5 Tehkan games, supports 934 games (build 20240219)
+- 20th June, 2024, Added 6 Data East games, support 940 games (build 20240620)
+
+### Requirements
+
+- You should install Microsoft .NET Framework 4.8 or higher before running the program.
+- You should download MAME.NET ROM files in roms directory.
+- For development you need DirectX and Visual Studio 2022. 
+
+### Screenshots
+
+![sh01](docs/img/sh01.png) ![sh02](docs/img/sh02.png) ![sh04](docs/img/sh04.png)
+
+### Hotkey: 
+
+- F3 -- soft reset,
+- F7 -- load state,
+- Shift+F7 -- save state,
+- F8 -- replay input,
+- Shift+F8 -- record input (start and stop),
+- 0-9 and A-Z after state related hotkey -- handle certain files,
+- F10 -- toggle global throttle,
+- P -- pause and continue,
+- shift+P -- skip a frame.
+
+### Control key:
+
+- 1 -- P1 start,
+- 2 -- P2 start,
+- 5 -- P1 coin,
+- 6 -- P2 coin,
+- R -- Service 1,
+- T -- Service,
+- W -- P1 up,
+- S -- P1 down,
+- A -- P1 left,
+- D -- P1 right,
+- J -- P1 button1,
+- K -- P1 button 2,
+- L -- P1 button 3,
+- U -- P1 button 4,
+- I -- P1 button 5,
+- O -- P1 button 6,
+- Up -- P2 up,
+- Down -- P2 down,
+- Left -- P2 left,
+- Right -- P2 right,
+- NumPad1 -- P2 button 1,
+- NumPad2 -- P2 button 2,
+- NumPad3 -- P2 button 3,
+- NumPad4 -- P2 button 4,
+- NumPad5 -- P2 button 5,
+- NumPad6 -- P2 button 6.
+
+When the ROMs of a game are loaded, the emulator is auto paused. Press P to continue.
+
+*Occasionally GDI+ error occurs and a red cross is shown. You can click "File-Reset picturebox" to handle the error.
+
+## ROM Files
+
+- MAME.NET ROM files: https://pan.baidu.com/s/14bR2wEzU2Qqx5hM7hJXMZA
+- https://www.mamedev.org/roms/
+
 
 ## Contents
 
@@ -125,66 +199,13 @@ Since March 2016 with version 0.172, MAME itself switched to common free and ope
 - [37] "MAME is now Free and Open Source Software". MAMEDEV.org.
 
 ## External links
+
 - https://github.com/mamedev/mame based simulator.
 - https://www.mamedev.org/ 
 - Official website http://www.mameworld.info/ MAMEworld MAME resource and news site
-- http://adb.arcadeitalia.net/ Arcade Database Database containing details of any game supported by Mame, including past versions. There are images, videos, programs for downloading extra files, advanced searches, graphics and many other resources.
-
-Detail: https://www.codeproject.com/Articles/1275365/MAME-NET
-
-You should install Microsoft .NET Framework 3.5 or higher before running the program. You should download MAME.NET ROM files in roms directory.
-
-### Screenshots
-
-![sh01](docs/img/sh01.png) ![sh02](docs/img/sh02.png) ![sh04](docs/img/sh04.png)
-
-### Hotkey: 
-
-- F3 -- soft reset,
-- F7 -- load state,
-- Shift+F7 -- save state,
-- F8 -- replay input,
-- Shift+F8 -- record input (start and stop),
-- 0-9 and A-Z after state related hotkey -- handle certain files,
-- F10 -- toggle global throttle,
-- P -- pause and continue,
-- shift+P -- skip a frame.
-
-### Control key:
-
-- 1 -- P1 start,
-- 2 -- P2 start,
-- 5 -- P1 coin,
-- 6 -- P2 coin,
-- R -- Service 1,
-- T -- Service,
-- W -- P1 up,
-- S -- P1 down,
-- A -- P1 left,
-- D -- P1 right,
-- J -- P1 button1,
-- K -- P1 button 2,
-- L -- P1 button 3,
-- U -- P1 button 4,
-- I -- P1 button 5,
-- O -- P1 button 6,
-- Up -- P2 up,
-- Down -- P2 down,
-- Left -- P2 left,
-- Right -- P2 right,
-- NumPad1 -- P2 button 1,
-- NumPad2 -- P2 button 2,
-- NumPad3 -- P2 button 3,
-- NumPad4 -- P2 button 4,
-- NumPad5 -- P2 button 5,
-- NumPad6 -- P2 button 6.
-
-When the ROMs of a game are loaded, the emulator is auto paused. Press P to continue.
-
-*Occasionally GDI+ error occurs and a red cross is shown. You can click "File-Reset picturebox" to handle the error.
-
-MAME.NET ROM files: https://pan.baidu.com/s/14bR2wEzU2Qqx5hM7hJXMZA
-
+- http://adb.arcadeitalia.net/ Arcade Database Database containing details of any game supported by Mame, including past versions. 
+There are images, videos, programs for downloading extra files, advanced searches, graphics and many other resources.
+- More details: https://www.codeproject.com/Articles/1275365/MAME-NET
 
 ## Authors
 - Original author: shunninghuang https://www.codeproject.com/Articles/1275365/MAME-NET 
